@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDemoAuth } from "@/components/demo-auth";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 
 type AppDef = {
   id: string;
@@ -407,6 +408,7 @@ export default function AppsPage() {
           <strong>Applications</strong>
         </div>
         <a href="/">Command centre →</a>
+        <WhatsAppShare />
         <button className="suite-account" onClick={logout} title="Sign out">
           <span>{session.name}</span>
           <LogOut size={15} />

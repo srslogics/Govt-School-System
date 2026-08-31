@@ -19,6 +19,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { WhatsAppShare } from "@/components/whatsapp-share";
 
 export type DemoSession = {
   userId: string;
@@ -223,8 +224,11 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
 
         <div className="auth-panel">
           <div className="auth-panel-head">
-            <span>SECURE ACCESS</span>
-            <h2>Sign in</h2>
+            <div>
+              <span>SECURE ACCESS</span>
+              <h2>Sign in</h2>
+            </div>
+            <WhatsAppShare label />
           </div>
 
           <form onSubmit={submit}>
