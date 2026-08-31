@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
-  CircleAlert,
   ClipboardCheck,
   Database,
   Download,
@@ -15,6 +14,7 @@ import {
   HeartPulse,
   IndianRupee,
   Landmark,
+  LogOut,
   MapPinned,
   Menu,
   MessageSquareWarning,
@@ -29,6 +29,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useDemoAuth } from "@/components/demo-auth";
 
 type Issue = {
   id: string;
@@ -387,6 +388,7 @@ function detailOfIssue(x: Issue): Detail {
 }
 
 export default function Home() {
+  const { session, logout } = useDemoAuth();
   const [active, setActive] = useState("District overview");
   const [lang, setLang] = useState<"EN" | "मराठी">("EN");
   const [menu, setMenu] = useState(false);
@@ -445,9 +447,12 @@ export default function Home() {
             <b>3</b>
           </button>
           <div className="officer">
-            <span>District Administrator</span>
-            <small>Authorised access</small>
+            <span>{session.name}</span>
+            <small>{session.office}</small>
           </div>
+          <button className="logout-button" onClick={logout} aria-label="Sign out">
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
       <div className="system-bar">

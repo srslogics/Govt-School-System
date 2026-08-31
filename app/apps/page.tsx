@@ -2,27 +2,23 @@
 
 import {
   Bell,
-  Building2,
   Check,
   ChevronDown,
   ClipboardCheck,
   Database,
-  FileText,
   GraduationCap,
-  Home,
   Landmark,
+  LogOut,
   Menu,
-  MessageSquare,
   Network,
   School,
   Search,
-  Send,
-  ShieldCheck,
   UserRound,
   Users,
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useDemoAuth } from "@/components/demo-auth";
 
 type AppDef = {
   id: string;
@@ -359,8 +355,12 @@ const apps: AppDef[] = [
 ];
 
 export default function AppsPage() {
-  const [selected, setSelected] = useState(apps[0]);
-  const [role, setRole] = useState(apps[0].roles[0]);
+  const { session, logout } = useDemoAuth();
+  const sessionApp = apps.find((app) => app.id === session.app) || apps[0];
+  const [selected, setSelected] = useState(sessionApp);
+  const [role, setRole] = useState(
+    sessionApp.roles.includes(session.role) ? session.role : sessionApp.roles[0],
+  );
   const [q, setQ] = useState("");
   const [nav, setNav] = useState(apps[0].nav[0]);
   const [task, setTask] = useState<string[] | null>(null);
@@ -407,6 +407,10 @@ export default function AppsPage() {
           <strong>Applications</strong>
         </div>
         <a href="/">Command centre →</a>
+        <button className="suite-account" onClick={logout} title="Sign out">
+          <span>{session.name}</span>
+          <LogOut size={15} />
+        </button>
       </header>
       <div className="suite-body">
         <aside className={mobile ? "suite-launcher open" : "suite-launcher"}>
