@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDemoAuth } from "@/components/demo-auth";
-import { WhatsAppShare } from "@/components/whatsapp-share";
 
 type Issue = {
   id: string;
@@ -451,7 +450,6 @@ export default function Home() {
             <span>{session.name}</span>
             <small>{session.office}</small>
           </div>
-          <WhatsAppShare />
           <button className="logout-button" onClick={logout} aria-label="Sign out">
             <LogOut size={16} />
           </button>
