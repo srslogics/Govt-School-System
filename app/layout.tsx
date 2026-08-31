@@ -4,7 +4,7 @@ import { DemoAuthGate } from '@/components/demo-auth';
 import './globals.css';
 
 const siteUrl = 'https://govt-school-system.onrender.com/';
-const previewImage = `${siteUrl}og.png?v=2`;
+const previewImage = `${siteUrl}og.png?v=3`;
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'Shikshan Setu',
     type: 'website',
-    images: [{ url: previewImage, secureUrl: previewImage, type: 'image/png', width: 1792, height: 1024, alt: 'Shikshan Setu — Nagpur School Command Centre' }],
+    images: [{ url: previewImage, secureUrl: previewImage, type: 'image/png', width: 1731, height: 909, alt: 'Shikshan Setu — Nagpur School Command Centre' }],
   },
   twitter: {
     card: 'summary_large_image',
