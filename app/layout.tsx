@@ -2,8 +2,14 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { DemoAuthGate } from '@/components/demo-auth';
 import './globals.css';
+import { SchoolRecordsProvider } from '@/components/school-records';
 
-const siteUrl = 'https://govt-school-system.onrender.com/';
+const siteUrl =
+  new URL(
+    process.env.SITE_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      'https://govt-school-system.onrender.com/',
+  ).origin + '/';
 const previewImage = `${siteUrl}og.png?v=3`;
 
 const geistSans = Geist({
@@ -19,20 +25,32 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'Shikshan Setu | Nagpur School Command Centre',
-  description: 'A unified governance and decision platform for every government school in Nagpur district.',
+  description:
+    'A unified governance and decision platform for every government school in Nagpur district.',
   alternates: { canonical: siteUrl },
   openGraph: {
     title: 'Shikshan Setu | Nagpur School Command Centre',
-    description: 'One governance and decision platform for every government school in Nagpur.',
+    description:
+      'One governance and decision platform for every government school in Nagpur.',
     url: siteUrl,
     siteName: 'Shikshan Setu',
     type: 'website',
-    images: [{ url: previewImage, secureUrl: previewImage, type: 'image/png', width: 1731, height: 909, alt: 'Shikshan Setu — Nagpur School Command Centre' }],
+    images: [
+      {
+        url: previewImage,
+        secureUrl: previewImage,
+        type: 'image/png',
+        width: 1731,
+        height: 909,
+        alt: 'Shikshan Setu — Nagpur School Command Centre',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Shikshan Setu | Nagpur School Command Centre',
-    description: 'One governance and decision platform for every government school in Nagpur.',
+    description:
+      'One governance and decision platform for every government school in Nagpur.',
     images: [previewImage],
   },
 };
@@ -47,7 +65,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <DemoAuthGate>{children}</DemoAuthGate>
+        <DemoAuthGate>
+          <SchoolRecordsProvider>{children}</SchoolRecordsProvider>
+        </DemoAuthGate>
       </body>
     </html>
   );

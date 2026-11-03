@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Bell,
@@ -23,13 +23,17 @@ import {
   RefreshCw,
   Search,
   School,
-  Send,
   ShieldCheck,
   Users,
   X,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import { useDemoAuth } from "@/components/demo-auth";
+} from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { useDemoAuth } from '@/components/demo-auth';
+import { useSchoolRecords } from '@/components/school-records';
+import { WorkflowDesk } from '@/components/workflow-desk';
+import { AccessibleDialog } from '@/components/accessible-dialog';
+import { moduleAccess, scopeText } from '@/lib/demo-access';
 
 type Issue = {
   id: string;
@@ -37,7 +41,7 @@ type Issue = {
   school: string;
   authority: string;
   pending: string;
-  priority: "Immediate" | "This week" | "Routine";
+  priority: 'Immediate' | 'This week' | 'Routine';
   stage: string;
 };
 type Detail = {
@@ -62,272 +66,272 @@ type SchoolRow = {
 
 const issues: Issue[] = [
   {
-    id: "EO/EST/2026/0418",
-    subject: "Approval against vacant graduate teacher post",
-    school: "Z.P. Upper Primary School, Parseoni",
-    authority: "Zilla Parishad",
-    pending: "6 days",
-    priority: "Immediate",
-    stage: "Education Officer",
+    id: 'EO/EST/2026/0418',
+    subject: 'Approval against vacant graduate teacher post',
+    school: 'Z.P. Upper Primary School, Parseoni',
+    authority: 'Zilla Parishad',
+    pending: '6 days',
+    priority: 'Immediate',
+    stage: 'Education Officer',
   },
   {
-    id: "NMC/EDU/2026/1192",
-    subject: "Structural repair estimate — Block B",
-    school: "NMC Hindi High School, Zone 8",
-    authority: "NMC",
-    pending: "4 days",
-    priority: "Immediate",
-    stage: "Municipal Commissioner",
+    id: 'NMC/EDU/2026/1192',
+    subject: 'Structural repair estimate — Block B',
+    school: 'NMC Hindi High School, Zone 8',
+    authority: 'NMC',
+    pending: '4 days',
+    priority: 'Immediate',
+    stage: 'Municipal Commissioner',
   },
   {
-    id: "BEO/HIN/2026/0834",
-    subject: "Attendance below 75% for three consecutive weeks",
-    school: "Z.P. Primary School, Wanadongri",
-    authority: "Hingna Block",
-    pending: "2 days",
-    priority: "This week",
-    stage: "Block Education Officer",
+    id: 'BEO/HIN/2026/0834',
+    subject: 'Attendance below 75% for three consecutive weeks',
+    school: 'Z.P. Primary School, Wanadongri',
+    authority: 'Hingna Block',
+    pending: '2 days',
+    priority: 'This week',
+    stage: 'Block Education Officer',
   },
   {
-    id: "EO/POS/2026/0261",
-    subject: "PM POSHAN grain reconciliation variance",
-    school: "12 schools, Kamptee Block",
-    authority: "Zilla Parishad",
-    pending: "8 days",
-    priority: "This week",
-    stage: "Deputy Education Officer",
+    id: 'EO/POS/2026/0261',
+    subject: 'PM POSHAN grain reconciliation variance',
+    school: '12 schools, Kamptee Block',
+    authority: 'Zilla Parishad',
+    pending: '8 days',
+    priority: 'This week',
+    stage: 'Deputy Education Officer',
   },
   {
-    id: "NMC/INS/2026/0620",
-    subject: "Annual fire-safety inspection report",
-    school: "NMC Marathi School, Mahal",
-    authority: "NMC",
-    pending: "1 day",
-    priority: "Routine",
-    stage: "Zone Inspector",
+    id: 'NMC/INS/2026/0620',
+    subject: 'Annual fire-safety inspection report',
+    school: 'NMC Marathi School, Mahal',
+    authority: 'NMC',
+    pending: '1 day',
+    priority: 'Routine',
+    stage: 'Zone Inspector',
   },
 ];
 const schools: SchoolRow[] = [
   {
-    udise: "27091500101",
-    name: "NMC Marathi Primary School, Mahal",
-    authority: "NMC / Zone 6",
-    level: "Primary",
-    students: "486",
-    attendance: "97.4%",
-    status: "Verified",
-    head: "Smt. N. Wankhede",
-    phone: "0712-276 1048",
+    udise: '27091500101',
+    name: 'NMC Marathi Primary School, Mahal',
+    authority: 'NMC / Zone 6',
+    level: 'Primary',
+    students: '486',
+    attendance: '97.4%',
+    status: 'Verified',
+    head: 'Smt. N. Wankhede',
+    phone: '0712-276 1048',
   },
   {
-    udise: "27090407201",
-    name: "Z.P. Primary School, Hingna",
-    authority: "Zilla Parishad / Hingna",
-    level: "Primary",
-    students: "218",
-    attendance: "89.1%",
-    status: "Review",
-    head: "Shri R. Uikey",
-    phone: "07104-236 118",
+    udise: '27090407201',
+    name: 'Z.P. Primary School, Hingna',
+    authority: 'Zilla Parishad / Hingna',
+    level: 'Primary',
+    students: '218',
+    attendance: '89.1%',
+    status: 'Review',
+    head: 'Shri R. Uikey',
+    phone: '07104-236 118',
   },
   {
-    udise: "27091304302",
-    name: "NMC Hindi High School, Mominpura",
-    authority: "NMC / Zone 8",
-    level: "Secondary",
-    students: "742",
-    attendance: "94.8%",
-    status: "Verified",
-    head: "Smt. S. Khan",
-    phone: "0712-272 0942",
+    udise: '27091304302',
+    name: 'NMC Hindi High School, Mominpura',
+    authority: 'NMC / Zone 8',
+    level: 'Secondary',
+    students: '742',
+    attendance: '94.8%',
+    status: 'Verified',
+    head: 'Smt. S. Khan',
+    phone: '0712-272 0942',
   },
   {
-    udise: "27090601801",
-    name: "Z.P. Upper Primary School, Parseoni",
-    authority: "Zilla Parishad / Parseoni",
-    level: "Upper Primary",
-    students: "361",
-    attendance: "78.6%",
-    status: "Action due",
-    head: "Shri V. Meshram",
-    phone: "07102-225 106",
+    udise: '27090601801',
+    name: 'Z.P. Upper Primary School, Parseoni',
+    authority: 'Zilla Parishad / Parseoni',
+    level: 'Upper Primary',
+    students: '361',
+    attendance: '78.6%',
+    status: 'Action due',
+    head: 'Shri V. Meshram',
+    phone: '07102-225 106',
   },
   {
-    udise: "27090802901",
-    name: "Municipal School, Kamptee",
-    authority: "Municipal Council",
-    level: "Composite",
-    students: "529",
-    attendance: "92.3%",
-    status: "Verified",
-    head: "Smt. P. Borkar",
-    phone: "07109-288 207",
+    udise: '27090802901',
+    name: 'Municipal School, Kamptee',
+    authority: 'Municipal Council',
+    level: 'Composite',
+    students: '529',
+    attendance: '92.3%',
+    status: 'Verified',
+    head: 'Smt. P. Borkar',
+    phone: '07109-288 207',
   },
   {
-    udise: "27091001504",
-    name: "Government High School, Umred",
-    authority: "State Government",
-    level: "Secondary",
-    students: "604",
-    attendance: "95.7%",
-    status: "Verified",
-    head: "Shri S. Gajbhiye",
-    phone: "07116-242 089",
+    udise: '27091001504',
+    name: 'Government High School, Umred',
+    authority: 'State Government',
+    level: 'Secondary',
+    students: '604',
+    attendance: '95.7%',
+    status: 'Verified',
+    head: 'Shri S. Gajbhiye',
+    phone: '07116-242 089',
   },
 ];
 const staff = [
   [
-    "EST/ZP/2026/118",
-    "Graduate Teacher — Mathematics",
-    "Z.P. High School, Ramtek",
-    "1",
-    "Vacant 94 days",
-    "Proposal due",
+    'EST/ZP/2026/118',
+    'Graduate Teacher — Mathematics',
+    'Z.P. High School, Ramtek',
+    '1',
+    'Vacant 94 days',
+    'Proposal due',
   ],
   [
-    "EST/NMC/2026/207",
-    "Assistant Teacher — Marathi",
-    "NMC Primary School, Zone 3",
-    "2",
-    "Vacant 38 days",
-    "Under review",
+    'EST/NMC/2026/207',
+    'Assistant Teacher — Marathi',
+    'NMC Primary School, Zone 3',
+    '2',
+    'Vacant 38 days',
+    'Under review',
   ],
   [
-    "EST/ZP/2026/144",
-    "Headmaster",
-    "Z.P. Upper Primary School, Kuhi",
-    "1",
-    "Acting charge",
-    "Priority",
+    'EST/ZP/2026/144',
+    'Headmaster',
+    'Z.P. Upper Primary School, Kuhi',
+    '1',
+    'Acting charge',
+    'Priority',
   ],
   [
-    "EST/MC/2026/039",
-    "Science Teacher",
-    "Municipal High School, Katol",
-    "1",
-    "Vacant 21 days",
-    "Advertised",
+    'EST/MC/2026/039',
+    'Science Teacher',
+    'Municipal High School, Katol',
+    '1',
+    'Vacant 21 days',
+    'Advertised',
   ],
   [
-    "EST/ZP/2026/166",
-    "Special Educator",
-    "Schools in Saoner Block",
-    "3",
-    "New sanction",
-    "Roster check",
+    'EST/ZP/2026/166',
+    'Special Educator',
+    'Schools in Saoner Block',
+    '3',
+    'New sanction',
+    'Roster check',
   ],
 ];
 const inspections = [
   [
-    "INS/2026/0841",
-    "Z.P. Primary School, Wanadongri",
-    "Hingna",
-    "Comprehensive",
-    "04 Sep 2026",
-    "Scheduled",
-    "BEO Hingna",
+    'INS/2026/0841',
+    'Z.P. Primary School, Wanadongri',
+    'Hingna',
+    'Comprehensive',
+    '04 Sep 2026',
+    'Scheduled',
+    'BEO Hingna',
   ],
   [
-    "INS/2026/0818",
-    "NMC Hindi High School, Zone 8",
-    "NMC Zone 8",
-    "Safety",
-    "31 Aug 2026",
-    "Overdue",
-    "Zone Inspector 8",
+    'INS/2026/0818',
+    'NMC Hindi High School, Zone 8',
+    'NMC Zone 8',
+    'Safety',
+    '31 Aug 2026',
+    'Overdue',
+    'Zone Inspector 8',
   ],
   [
-    "INS/2026/0796",
-    "Z.P. School, Mouda",
-    "Mouda",
-    "Academic",
-    "29 Aug 2026",
-    "Submitted",
-    "Cluster Head 14",
+    'INS/2026/0796',
+    'Z.P. School, Mouda',
+    'Mouda',
+    'Academic',
+    '29 Aug 2026',
+    'Submitted',
+    'Cluster Head 14',
   ],
   [
-    "INS/2026/0764",
-    "Municipal School, Kamptee",
-    "Municipal Council",
-    "Infrastructure",
-    "25 Aug 2026",
-    "Correction due",
-    "Chief Officer",
+    'INS/2026/0764',
+    'Municipal School, Kamptee',
+    'Municipal Council',
+    'Infrastructure',
+    '25 Aug 2026',
+    'Correction due',
+    'Chief Officer',
   ],
   [
-    "INS/2026/0852",
-    "Government High School, Umred",
-    "State Govt.",
-    "Safety",
-    "08 Sep 2026",
-    "Scheduled",
-    "District Inspector",
+    'INS/2026/0852',
+    'Government High School, Umred',
+    'State Govt.',
+    'Safety',
+    '08 Sep 2026',
+    'Scheduled',
+    'District Inspector',
   ],
 ];
 const works = [
   [
-    "CW/2026/119",
-    "Additional classroom construction",
-    "Z.P. School, Parseoni",
-    "₹24.80 lakh",
-    "Technical sanction",
-    "EE, Zilla Parishad",
+    'CW/2026/119',
+    'Additional classroom construction',
+    'Z.P. School, Parseoni',
+    '₹24.80 lakh',
+    'Technical sanction',
+    'EE, Zilla Parishad',
   ],
   [
-    "NMC/EDU/88",
-    "Roof and electrical repairs",
-    "NMC High School, Zone 7",
-    "₹18.40 lakh",
-    "Administrative approval",
-    "Municipal Commissioner",
+    'NMC/EDU/88',
+    'Roof and electrical repairs',
+    'NMC High School, Zone 7',
+    '₹18.40 lakh',
+    'Administrative approval',
+    'Municipal Commissioner',
   ],
   [
-    "GR/2026/204",
-    "Girls toilet rehabilitation",
-    "14 schools, Ramtek Block",
-    "₹31.20 lakh",
-    "Fund released",
-    "BEO Ramtek",
+    'GR/2026/204',
+    'Girls toilet rehabilitation',
+    '14 schools, Ramtek Block',
+    '₹31.20 lakh',
+    'Fund released',
+    'BEO Ramtek',
   ],
   [
-    "ASSET/2026/61",
-    "ICT laboratory equipment",
-    "Municipal School, Kamptee",
-    "₹9.75 lakh",
-    "Procurement",
-    "Chief Officer",
+    'ASSET/2026/61',
+    'ICT laboratory equipment',
+    'Municipal School, Kamptee',
+    '₹9.75 lakh',
+    'Procurement',
+    'Chief Officer',
   ],
   [
-    "CW/2026/137",
-    "Drinking water system",
-    "8 schools, Kuhi Block",
-    "₹12.60 lakh",
-    "Estimate returned",
-    "Deputy Engineer",
+    'CW/2026/137',
+    'Drinking water system',
+    '8 schools, Kuhi Block',
+    '₹12.60 lakh',
+    'Estimate returned',
+    'Deputy Engineer',
   ],
 ];
 const nav = [
-  "District overview",
-  "Executive review",
-  "District risk map",
-  "Student early warning",
-  "Grievance escalation",
-  "Schemes & entitlements",
-  "Infrastructure & safety",
-  "School register",
-  "Officer hierarchy",
-  "Staff position",
-  "Inspection register",
-  "Grants & works",
-  "Data governance & audit",
+  'District overview',
+  'Executive review',
+  'District risk map',
+  'Student early warning',
+  'Grievance escalation',
+  'Schemes & entitlements',
+  'Infrastructure & safety',
+  'School register',
+  'Officer hierarchy',
+  'Staff position',
+  'Inspection register',
+  'Grants & works',
+  'Data governance & audit',
 ];
 
 function exportCsv(name: string, headers: string[], rows: string[][]) {
   const csv = [headers, ...rows]
-    .map((r) => r.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","))
-    .join("\n");
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    .map((r) => r.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(','))
+    .join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
@@ -347,7 +351,7 @@ function Stat({
     <div className="stat">
       <span>{label}</span>
       <strong>{value}</strong>
-      <small className={warning ? "warn" : ""}>{note}</small>
+      <small className={warning ? 'warn' : ''}>{note}</small>
     </div>
   );
 }
@@ -372,33 +376,31 @@ function PageHead({
 }
 function detailOfIssue(x: Issue): Detail {
   return {
-    kind: "Electronic file",
+    kind: 'Electronic file',
     ref: x.id,
     title: x.subject,
     fields: [
-      ["Institution", x.school],
-      ["Administrative authority", x.authority],
-      ["Current stage", x.stage],
-      ["Time pending", x.pending],
-      ["Priority", x.priority],
+      ['Institution', x.school],
+      ['Administrative authority', x.authority],
+      ['Current stage', x.stage],
+      ['Time pending', x.pending],
+      ['Priority', x.priority],
     ],
-    note: "The production system will display file noting, applicable Government Resolution, delegation of powers and supporting documents.",
-    action: "Record decision",
+    note: 'The production system will display file noting, applicable Government Resolution, delegation of powers and supporting documents.',
+    action: 'Record decision',
   };
 }
 
 export default function Home() {
   const { session, logout } = useDemoAuth();
-  const [active, setActive] = useState("District overview");
-  const [lang, setLang] = useState<"EN" | "मराठी">("EN");
+  const [active, setActive] = useState(
+    session.app === 'executive' ? 'District overview' : 'School workflows',
+  );
+  const [lang, setLang] = useState<'EN' | 'मराठी'>('EN');
   const [menu, setMenu] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [toast, setToast] = useState("");
-  const act = (message: string) => {
-    setDetail(null);
-    setToast(message);
-    window.setTimeout(() => setToast(""), 2600);
-  };
+  const [toast, setToast] = useState('');
+
   return (
     <main className="portal">
       <div className="tricolour">
@@ -420,9 +422,9 @@ export default function Home() {
         <div className="title">
           <span>जिल्हा शिक्षण कार्यालय, नागपूर</span>
           <strong>
-            {lang === "EN"
-              ? "District Education Office, Nagpur"
-              : "जिल्हा शिक्षण कार्यालय, नागपूर"}
+            {lang === 'EN'
+              ? 'District Education Office, Nagpur'
+              : 'जिल्हा शिक्षण कार्यालय, नागपूर'}
           </strong>
           <small>
             School Education and Sports Department · Government of Maharashtra
@@ -431,16 +433,15 @@ export default function Home() {
         <div className="header-tools">
           <button
             className="language"
-            onClick={() => setLang(lang === "EN" ? "मराठी" : "EN")}
+            title="Changes the office heading only; full Marathi translation is not implemented"
+            onClick={() => setLang(lang === 'EN' ? 'मराठी' : 'EN')}
           >
-            {lang}
+            Office heading: {lang}
             <ChevronDown size={12} />
           </button>
           <button
             className="bell"
-            onClick={() =>
-              setToast("3 alerts")
-            }
+            onClick={() => setToast('3 alerts')}
             aria-label="Notifications"
           >
             <Bell size={18} />
@@ -450,7 +451,11 @@ export default function Home() {
             <span>{session.name}</span>
             <small>{session.office}</small>
           </div>
-          <button className="logout-button" onClick={logout} aria-label="Sign out">
+          <button
+            className="logout-button"
+            onClick={logout}
+            aria-label="Sign out"
+          >
             <LogOut size={16} />
           </button>
         </div>
@@ -461,59 +466,66 @@ export default function Home() {
           Administration System
         </span>
         <div>
-          <b>Data date:</b> 31 August 2026 <i /> <b>Academic year:</b> 2026–27{" "}
+          <b>Data date:</b> 31 August 2026 <i /> <b>Academic year:</b> 2026–27{' '}
           <i /> <span className="demo">DEMONSTRATION DATA</span>
         </div>
       </div>
       <div className="portal-body">
-        <aside className={menu ? "side open" : "side"}>
-          <a className="suite-link" href="/apps">
+        <aside className={menu ? 'side open' : 'side'}>
+          <Link className="suite-link" href="/apps">
             <span>▦</span>
             <b>Applications</b>
-          </a>
-          <button className="close" onClick={() => setMenu(false)}>
+          </Link>
+          <button
+            className="close"
+            aria-label="Close navigation"
+            onClick={() => setMenu(false)}
+          >
             <X size={18} />
           </button>
           <p>MODULES</p>
-          {nav.map((item) => (
+          {[
+            'School workflows',
+            ...nav.filter((n) => moduleAccess[session.app]?.includes(n)),
+          ].map((item) => (
             <button
               key={item}
-              className={active === item ? "active" : ""}
+              className={active === item ? 'active' : ''}
               onClick={() => {
                 setActive(item);
                 setMenu(false);
               }}
             >
-              {item === "Executive review" ? (
+              {item === 'Executive review' ? (
                 <CalendarDays />
-              ) : item === "District risk map" ? (
+              ) : item === 'District risk map' ? (
                 <MapPinned />
-              ) : item === "Student early warning" ? (
+              ) : item === 'Student early warning' ? (
                 <GraduationCap />
-              ) : item === "Grievance escalation" ? (
+              ) : item === 'Grievance escalation' ? (
                 <MessageSquareWarning />
-              ) : item === "Schemes & entitlements" ? (
+              ) : item === 'Schemes & entitlements' ? (
                 <IndianRupee />
-              ) : item === "Infrastructure & safety" ? (
+              ) : item === 'Infrastructure & safety' ? (
                 <HeartPulse />
-              ) : item === "School register" ? (
+              ) : item === 'School register' ? (
                 <School />
-              ) : item === "Officer hierarchy" ? (
+              ) : item === 'Officer hierarchy' ? (
                 <Network />
-              ) : item === "Staff position" ? (
+              ) : item === 'Staff position' ? (
                 <Users />
-              ) : item === "Inspection register" ? (
+              ) : item === 'Inspection register' ? (
                 <ClipboardCheck />
-              ) : item === "Grants & works" ? (
+              ) : item === 'Grants & works' ? (
                 <IndianRupee />
-              ) : item === "Data governance & audit" ? (
+              ) : item === 'Data governance & audit' ? (
                 <Database />
               ) : (
                 <FileText />
               )}
               <span>{item}</span>
-              {item === "Inspection register" && <em>23</em>}
-              {item === "Grievance escalation" && <em>11</em>}
+              {item === 'Inspection register' && <em>23</em>}
+              {item === 'Grievance escalation' && <em>11</em>}
             </button>
           ))}
           <div className="side-help">
@@ -522,45 +534,38 @@ export default function Home() {
           </div>
         </aside>
         <section className="main-content">
-          {active === "District overview" && (
+          {active === 'School workflows' && <WorkflowDesk />}
+          {active === 'District overview' && (
             <Overview
               open={(x) => setDetail(detailOfIssue(x))}
               navigate={setActive}
             />
-          )}{" "}
-          {active === "Executive review" && (
+          )}{' '}
+          {active === 'Executive review' && (
             <ExecutiveReview open={setDetail} notify={setToast} />
-          )}{" "}
-          {active === "District risk map" && <RiskMap open={setDetail} />}{" "}
-          {active === "Student early warning" && (
+          )}{' '}
+          {active === 'District risk map' && <RiskMap open={setDetail} />}{' '}
+          {active === 'Student early warning' && (
             <EarlyWarning open={setDetail} />
-          )}{" "}
-          {active === "Grievance escalation" && <Grievances open={setDetail} />}{" "}
-          {active === "Schemes & entitlements" && <Schemes open={setDetail} />}{" "}
-          {active === "Infrastructure & safety" && (
+          )}{' '}
+          {active === 'Grievance escalation' && <Grievances open={setDetail} />}{' '}
+          {active === 'Schemes & entitlements' && <Schemes open={setDetail} />}{' '}
+          {active === 'Infrastructure & safety' && (
             <Infrastructure open={setDetail} />
-          )}{" "}
-          {active === "School register" && <SchoolRegister open={setDetail} />}{" "}
-          {active === "Officer hierarchy" && <Hierarchy open={setDetail} />}{" "}
-          {active === "Staff position" && <StaffModule open={setDetail} />}{" "}
-          {active === "Inspection register" && (
+          )}{' '}
+          {active === 'School register' && <SchoolRegister open={setDetail} />}{' '}
+          {active === 'Officer hierarchy' && <Hierarchy open={setDetail} />}{' '}
+          {active === 'Staff position' && <StaffModule open={setDetail} />}{' '}
+          {active === 'Inspection register' && (
             <InspectionModule open={setDetail} />
-          )}{" "}
-          {active === "Grants & works" && <WorksModule open={setDetail} />}{" "}
-          {active === "Data governance & audit" && (
+          )}{' '}
+          {active === 'Grants & works' && <WorksModule open={setDetail} />}{' '}
+          {active === 'Data governance & audit' && (
             <DataGovernance open={setDetail} notify={setToast} />
           )}
         </section>
       </div>
-      {detail && (
-        <DetailDrawer
-          detail={detail}
-          close={() => setDetail(null)}
-          action={() =>
-            act(`${detail.action || "Action"} recorded.`)
-          }
-        />
-      )}{" "}
+      {detail && <DetailDrawer detail={detail} close={() => setDetail(null)} />}{' '}
       {toast && (
         <div className="toast">
           <Check size={15} />
@@ -588,13 +593,13 @@ function Overview({
           className="outline"
           onClick={() =>
             exportCsv(
-              "nagpur-district-briefing.csv",
-              ["Indicator", "Value"],
+              'nagpur-district-briefing.csv',
+              ['Indicator', 'Value'],
               [
-                ["Schools", "1,247"],
-                ["Students", "2,84,190"],
-                ["Vacant posts", "312"],
-                ["Files beyond SLA", "47"],
+                ['Schools', '1,247'],
+                ['Students', '2,84,190'],
+                ['Vacant posts', '312'],
+                ['Files beyond SLA', '47'],
               ],
             )
           }
@@ -632,7 +637,7 @@ function Overview({
             <div>
               <h2>Priority exception register</h2>
             </div>
-            <button onClick={() => navigate("Inspection register")}>
+            <button onClick={() => navigate('Inspection register')}>
               <Filter size={14} /> Open register
             </button>
           </div>
@@ -662,7 +667,7 @@ function Overview({
                     <td>{x.pending}</td>
                     <td>
                       <span
-                        className={`priority ${x.priority.replace(" ", "-").toLowerCase()}`}
+                        className={`priority ${x.priority.replace(' ', '-').toLowerCase()}`}
                       >
                         {x.priority}
                       </span>
@@ -674,7 +679,7 @@ function Overview({
           </div>
           <button
             className="table-link"
-            onClick={() => navigate("Inspection register")}
+            onClick={() => navigate('Inspection register')}
           >
             Complete register →
           </button>
@@ -687,9 +692,9 @@ function Overview({
             </div>
           </div>
           {[
-            ["NMC zones", "10 / 10", "10", "10", "Complete"],
-            ["ZP blocks", "12 / 13", "12", "13", "Parseoni return pending"],
-            ["Municipal councils", "11 / 14", "11", "14", "3 returns overdue"],
+            ['NMC zones', '10 / 10', '10', '10', 'Complete'],
+            ['ZP blocks', '12 / 13', '12', '13', 'Parseoni return pending'],
+            ['Municipal councils', '11 / 14', '11', '14', '3 returns overdue'],
           ].map((r) => (
             <div className="receipt" key={r[0]}>
               <div>
@@ -714,7 +719,7 @@ function Overview({
           </div>
           <button
             className="text-button"
-            onClick={() => navigate("Officer hierarchy")}
+            onClick={() => navigate('Officer hierarchy')}
           >
             Officer assignments →
           </button>
@@ -722,24 +727,24 @@ function Overview({
         <div className="coverage-grid">
           {[
             [
-              "Nagpur Municipal Corporation",
-              "Education Officer → 2 AEOs → 10 Zone Inspectors",
-              "218 schools",
+              'Nagpur Municipal Corporation',
+              'Education Officer → 2 AEOs → 10 Zone Inspectors',
+              '218 schools',
             ],
             [
-              "Nagpur Zilla Parishad",
-              "Education Officer → 13 BEOs → 96 Cluster Heads",
-              "842 schools",
+              'Nagpur Zilla Parishad',
+              'Education Officer → 13 BEOs → 96 Cluster Heads',
+              '842 schools',
             ],
             [
-              "Municipal Councils",
-              "Chief Officers → designated education supervisors",
-              "126 schools",
+              'Municipal Councils',
+              'Chief Officers → designated education supervisors',
+              '126 schools',
             ],
             [
-              "State / Central management",
-              "Separate authorities; district reporting view",
-              "61 schools",
+              'State / Central management',
+              'Separate authorities; district reporting view',
+              '61 schools',
             ],
           ].map((r) => (
             <div key={r[0]}>
@@ -755,18 +760,20 @@ function Overview({
 }
 
 function SchoolRegister({ open }: { open: (d: Detail) => void }) {
-  const [q, setQ] = useState("");
-  const [auth, setAuth] = useState("All");
-  const [level, setLevel] = useState("All");
+  const [q, setQ] = useState('');
+  const [auth, setAuth] = useState('All');
+  const [level, setLevel] = useState('All');
+  const { session } = useDemoAuth();
   const rows = useMemo(
     () =>
       schools.filter(
         (s) =>
-          (auth === "All" || s.authority.includes(auth)) &&
-          (level === "All" || s.level === level) &&
-          Object.values(s).join(" ").toLowerCase().includes(q.toLowerCase()),
+          scopeText(s.name, session) &&
+          (auth === 'All' || s.authority.includes(auth)) &&
+          (level === 'All' || s.level === level) &&
+          Object.values(s).join(' ').toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, auth, level],
+    [q, auth, level, session],
   );
   return (
     <>
@@ -775,15 +782,15 @@ function SchoolRegister({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "school-register.csv",
+              'school-register.csv',
               [
-                "UDISE",
-                "School",
-                "Authority",
-                "Level",
-                "Students",
-                "Attendance",
-                "Status",
+                'UDISE',
+                'School',
+                'Authority',
+                'Level',
+                'Students',
+                'Attendance',
+                'Status',
               ],
               rows.map((s) => [
                 s.udise,
@@ -809,14 +816,22 @@ function SchoolRegister({ open }: { open: (d: Detail) => void }) {
             placeholder="Search name, UDISE code, authority..."
           />
         </label>
-        <select value={auth} onChange={(e) => setAuth(e.target.value)}>
+        <select
+          aria-label="Filter school authority"
+          value={auth}
+          onChange={(e) => setAuth(e.target.value)}
+        >
           <option>All</option>
           <option>NMC</option>
           <option>Zilla Parishad</option>
           <option>Municipal Council</option>
           <option>State Government</option>
         </select>
-        <select value={level} onChange={(e) => setLevel(e.target.value)}>
+        <select
+          aria-label="Filter school level"
+          value={level}
+          onChange={(e) => setLevel(e.target.value)}
+        >
           <option>All</option>
           <option>Primary</option>
           <option>Upper Primary</option>
@@ -845,20 +860,20 @@ function SchoolRegister({ open }: { open: (d: Detail) => void }) {
                   key={s.udise}
                   onClick={() =>
                     open({
-                      kind: "School record",
+                      kind: 'School record',
                       ref: `UDISE ${s.udise}`,
                       title: s.name,
                       fields: [
-                        ["Authority / jurisdiction", s.authority],
-                        ["School level", s.level],
-                        ["Head of school", s.head],
-                        ["Enrolment", s.students],
-                        ["Average attendance", s.attendance],
-                        ["Office contact", s.phone],
-                        ["Data verification", s.status],
+                        ['Authority / jurisdiction', s.authority],
+                        ['School level', s.level],
+                        ['Head of school', s.head],
+                        ['Enrolment', s.students],
+                        ['Average attendance', s.attendance],
+                        ['Office contact', s.phone],
+                        ['Data verification', s.status],
                       ],
-                      note: "This record combines identity, supervisory assignment, staffing and compliance information.",
-                      action: "Save verification",
+                      note: 'This record combines identity, supervisory assignment, staffing and compliance information.',
+                      action: 'Save verification',
                     })
                   }
                 >
@@ -872,7 +887,7 @@ function SchoolRegister({ open }: { open: (d: Detail) => void }) {
                   <td>{s.attendance}</td>
                   <td>
                     <span
-                      className={`record ${s.status.replace(" ", "-").toLowerCase()}`}
+                      className={`record ${s.status.replace(' ', '-').toLowerCase()}`}
                     >
                       {s.status}
                     </span>
@@ -882,18 +897,16 @@ function SchoolRegister({ open }: { open: (d: Detail) => void }) {
             </tbody>
           </table>
         </div>
-        {!rows.length && (
-          <div className="empty">No records</div>
-        )}
+        {!rows.length && <div className="empty">No records</div>}
       </section>
     </>
   );
 }
 
 function Hierarchy({ open }: { open: (d: Detail) => void }) {
-  const [tab, setTab] = useState("Structure");
-  const [q, setQ] = useState("");
-  const [route, setRoute] = useState("Teacher vacancy proposal");
+  const [tab, setTab] = useState('Structure');
+  const [q, setQ] = useState('');
+  const [route, setRoute] = useState('Teacher vacancy proposal');
   const card = (
     ref: string,
     title: string,
@@ -904,144 +917,144 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
     delegation: string,
   ) =>
     open({
-      kind: "Position & jurisdiction",
+      kind: 'Position & jurisdiction',
       ref,
       title,
       fields: [
-        ["Administrative level", level],
-        ["Reports to", reports],
-        ["Jurisdiction", jurisdiction],
-        ["Current assignment", assignment],
-        ["Delegated authority", delegation],
-        ["Assignment validity", "01 Jun 2026 — 31 May 2027"],
+        ['Administrative level', level],
+        ['Reports to', reports],
+        ['Jurisdiction', jurisdiction],
+        ['Current assignment', assignment],
+        ['Delegated authority', delegation],
+        ['Assignment validity', '01 Jun 2026 — 31 May 2027'],
       ],
-      note: "The position is permanent; the officer assignment, delegation and jurisdiction are effective-dated so historical approvals remain intact.",
-      action: "Update assignment",
+      note: 'The position is permanent; the officer assignment, delegation and jurisdiction are effective-dated so historical approvals remain intact.',
+      action: 'Update assignment',
     });
   const positions = [
     [
-      "POS-MH-COMM",
-      "Commissioner of Education",
-      "State",
-      "Principal Secretary, School Education",
-      "Maharashtra",
-      "Assigned",
+      'POS-MH-COMM',
+      'Commissioner of Education',
+      'State',
+      'Principal Secretary, School Education',
+      'Maharashtra',
+      'Assigned',
     ],
     [
-      "POS-MH-DIR-P",
-      "Director of Primary Education",
-      "State",
-      "Commissioner of Education",
-      "Maharashtra — Primary",
-      "Assigned",
+      'POS-MH-DIR-P',
+      'Director of Primary Education',
+      'State',
+      'Commissioner of Education',
+      'Maharashtra — Primary',
+      'Assigned',
     ],
     [
-      "POS-NGP-DDE",
-      "Deputy Director of Education, Nagpur Division",
-      "Division",
-      "Directorate of Education",
-      "Nagpur Division — 6 districts",
-      "Assigned",
+      'POS-NGP-DDE',
+      'Deputy Director of Education, Nagpur Division',
+      'Division',
+      'Directorate of Education',
+      'Nagpur Division — 6 districts',
+      'Assigned',
     ],
     [
-      "POS-NMC-EO",
-      "Education Officer, NMC",
-      "Urban local authority",
-      "Municipal Commissioner",
-      "NMC — 10 zones, 218 schools",
-      "Assigned",
+      'POS-NMC-EO',
+      'Education Officer, NMC',
+      'Urban local authority',
+      'Municipal Commissioner',
+      'NMC — 10 zones, 218 schools',
+      'Assigned',
     ],
     [
-      "POS-NMC-AEO-P",
-      "Assistant Education Officer — Primary",
-      "Urban local authority",
-      "Education Officer, NMC",
-      "NMC primary schools",
-      "Assigned",
+      'POS-NMC-AEO-P',
+      'Assistant Education Officer — Primary',
+      'Urban local authority',
+      'Education Officer, NMC',
+      'NMC primary schools',
+      'Assigned',
     ],
     [
-      "POS-NMC-ZI-08",
-      "Zone School Inspector — Zone 8",
-      "Zone",
-      "Assistant Education Officer",
-      "NMC Zone 8 — 24 schools",
-      "Additional charge",
+      'POS-NMC-ZI-08',
+      'Zone School Inspector — Zone 8',
+      'Zone',
+      'Assistant Education Officer',
+      'NMC Zone 8 — 24 schools',
+      'Additional charge',
     ],
     [
-      "POS-ZP-EO-P",
-      "Education Officer — Primary, ZP",
-      "District rural",
-      "Chief Executive Officer, ZP",
-      "13 blocks, 842 schools",
-      "Assigned",
+      'POS-ZP-EO-P',
+      'Education Officer — Primary, ZP',
+      'District rural',
+      'Chief Executive Officer, ZP',
+      '13 blocks, 842 schools',
+      'Assigned',
     ],
     [
-      "POS-ZP-DEO-1",
-      "Deputy Education Officer — Primary",
-      "District rural",
-      "Education Officer — Primary",
-      "Blocks 1–7",
-      "Assigned",
+      'POS-ZP-DEO-1',
+      'Deputy Education Officer — Primary',
+      'District rural',
+      'Education Officer — Primary',
+      'Blocks 1–7',
+      'Assigned',
     ],
     [
-      "POS-BEO-HIN",
-      "Block Education Officer — Hingna",
-      "Block",
-      "Education Officer — Primary",
-      "Hingna Block — 63 schools",
-      "Assigned",
+      'POS-BEO-HIN',
+      'Block Education Officer — Hingna',
+      'Block',
+      'Education Officer — Primary',
+      'Hingna Block — 63 schools',
+      'Assigned',
     ],
     [
-      "POS-KP-HIN-04",
-      "Cluster Head — Hingna Cluster 04",
-      "Cluster",
-      "Block Education Officer — Hingna",
-      "9 schools",
-      "Vacant",
+      'POS-KP-HIN-04',
+      'Cluster Head — Hingna Cluster 04',
+      'Cluster',
+      'Block Education Officer — Hingna',
+      '9 schools',
+      'Vacant',
     ],
     [
-      "POS-HM-270904",
-      "Headmaster — ZP Primary School Hingna",
-      "School",
-      "Cluster Head — Hingna 04",
-      "UDISE 27090407201",
-      "Assigned",
+      'POS-HM-270904',
+      'Headmaster — ZP Primary School Hingna',
+      'School',
+      'Cluster Head — Hingna 04',
+      'UDISE 27090407201',
+      'Assigned',
     ],
   ];
   const visible = positions.filter((r) =>
-    r.join(" ").toLowerCase().includes(q.toLowerCase()),
+    r.join(' ').toLowerCase().includes(q.toLowerCase()),
   );
   const routes: Record<string, string[]> = {
-    "Teacher vacancy proposal": [
-      "Headmaster verifies vacancy",
-      "Cluster Head / Zone Inspector checks school record",
-      "Block Education Officer / AEO verifies cadre and roster",
-      "Education Officer recommends",
-      "CEO ZP / Municipal Commissioner approves within delegated powers",
+    'Teacher vacancy proposal': [
+      'Headmaster verifies vacancy',
+      'Cluster Head / Zone Inspector checks school record',
+      'Block Education Officer / AEO verifies cadre and roster',
+      'Education Officer recommends',
+      'CEO ZP / Municipal Commissioner approves within delegated powers',
     ],
-    "School infrastructure work": [
-      "School Management Committee records need",
-      "Headmaster submits estimate request",
-      "Cluster Head / Zone Inspector verifies site",
-      "BEO / AEO recommends",
-      "Education Officer scrutinises",
-      "Engineering authority gives technical sanction",
-      "CEO ZP / Municipal Commissioner gives administrative approval",
+    'School infrastructure work': [
+      'School Management Committee records need',
+      'Headmaster submits estimate request',
+      'Cluster Head / Zone Inspector verifies site',
+      'BEO / AEO recommends',
+      'Education Officer scrutinises',
+      'Engineering authority gives technical sanction',
+      'CEO ZP / Municipal Commissioner gives administrative approval',
     ],
-    "Inspection non-compliance": [
-      "Inspecting officer records finding",
-      "Headmaster submits compliance",
-      "Cluster Head / Zone Inspector verifies",
-      "BEO / AEO disposes or escalates",
-      "Education Officer issues district direction",
-      "Divisional office receives critical escalation",
+    'Inspection non-compliance': [
+      'Inspecting officer records finding',
+      'Headmaster submits compliance',
+      'Cluster Head / Zone Inspector verifies',
+      'BEO / AEO disposes or escalates',
+      'Education Officer issues district direction',
+      'Divisional office receives critical escalation',
     ],
-    "Teacher leave — long duration": [
-      "Teacher submits request",
-      "Headmaster verifies service details",
-      "BEO / AEO checks substitute arrangement",
-      "Education Officer applies delegated leave authority",
-      "Higher authority receives cases beyond delegation",
+    'Teacher leave — long duration': [
+      'Teacher submits request',
+      'Headmaster verifies service details',
+      'BEO / AEO checks substitute arrangement',
+      'Education Officer applies delegated leave authority',
+      'Higher authority receives cases beyond delegation',
     ],
   };
   return (
@@ -1054,14 +1067,14 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "detailed-officer-hierarchy.csv",
+              'detailed-officer-hierarchy.csv',
               [
-                "Position ID",
-                "Position",
-                "Level",
-                "Reports to",
-                "Jurisdiction",
-                "Status",
+                'Position ID',
+                'Position',
+                'Level',
+                'Reports to',
+                'Jurisdiction',
+                'Status',
               ],
               positions,
             )
@@ -1094,22 +1107,22 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
       </section>
       <div className="hierarchy-tabs">
         {[
-          "Structure",
-          "Position register",
-          "Approval routes",
-          "Delegations",
+          'Structure',
+          'Position register',
+          'Approval routes',
+          'Delegations',
         ].map((x) => (
           <button
             key={x}
-            className={tab === x ? "active" : ""}
+            className={tab === x ? 'active' : ''}
             onClick={() => setTab(x)}
           >
             {x}
-            {x === "Delegations" && <em>17</em>}
+            {x === 'Delegations' && <em>17</em>}
           </button>
         ))}
       </div>
-      {tab === "Structure" && (
+      {tab === 'Structure' && (
         <section className="detailed-hierarchy">
           <div className="upper-chain">
             <HierarchyNode
@@ -1118,13 +1131,13 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               meta="Policy, rules, finance and state oversight"
               onClick={() =>
                 card(
-                  "POS-MH-PS",
-                  "Principal Secretary — School Education",
-                  "State Secretariat",
-                  "Government of Maharashtra",
-                  "Maharashtra",
-                  "Assigned",
-                  "State administrative authority",
+                  'POS-MH-PS',
+                  'Principal Secretary — School Education',
+                  'State Secretariat',
+                  'Government of Maharashtra',
+                  'Maharashtra',
+                  'Assigned',
+                  'State administrative authority',
                 )
               }
             />
@@ -1135,13 +1148,13 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               meta="Statewide executive administration"
               onClick={() =>
                 card(
-                  "POS-MH-COMM",
-                  "Commissioner of Education, Maharashtra",
-                  "State",
-                  "Principal Secretary",
-                  "Maharashtra",
-                  "Assigned",
-                  "Commissionerate powers",
+                  'POS-MH-COMM',
+                  'Commissioner of Education, Maharashtra',
+                  'State',
+                  'Principal Secretary',
+                  'Maharashtra',
+                  'Assigned',
+                  'Commissionerate powers',
                 )
               }
             />
@@ -1153,13 +1166,13 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
                 meta="Standards and administration · Primary"
                 onClick={() =>
                   card(
-                    "POS-MH-DIR-P",
-                    "Director — Primary Education",
-                    "State Directorate",
-                    "Commissioner of Education",
-                    "Maharashtra — Primary",
-                    "Assigned",
-                    "Directorate powers",
+                    'POS-MH-DIR-P',
+                    'Director — Primary Education',
+                    'State Directorate',
+                    'Commissioner of Education',
+                    'Maharashtra — Primary',
+                    'Assigned',
+                    'Directorate powers',
                   )
                 }
               />
@@ -1169,13 +1182,13 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
                 meta="Standards and administration · Secondary"
                 onClick={() =>
                   card(
-                    "POS-MH-DIR-S",
-                    "Director — Secondary & Higher Secondary",
-                    "State Directorate",
-                    "Commissioner of Education",
-                    "Maharashtra — Secondary",
-                    "Assigned",
-                    "Directorate powers",
+                    'POS-MH-DIR-S',
+                    'Director — Secondary & Higher Secondary',
+                    'State Directorate',
+                    'Commissioner of Education',
+                    'Maharashtra — Secondary',
+                    'Assigned',
+                    'Directorate powers',
                   )
                 }
               />
@@ -1187,13 +1200,13 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               meta="Nagpur, Wardha, Bhandara, Gondia, Chandrapur, Gadchiroli"
               onClick={() =>
                 card(
-                  "POS-NGP-DDE",
-                  "Deputy Director of Education — Nagpur Division",
-                  "Division",
-                  "Directorate of Education",
-                  "Nagpur Division — 6 districts",
-                  "Assigned",
-                  "Divisional review and escalation",
+                  'POS-NGP-DDE',
+                  'Deputy Director of Education — Nagpur Division',
+                  'Division',
+                  'Directorate of Education',
+                  'Nagpur Division — 6 districts',
+                  'Assigned',
+                  'Divisional review and escalation',
                 )
               }
             />
@@ -1207,40 +1220,40 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               subtitle="Urban schools · 10 zones · 218 schools"
               nodes={[
                 [
-                  "POS-NMC-MC",
-                  "Municipal Commissioner",
-                  "Civic administrative head",
-                  "State Urban Development / Corporation",
+                  'POS-NMC-MC',
+                  'Municipal Commissioner',
+                  'Civic administrative head',
+                  'State Urban Development / Corporation',
                 ],
                 [
-                  "POS-NMC-EO",
-                  "Education Officer, NMC",
-                  "Head of Education Department",
-                  "Municipal Commissioner",
+                  'POS-NMC-EO',
+                  'Education Officer, NMC',
+                  'Head of Education Department',
+                  'Municipal Commissioner',
                 ],
                 [
-                  "POS-NMC-AEO",
-                  "Assistant Education Officers",
-                  "Primary and Secondary branches",
-                  "Education Officer",
+                  'POS-NMC-AEO',
+                  'Assistant Education Officers',
+                  'Primary and Secondary branches',
+                  'Education Officer',
                 ],
                 [
-                  "POS-NMC-ZI",
-                  "Zone School Inspectors",
-                  "Zones 1–10 · school supervision",
-                  "Assistant Education Officer",
+                  'POS-NMC-ZI',
+                  'Zone School Inspectors',
+                  'Zones 1–10 · school supervision',
+                  'Assistant Education Officer',
                 ],
                 [
-                  "POS-NMC-HM",
-                  "Headmaster / Principal",
-                  "School administration",
-                  "Zone School Inspector",
+                  'POS-NMC-HM',
+                  'Headmaster / Principal',
+                  'School administration',
+                  'Zone School Inspector',
                 ],
                 [
-                  "POS-NMC-T",
-                  "Teachers & staff",
-                  "Classroom and school operations",
-                  "Headmaster",
+                  'POS-NMC-T',
+                  'Teachers & staff',
+                  'Classroom and school operations',
+                  'Headmaster',
                 ],
               ]}
               onOpen={card}
@@ -1250,52 +1263,52 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               subtitle="Rural schools · 13 blocks · 842 schools"
               nodes={[
                 [
-                  "POS-ZP-CEO",
-                  "Chief Executive Officer, ZP",
-                  "Rural local-authority head",
-                  "Divisional Commissioner / ZP",
+                  'POS-ZP-CEO',
+                  'Chief Executive Officer, ZP',
+                  'Rural local-authority head',
+                  'Divisional Commissioner / ZP',
                 ],
                 [
-                  "POS-ZP-EO",
-                  "Education Officers",
-                  "Primary and Secondary branches",
-                  "CEO, Zilla Parishad",
+                  'POS-ZP-EO',
+                  'Education Officers',
+                  'Primary and Secondary branches',
+                  'CEO, Zilla Parishad',
                 ],
                 [
-                  "POS-ZP-DEO",
-                  "Deputy Education Officers",
-                  "District establishment and schemes",
-                  "Education Officer",
+                  'POS-ZP-DEO',
+                  'Deputy Education Officers',
+                  'District establishment and schemes',
+                  'Education Officer',
                 ],
                 [
-                  "POS-ZP-BEO",
-                  "Block Education Officers",
-                  "13 Panchayat Samiti blocks",
-                  "Education Officer",
+                  'POS-ZP-BEO',
+                  'Block Education Officers',
+                  '13 Panchayat Samiti blocks',
+                  'Education Officer',
                 ],
                 [
-                  "POS-ZP-EXT",
-                  "Extension Officers — Education",
-                  "Block inspections and implementation",
-                  "Block Education Officer",
+                  'POS-ZP-EXT',
+                  'Extension Officers — Education',
+                  'Block inspections and implementation',
+                  'Block Education Officer',
                 ],
                 [
-                  "POS-ZP-KP",
-                  "Cluster Heads / Kendra Pramukh",
-                  "96 school clusters",
-                  "Block Education Officer",
+                  'POS-ZP-KP',
+                  'Cluster Heads / Kendra Pramukh',
+                  '96 school clusters',
+                  'Block Education Officer',
                 ],
                 [
-                  "POS-ZP-HM",
-                  "Headmaster",
-                  "Individual school administration",
-                  "Cluster Head",
+                  'POS-ZP-HM',
+                  'Headmaster',
+                  'Individual school administration',
+                  'Cluster Head',
                 ],
                 [
-                  "POS-ZP-T",
-                  "Teachers & staff",
-                  "Classroom and school operations",
-                  "Headmaster",
+                  'POS-ZP-T',
+                  'Teachers & staff',
+                  'Classroom and school operations',
+                  'Headmaster',
                 ],
               ]}
               onOpen={card}
@@ -1305,28 +1318,28 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               subtitle="Other urban local bodies · 126 schools"
               nodes={[
                 [
-                  "POS-MC-CO",
-                  "Chief Officer",
-                  "Local-authority administrative head",
-                  "Directorate of Municipal Administration",
+                  'POS-MC-CO',
+                  'Chief Officer',
+                  'Local-authority administrative head',
+                  'Directorate of Municipal Administration',
                 ],
                 [
-                  "POS-MC-ES",
-                  "Education Supervisor / designated officer",
-                  "Education establishment and supervision",
-                  "Chief Officer",
+                  'POS-MC-ES',
+                  'Education Supervisor / designated officer',
+                  'Education establishment and supervision',
+                  'Chief Officer',
                 ],
                 [
-                  "POS-MC-HM",
-                  "Headmaster / Principal",
-                  "School administration",
-                  "Education Supervisor",
+                  'POS-MC-HM',
+                  'Headmaster / Principal',
+                  'School administration',
+                  'Education Supervisor',
                 ],
                 [
-                  "POS-MC-T",
-                  "Teachers & staff",
-                  "Classroom and school operations",
-                  "Headmaster",
+                  'POS-MC-T',
+                  'Teachers & staff',
+                  'Classroom and school operations',
+                  'Headmaster',
                 ],
               ]}
               onOpen={card}
@@ -1344,7 +1357,7 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
           </div>
         </section>
       )}
-      {tab === "Position register" && (
+      {tab === 'Position register' && (
         <>
           <div className="register-tools">
             <label>
@@ -1389,7 +1402,7 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
                           r[3],
                           r[4],
                           r[5],
-                          "Role-based delegation register",
+                          'Role-based delegation register',
                         )
                       }
                     >
@@ -1402,7 +1415,7 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
                       <td>{r[4]}</td>
                       <td>
                         <span
-                          className={`record ${r[5].toLowerCase().replaceAll(" ", "-")}`}
+                          className={`record ${r[5].toLowerCase().replaceAll(' ', '-')}`}
                         >
                           {r[5]}
                         </span>
@@ -1415,11 +1428,17 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
           </section>
         </>
       )}
-      {tab === "Approval routes" && (
+      {tab === 'Approval routes' && (
         <section className="routing-module">
           <div className="route-selector">
-            <label>Show administrative route for</label>
-            <select value={route} onChange={(e) => setRoute(e.target.value)}>
+            <label htmlFor="route-selector">
+              Show administrative route for
+            </label>
+            <select
+              id="route-selector"
+              value={route}
+              onChange={(e) => setRoute(e.target.value)}
+            >
               {Object.keys(routes).map((x) => (
                 <option key={x}>{x}</option>
               ))}
@@ -1436,10 +1455,10 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
                 <div>
                   <small>
                     {i === 0
-                      ? "ORIGIN"
+                      ? 'ORIGIN'
                       : i === routes[route].length - 1
-                        ? "FINAL AUTHORITY"
-                        : "SCRUTINY / RECOMMENDATION"}
+                        ? 'FINAL AUTHORITY'
+                        : 'SCRUTINY / RECOMMENDATION'}
                   </small>
                   <strong>{x}</strong>
                 </div>
@@ -1459,7 +1478,7 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
           </aside>
         </section>
       )}
-      {tab === "Delegations" && (
+      {tab === 'Delegations' && (
         <section className="block school-list">
           <div className="result-count">17 delegations</div>
           <div className="table-scroll">
@@ -1477,58 +1496,58 @@ function Hierarchy({ open }: { open: (d: Detail) => void }) {
               <tbody>
                 {[
                   [
-                    "DEL/NMC/2026/088",
-                    "Zone Inspector — Zone 8",
-                    "Zone Inspector — Zone 9",
-                    "NMC Zone 8",
-                    "28 Aug–05 Sep 2026",
-                    "Active",
+                    'DEL/NMC/2026/088',
+                    'Zone Inspector — Zone 8',
+                    'Zone Inspector — Zone 9',
+                    'NMC Zone 8',
+                    '28 Aug–05 Sep 2026',
+                    'Active',
                   ],
                   [
-                    "DEL/ZP/2026/143",
-                    "BEO — Parseoni",
-                    "BEO — Ramtek",
-                    "Parseoni Block",
-                    "30 Aug–03 Sep 2026",
-                    "Active",
+                    'DEL/ZP/2026/143',
+                    'BEO — Parseoni',
+                    'BEO — Ramtek',
+                    'Parseoni Block',
+                    '30 Aug–03 Sep 2026',
+                    'Active',
                   ],
                   [
-                    "DEL/ZP/2026/148",
-                    "Cluster Head — Hingna 04",
-                    "Senior Headmaster — Cluster 04",
-                    "9 schools",
-                    "01–07 Sep 2026",
-                    "Upcoming",
+                    'DEL/ZP/2026/148',
+                    'Cluster Head — Hingna 04',
+                    'Senior Headmaster — Cluster 04',
+                    '9 schools',
+                    '01–07 Sep 2026',
+                    'Upcoming',
                   ],
                   [
-                    "DEL/EO/2026/052",
-                    "Deputy Education Officer — Primary",
-                    "Deputy Education Officer — Planning",
-                    "Blocks 1–7",
-                    "26–31 Aug 2026",
-                    "Expiring",
+                    'DEL/EO/2026/052',
+                    'Deputy Education Officer — Primary',
+                    'Deputy Education Officer — Planning',
+                    'Blocks 1–7',
+                    '26–31 Aug 2026',
+                    'Expiring',
                   ],
                 ].map((r) => (
                   <tr
                     key={r[0]}
                     onClick={() =>
                       open({
-                        kind: "Delegation order",
+                        kind: 'Delegation order',
                         ref: r[0],
                         title: `Additional charge: ${r[3]}`,
                         fields: [
-                          ["Delegating position", r[1]],
-                          ["Officer receiving charge", r[2]],
-                          ["Jurisdiction", r[3]],
-                          ["Validity", r[4]],
-                          ["Current status", r[5]],
+                          ['Delegating position', r[1]],
+                          ['Officer receiving charge', r[2]],
+                          ['Jurisdiction', r[3]],
+                          ['Validity', r[4]],
+                          ['Current status', r[5]],
                           [
-                            "Powers included",
-                            "Approval and supervision within recorded delegation",
+                            'Powers included',
+                            'Approval and supervision within recorded delegation',
                           ],
                         ],
-                        note: "The receiving officer gains only the permissions stated in the order and only for its effective period.",
-                        action: "Review delegation",
+                        note: 'The receiving officer gains only the permissions stated in the order and only for its effective period.',
+                        action: 'Review delegation',
                       })
                     }
                   >
@@ -1619,10 +1638,10 @@ function AuthorityChain({
                   title,
                   n[3],
                   n[2],
-                  "Assigned",
+                  'Assigned',
                   i < 2
-                    ? "Administrative and approval powers"
-                    : "Supervision within jurisdiction",
+                    ? 'Administrative and approval powers'
+                    : 'Supervision within jurisdiction',
                 )
               }
             >
@@ -1640,8 +1659,8 @@ function AuthorityChain({
 }
 
 function StaffModule({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
-  const rows = filter === "All" ? staff : staff.filter((r) => r[5] === filter);
+  const [filter, setFilter] = useState('All');
+  const rows = filter === 'All' ? staff : staff.filter((r) => r[5] === filter);
   return (
     <>
       <PageHead
@@ -1652,17 +1671,17 @@ function StaffModule({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             open({
-              kind: "New establishment file",
-              ref: "DRAFT",
-              title: "Create vacancy-filling proposal",
+              kind: 'New establishment file',
+              ref: 'DRAFT',
+              title: 'Create vacancy-filling proposal',
               fields: [
-                ["Cadre", "Not selected"],
-                ["Jurisdiction", "Nagpur district"],
-                ["Workflow", "Head → BEO / Inspector → Education Officer"],
-                ["Status", "Draft"],
+                ['Cadre', 'Not selected'],
+                ['Jurisdiction', 'Nagpur district'],
+                ['Workflow', 'Head → BEO / Inspector → Education Officer'],
+                ['Status', 'Draft'],
               ],
-              note: "This demonstration action starts a vacancy proposal and sends it through the configured approval chain.",
-              action: "Create draft",
+              note: 'This demonstration action starts a vacancy proposal and sends it through the configured approval chain.',
+              action: 'Create draft',
             })
           }
         >
@@ -1694,7 +1713,11 @@ function StaffModule({ open }: { open: (d: Detail) => void }) {
         />
       </section>
       <div className="register-tools">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          aria-label="Filter records"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <option>All</option>
           <option>Proposal due</option>
           <option>Under review</option>
@@ -1706,8 +1729,8 @@ function StaffModule({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "staff-vacancies.csv",
-              ["Reference", "Post", "School", "Vacancies", "Age", "Status"],
+              'staff-vacancies.csv',
+              ['Reference', 'Post', 'School', 'Vacancies', 'Age', 'Status'],
               rows,
             )
           }
@@ -1717,28 +1740,28 @@ function StaffModule({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Reference",
-          "Post / cadre",
-          "School / jurisdiction",
-          "Vacancies",
-          "Position",
-          "Status",
+          'Reference',
+          'Post / cadre',
+          'School / jurisdiction',
+          'Vacancies',
+          'Position',
+          'Status',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Establishment record",
+            kind: 'Establishment record',
             ref: r[0],
             title: r[1],
             fields: [
-              ["School / jurisdiction", r[2]],
-              ["Vacancies", r[3]],
-              ["Position", r[4]],
-              ["Workflow status", r[5]],
-              ["Roster verification", "Pending production integration"],
+              ['School / jurisdiction', r[2]],
+              ['Vacancies', r[3]],
+              ['Position', r[4]],
+              ['Workflow status', r[5]],
+              ['Roster verification', 'Pending production integration'],
             ],
-            note: "The proposal maintains sanctioned strength, roster position, vacancy age and every approval in one auditable file.",
-            action: "Forward proposal",
+            note: 'The proposal maintains sanctioned strength, roster position, vacancy age and every approval in one auditable file.',
+            action: 'Forward proposal',
           })
         }
       />
@@ -1747,9 +1770,9 @@ function StaffModule({ open }: { open: (d: Detail) => void }) {
 }
 
 function InspectionModule({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
   const rows =
-    filter === "All" ? inspections : inspections.filter((r) => r[5] === filter);
+    filter === 'All' ? inspections : inspections.filter((r) => r[5] === filter);
   return (
     <>
       <PageHead kicker="FIELD MONITORING" title="Inspection register">
@@ -1757,17 +1780,17 @@ function InspectionModule({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             open({
-              kind: "Inspection plan",
-              ref: "DRAFT",
-              title: "Schedule a school inspection",
+              kind: 'Inspection plan',
+              ref: 'DRAFT',
+              title: 'Schedule a school inspection',
               fields: [
-                ["Inspection type", "Comprehensive"],
-                ["Jurisdiction", "Assigned officer jurisdiction"],
-                ["Proposed date", "Not selected"],
-                ["Checklist", "State inspection checklist"],
+                ['Inspection type', 'Comprehensive'],
+                ['Jurisdiction', 'Assigned officer jurisdiction'],
+                ['Proposed date', 'Not selected'],
+                ['Checklist', 'State inspection checklist'],
               ],
-              note: "The scheduler checks officer jurisdiction, previous inspections and outstanding compliance items.",
-              action: "Save schedule",
+              note: 'The scheduler checks officer jurisdiction, previous inspections and outstanding compliance items.',
+              action: 'Save schedule',
             })
           }
         >
@@ -1795,10 +1818,10 @@ function InspectionModule({ open }: { open: (d: Detail) => void }) {
         />
       </section>
       <div className="filter-tabs">
-        {["All", "Scheduled", "Submitted", "Overdue", "Correction due"].map(
+        {['All', 'Scheduled', 'Submitted', 'Overdue', 'Correction due'].map(
           (x) => (
             <button
-              className={filter === x ? "active" : ""}
+              className={filter === x ? 'active' : ''}
               key={x}
               onClick={() => setFilter(x)}
             >
@@ -1810,15 +1833,15 @@ function InspectionModule({ open }: { open: (d: Detail) => void }) {
           className="tab-export"
           onClick={() =>
             exportCsv(
-              "inspection-register.csv",
+              'inspection-register.csv',
               [
-                "Reference",
-                "School",
-                "Jurisdiction",
-                "Type",
-                "Due date",
-                "Status",
-                "Officer",
+                'Reference',
+                'School',
+                'Jurisdiction',
+                'Type',
+                'Due date',
+                'Status',
+                'Officer',
               ],
               rows,
             )
@@ -1829,34 +1852,34 @@ function InspectionModule({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Inspection no.",
-          "School",
-          "Jurisdiction",
-          "Type",
-          "Due date",
-          "Status",
-          "Assigned officer",
+          'Inspection no.',
+          'School',
+          'Jurisdiction',
+          'Type',
+          'Due date',
+          'Status',
+          'Assigned officer',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Inspection file",
+            kind: 'Inspection file',
             ref: r[0],
             title: r[1],
             fields: [
-              ["Jurisdiction", r[2]],
-              ["Inspection type", r[3]],
-              ["Due / visit date", r[4]],
-              ["Current status", r[5]],
-              ["Assigned officer", r[6]],
+              ['Jurisdiction', r[2]],
+              ['Inspection type', r[3]],
+              ['Due / visit date', r[4]],
+              ['Current status', r[5]],
+              ['Assigned officer', r[6]],
               [
-                "Checklist progress",
-                r[5] === "Submitted" ? "34 / 34 items" : "Not yet complete",
+                'Checklist progress',
+                r[5] === 'Submitted' ? '34 / 34 items' : 'Not yet complete',
               ],
             ],
-            note: "Inspection findings, geo-time evidence, photographs and compliance directions will form part of this record.",
+            note: 'Inspection findings, geo-time evidence, photographs and compliance directions will form part of this record.',
             action:
-              r[5] === "Submitted" ? "Verify report" : "Record inspection",
+              r[5] === 'Submitted' ? 'Verify report' : 'Record inspection',
           })
         }
       />
@@ -1865,8 +1888,8 @@ function InspectionModule({ open }: { open: (d: Detail) => void }) {
 }
 
 function WorksModule({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
-  const rows = filter === "All" ? works : works.filter((r) => r[4] === filter);
+  const [filter, setFilter] = useState('All');
+  const rows = filter === 'All' ? works : works.filter((r) => r[4] === filter);
   return (
     <>
       <PageHead
@@ -1877,17 +1900,17 @@ function WorksModule({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             open({
-              kind: "Works proposal",
-              ref: "DRAFT",
-              title: "Register a new school work",
+              kind: 'Works proposal',
+              ref: 'DRAFT',
+              title: 'Register a new school work',
               fields: [
-                ["Work category", "Not selected"],
-                ["Funding source", "District / State scheme"],
-                ["Estimate", "To be entered"],
-                ["Technical authority", "Assigned by amount and work type"],
+                ['Work category', 'Not selected'],
+                ['Funding source', 'District / State scheme'],
+                ['Estimate', 'To be entered'],
+                ['Technical authority', 'Assigned by amount and work type'],
               ],
-              note: "The workflow separates administrative approval, technical sanction, fund release, measurement and completion.",
-              action: "Create work file",
+              note: 'The workflow separates administrative approval, technical sanction, fund release, measurement and completion.',
+              action: 'Create work file',
             })
           }
         >
@@ -1918,7 +1941,11 @@ function WorksModule({ open }: { open: (d: Detail) => void }) {
         />
       </section>
       <div className="register-tools">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          aria-label="Filter records"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <option>All</option>
           {[...new Set(works.map((r) => r[4]))].map((x) => (
             <option key={x}>{x}</option>
@@ -1928,8 +1955,8 @@ function WorksModule({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "grants-and-works.csv",
-              ["Reference", "Work", "School", "Amount", "Stage", "Pending at"],
+              'grants-and-works.csv',
+              ['Reference', 'Work', 'School', 'Amount', 'Stage', 'Pending at'],
               rows,
             )
           }
@@ -1939,31 +1966,31 @@ function WorksModule({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Reference",
-          "Work / grant",
-          "School / coverage",
-          "Amount",
-          "Current stage",
-          "Pending at",
+          'Reference',
+          'Work / grant',
+          'School / coverage',
+          'Amount',
+          'Current stage',
+          'Pending at',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Works & grant file",
+            kind: 'Works & grant file',
             ref: r[0],
             title: r[1],
             fields: [
-              ["School / coverage", r[2]],
-              ["Approved / proposed amount", r[3]],
-              ["Current stage", r[4]],
-              ["Pending at", r[5]],
-              ["Expenditure booked", "View bill register in production"],
+              ['School / coverage', r[2]],
+              ['Approved / proposed amount', r[3]],
+              ['Current stage', r[4]],
+              ['Pending at', r[5]],
+              ['Expenditure booked', 'View bill register in production'],
             ],
-            note: "The complete file links estimate, sanction, fund release, work order, measurements, bills, photographs and asset creation.",
+            note: 'The complete file links estimate, sanction, fund release, work order, measurements, bills, photographs and asset creation.',
             action:
-              r[4] === "Estimate returned"
-                ? "Resubmit estimate"
-                : "Forward file",
+              r[4] === 'Estimate returned'
+                ? 'Resubmit estimate'
+                : 'Forward file',
           })
         }
       />
@@ -1978,46 +2005,46 @@ function ExecutiveReview({
   open: (d: Detail) => void;
   notify: (x: string) => void;
 }) {
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
   const agenda = [
     [
-      "REV/2026/09/01",
-      "Critical teacher vacancies",
-      "Education Officer — ZP",
-      "12 decisions",
-      "Decision due",
+      'REV/2026/09/01',
+      'Critical teacher vacancies',
+      'Education Officer — ZP',
+      '12 decisions',
+      'Decision due',
     ],
     [
-      "REV/2026/09/02",
-      "Schools below 80% attendance",
-      "BEOs: Parseoni, Kuhi, Hingna",
-      "23 schools",
-      "Action plan due",
+      'REV/2026/09/02',
+      'Schools below 80% attendance',
+      'BEOs: Parseoni, Kuhi, Hingna',
+      '23 schools',
+      'Action plan due',
     ],
     [
-      "REV/2026/09/03",
-      "Overdue safety compliance",
-      "NMC EO / ZP EO",
-      "14 schools",
-      "Escalated",
+      'REV/2026/09/03',
+      'Overdue safety compliance',
+      'NMC EO / ZP EO',
+      '14 schools',
+      'Escalated',
     ],
     [
-      "REV/2026/09/04",
-      "PM POSHAN reconciliation",
-      "Deputy EO — Schemes",
-      "3 blocks",
-      "Review",
+      'REV/2026/09/04',
+      'PM POSHAN reconciliation',
+      'Deputy EO — Schemes',
+      '3 blocks',
+      'Review',
     ],
     [
-      "REV/2026/09/05",
-      "Civil works beyond timeline",
-      "Executive Engineer / Education Officer",
-      "9 works",
-      "Decision due",
+      'REV/2026/09/05',
+      'Civil works beyond timeline',
+      'Executive Engineer / Education Officer',
+      '9 works',
+      'Decision due',
     ],
   ];
   const rows =
-    filter === "All" ? agenda : agenda.filter((r) => r[4] === filter);
+    filter === 'All' ? agenda : agenda.filter((r) => r[4] === filter);
   return (
     <>
       <PageHead
@@ -2028,7 +2055,7 @@ function ExecutiveReview({
           className="outline"
           onClick={() =>
             notify(
-              "Meeting mode started. Decisions will be grouped in the demonstration minutes.",
+              'Meeting mode started. Decisions will be grouped in the demonstration minutes.',
             )
           }
         >
@@ -2056,13 +2083,13 @@ function ExecutiveReview({
         <button
           onClick={() =>
             exportCsv(
-              "commissioner-review-agenda.csv",
+              'commissioner-review-agenda.csv',
               [
-                "Reference",
-                "Subject",
-                "Responsible officer",
-                "Coverage",
-                "Status",
+                'Reference',
+                'Subject',
+                'Responsible officer',
+                'Coverage',
+                'Status',
               ],
               agenda,
             )
@@ -2072,7 +2099,11 @@ function ExecutiveReview({
         </button>
       </section>
       <div className="register-tools">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <select
+          aria-label="Filter records"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <option>All</option>
           <option>Decision due</option>
           <option>Action plan due</option>
@@ -2082,27 +2113,27 @@ function ExecutiveReview({
       </div>
       <RegisterTable
         headers={[
-          "Agenda ref.",
-          "Subject",
-          "Responsible officer",
-          "Coverage",
-          "Status",
+          'Agenda ref.',
+          'Subject',
+          'Responsible officer',
+          'Coverage',
+          'Status',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Review agenda",
+            kind: 'Review agenda',
             ref: r[0],
             title: r[1],
             fields: [
-              ["Responsible officer", r[2]],
-              ["Coverage", r[3]],
-              ["Agenda status", r[4]],
-              ["Previous direction", "Submitted in demonstration record"],
-              ["Supporting reports", "3 linked documents"],
+              ['Responsible officer', r[2]],
+              ['Coverage', r[3]],
+              ['Agenda status', r[4]],
+              ['Previous direction', 'Submitted in demonstration record'],
+              ['Supporting reports', '3 linked documents'],
             ],
-            note: "During meeting mode, the commissioner can dictate the decision, assign an officer and set a compliance date.",
-            action: "Record decision",
+            note: 'During meeting mode, the commissioner can dictate the decision, assign an officer and set a compliance date.',
+            action: 'Record decision',
           })
         }
       />
@@ -2114,19 +2145,19 @@ function ExecutiveReview({
           </div>
         </div>
         {[
-          ["Attendance recovery plan — Kuhi", "BEO Kuhi", "Complied", "29 Aug"],
-          ["Fire audit — NMC Zone 8", "Zone Inspector 8", "Overdue", "28 Aug"],
+          ['Attendance recovery plan — Kuhi', 'BEO Kuhi', 'Complied', '29 Aug'],
+          ['Fire audit — NMC Zone 8', 'Zone Inspector 8', 'Overdue', '28 Aug'],
           [
-            "Headmaster charge arrangement",
-            "Education Officer — ZP",
-            "Complied",
-            "30 Aug",
+            'Headmaster charge arrangement',
+            'Education Officer — ZP',
+            'Complied',
+            '30 Aug',
           ],
         ].map((r) => (
           <div className="followup" key={r[0]}>
             <strong>{r[0]}</strong>
             <span>{r[1]}</span>
-            <b className={r[2] === "Overdue" ? "bad" : ""}>{r[2]}</b>
+            <b className={r[2] === 'Overdue' ? 'bad' : ''}>{r[2]}</b>
             <small>{r[3]}</small>
           </div>
         ))}
@@ -2136,14 +2167,14 @@ function ExecutiveReview({
 }
 
 function RiskMap({ open }: { open: (d: Detail) => void }) {
-  const [layer, setLayer] = useState("Composite risk");
-  const [selected, setSelected] = useState("Parseoni");
+  const [layer, setLayer] = useState('Composite risk');
+  const [selected, setSelected] = useState('Parseoni');
   const regions = [
-    ["Parseoni", "High", "23", "78.6%", "18"],
-    ["Kuhi", "High", "17", "81.2%", "11"],
-    ["Hingna", "Medium", "12", "89.1%", "7"],
-    ["NMC Zone 8", "Medium", "24", "94.8%", "9"],
-    ["Ramtek", "Low", "15", "92.7%", "4"],
+    ['Parseoni', 'High', '23', '78.6%', '18'],
+    ['Kuhi', 'High', '17', '81.2%', '11'],
+    ['Hingna', 'Medium', '12', '89.1%', '7'],
+    ['NMC Zone 8', 'Medium', '24', '94.8%', '9'],
+    ['Ramtek', 'Low', '15', '92.7%', '4'],
   ];
   const current = regions.find((r) => r[0] === selected)!;
   return (
@@ -2156,8 +2187,8 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "district-risk-map.csv",
-              ["Area", "Risk", "Schools flagged", "Attendance", "Open actions"],
+              'district-risk-map.csv',
+              ['Area', 'Risk', 'Schools flagged', 'Attendance', 'Open actions'],
               regions,
             )
           }
@@ -2167,15 +2198,15 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
       </PageHead>
       <div className="map-layers">
         {[
-          "Composite risk",
-          "Attendance",
-          "Teacher vacancies",
-          "Safety",
-          "Infrastructure",
-          "Inspection overdue",
+          'Composite risk',
+          'Attendance',
+          'Teacher vacancies',
+          'Safety',
+          'Infrastructure',
+          'Inspection overdue',
         ].map((x) => (
           <button
-            className={layer === x ? "active" : ""}
+            className={layer === x ? 'active' : ''}
             key={x}
             onClick={() => setLayer(x)}
           >
@@ -2191,7 +2222,9 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
           />
           <div className="map-caption">
             <b>Base map: OpenStreetMap</b>
-            <span>Selected risk layer: {layer}</span>
+            <span>
+              Selected review category: {layer} · Base map only; no risk overlay
+            </span>
           </div>
         </div>
         <aside className="risk-list">
@@ -2201,7 +2234,7 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
           {regions.map((r) => (
             <button
               key={r[0]}
-              className={selected === r[0] ? "active" : ""}
+              className={selected === r[0] ? 'active' : ''}
               onClick={() => setSelected(r[0])}
             >
               <i className={r[1].toLowerCase()} />
@@ -2237,23 +2270,23 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
           <button
             onClick={() =>
               open({
-                kind: "Area risk file",
+                kind: 'Area risk file',
                 ref: `AREA-${current[0].toUpperCase()}`,
                 title: `${current[0]} — ${layer}`,
                 fields: [
-                  ["Composite risk", current[1]],
-                  ["Schools flagged", current[2]],
-                  ["Average attendance", current[3]],
-                  ["Open actions", current[4]],
+                  ['Composite risk', current[1]],
+                  ['Schools flagged', current[2]],
+                  ['Average attendance', current[3]],
+                  ['Open actions', current[4]],
                   [
-                    "Supervising authority",
-                    current[0].startsWith("NMC")
-                      ? "NMC Education Officer"
-                      : "ZP Education Officer",
+                    'Supervising authority',
+                    current[0].startsWith('NMC')
+                      ? 'NMC Education Officer'
+                      : 'ZP Education Officer',
                   ],
                 ],
-                note: "Production risk scores will retain the contributing indicators, source dates and thresholds.",
-                action: "Issue area direction",
+                note: 'Production risk scores will retain the contributing indicators, source dates and thresholds.',
+                action: 'Issue area direction',
               })
             }
           >
@@ -2266,50 +2299,50 @@ function RiskMap({ open }: { open: (d: Detail) => void }) {
 }
 
 function EarlyWarning({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
   const cases = [
     [
-      "EW/2026/1442",
-      "Student A-1042",
-      "Class VIII · ZP School, Parseoni",
-      "Attendance",
-      "62% · 21 days absent",
-      "High",
+      'EW/2026/1442',
+      'Student A-1042',
+      'Class VIII · ZP School, Parseoni',
+      'Attendance',
+      '62% · 21 days absent',
+      'High',
     ],
     [
-      "EW/2026/1398",
-      "Student A-0881",
-      "Class X · NMC School, Zone 8",
-      "Learning decline",
-      "−18% across two assessments",
-      "High",
+      'EW/2026/1398',
+      'Student A-0881',
+      'Class X · NMC School, Zone 8',
+      'Learning decline',
+      '−18% across two assessments',
+      'High',
     ],
     [
-      "EW/2026/1371",
-      "Student A-0734",
-      "Class IX · ZP School, Hingna",
-      "Transition risk",
-      "Not enrolled after transfer",
-      "Immediate",
+      'EW/2026/1371',
+      'Student A-0734',
+      'Class IX · ZP School, Hingna',
+      'Transition risk',
+      'Not enrolled after transfer',
+      'Immediate',
     ],
     [
-      "EW/2026/1355",
-      "Student A-0642",
-      "Class VI · Municipal School, Kamptee",
-      "Entitlement gap",
-      "Scholarship document pending",
-      "Medium",
+      'EW/2026/1355',
+      'Student A-0642',
+      'Class VI · Municipal School, Kamptee',
+      'Entitlement gap',
+      'Scholarship document pending',
+      'Medium',
     ],
     [
-      "EW/2026/1312",
-      "Student A-0521",
-      "Class VII · ZP School, Kuhi",
-      "Attendance",
-      "73% · seasonal migration",
-      "Medium",
+      'EW/2026/1312',
+      'Student A-0521',
+      'Class VII · ZP School, Kuhi',
+      'Attendance',
+      '73% · seasonal migration',
+      'Medium',
     ],
   ];
-  const rows = filter === "All" ? cases : cases.filter((r) => r[3] === filter);
+  const rows = filter === 'All' ? cases : cases.filter((r) => r[3] === filter);
   return (
     <>
       <PageHead
@@ -2320,14 +2353,14 @@ function EarlyWarning({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "early-warning-cases.csv",
+              'early-warning-cases.csv',
               [
-                "Case",
-                "Masked student",
-                "School",
-                "Trigger",
-                "Evidence",
-                "Risk",
+                'Case',
+                'Masked student',
+                'School',
+                'Trigger',
+                'Evidence',
+                'Risk',
               ],
               cases,
             )
@@ -2369,14 +2402,14 @@ function EarlyWarning({ open }: { open: (d: Detail) => void }) {
       </section>
       <div className="filter-tabs">
         {[
-          "All",
-          "Attendance",
-          "Learning decline",
-          "Transition risk",
-          "Entitlement gap",
+          'All',
+          'Attendance',
+          'Learning decline',
+          'Transition risk',
+          'Entitlement gap',
         ].map((x) => (
           <button
-            className={filter === x ? "active" : ""}
+            className={filter === x ? 'active' : ''}
             key={x}
             onClick={() => setFilter(x)}
           >
@@ -2386,32 +2419,32 @@ function EarlyWarning({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Case ID",
-          "Student reference",
-          "Class / school",
-          "Trigger",
-          "Evidence",
-          "Risk",
+          'Case ID',
+          'Student reference',
+          'Class / school',
+          'Trigger',
+          'Evidence',
+          'Risk',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Student intervention case",
+            kind: 'Student intervention case',
             ref: r[0],
             title: r[1],
             fields: [
-              ["School and class", r[2]],
-              ["Early-warning trigger", r[3]],
-              ["Evidence", r[4]],
-              ["Risk level", r[5]],
+              ['School and class', r[2]],
+              ['Early-warning trigger', r[3]],
+              ['Evidence', r[4]],
+              ['Risk level', r[5]],
               [
-                "Assigned intervention officer",
-                "Cluster Head / Zone Inspector",
+                'Assigned intervention officer',
+                'Cluster Head / Zone Inspector',
               ],
-              ["Consent and access log", "Recorded"],
+              ['Consent and access log', 'Recorded'],
             ],
-            note: "The intervention plan records home contact, counselling, entitlement support, responsible officer and verified outcome.",
-            action: "Assign intervention",
+            note: 'The intervention plan records home contact, counselling, entitlement support, responsible officer and verified outcome.',
+            action: 'Assign intervention',
           })
         }
       />
@@ -2420,50 +2453,50 @@ function EarlyWarning({ open }: { open: (d: Detail) => void }) {
 }
 
 function Grievances({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
   const cases = [
     [
-      "GRV/2026/2418",
-      "Parent",
-      "Denial of textbook entitlement",
-      "NMC Zone 4",
-      "2 days left",
-      "Under inquiry",
+      'GRV/2026/2418',
+      'Parent',
+      'Denial of textbook entitlement',
+      'NMC Zone 4',
+      '2 days left',
+      'Under inquiry',
     ],
     [
-      "GRV/2026/2399",
-      "Teacher",
-      "Service-book correction pending",
-      "ZP / Saoner",
-      "Overdue 3 days",
-      "Escalated",
+      'GRV/2026/2399',
+      'Teacher',
+      'Service-book correction pending',
+      'ZP / Saoner',
+      'Overdue 3 days',
+      'Escalated',
     ],
     [
-      "GRV/2026/2384",
-      "SMC",
-      "Unsafe electrical wiring",
-      "ZP / Parseoni",
-      "Due today",
-      "Immediate",
+      'GRV/2026/2384',
+      'SMC',
+      'Unsafe electrical wiring',
+      'ZP / Parseoni',
+      'Due today',
+      'Immediate',
     ],
     [
-      "GRV/2026/2361",
-      "Citizen",
-      "School boundary encroachment",
-      "Municipal Council, Katol",
-      "6 days left",
-      "Assigned",
+      'GRV/2026/2361',
+      'Citizen',
+      'School boundary encroachment',
+      'Municipal Council, Katol',
+      '6 days left',
+      'Assigned',
     ],
     [
-      "GRV/2026/2318",
-      "Headmaster",
-      "Grant credit not reflected",
-      "ZP / Ramtek",
-      "4 days left",
-      "Awaiting finance",
+      'GRV/2026/2318',
+      'Headmaster',
+      'Grant credit not reflected',
+      'ZP / Ramtek',
+      '4 days left',
+      'Awaiting finance',
     ],
   ];
-  const rows = filter === "All" ? cases : cases.filter((r) => r[5] === filter);
+  const rows = filter === 'All' ? cases : cases.filter((r) => r[5] === filter);
   return (
     <>
       <PageHead
@@ -2474,17 +2507,17 @@ function Grievances({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             open({
-              kind: "New grievance",
-              ref: "DRAFT",
-              title: "Register grievance",
+              kind: 'New grievance',
+              ref: 'DRAFT',
+              title: 'Register grievance',
               fields: [
-                ["Complainant type", "Parent / Teacher / Citizen / SMC"],
-                ["Channel", "Office / helpline / portal"],
-                ["Jurisdiction", "Resolved automatically from school"],
-                ["SLA", "Applied from grievance category"],
+                ['Complainant type', 'Parent / Teacher / Citizen / SMC'],
+                ['Channel', 'Office / helpline / portal'],
+                ['Jurisdiction', 'Resolved automatically from school'],
+                ['SLA', 'Applied from grievance category'],
               ],
-              note: "Sensitive complainant information is protected and visible only to authorised grievance officers.",
-              action: "Register grievance",
+              note: 'Sensitive complainant information is protected and visible only to authorised grievance officers.',
+              action: 'Register grievance',
             })
           }
         >
@@ -2512,15 +2545,15 @@ function Grievances({ open }: { open: (d: Detail) => void }) {
       </section>
       <div className="filter-tabs">
         {[
-          "All",
-          "Under inquiry",
-          "Escalated",
-          "Immediate",
-          "Assigned",
-          "Awaiting finance",
+          'All',
+          'Under inquiry',
+          'Escalated',
+          'Immediate',
+          'Assigned',
+          'Awaiting finance',
         ].map((x) => (
           <button
-            className={filter === x ? "active" : ""}
+            className={filter === x ? 'active' : ''}
             key={x}
             onClick={() => setFilter(x)}
           >
@@ -2530,29 +2563,29 @@ function Grievances({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Grievance no.",
-          "Complainant",
-          "Subject",
-          "Jurisdiction",
-          "SLA position",
-          "Status",
+          'Grievance no.',
+          'Complainant',
+          'Subject',
+          'Jurisdiction',
+          'SLA position',
+          'Status',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Grievance file",
+            kind: 'Grievance file',
             ref: r[0],
             title: r[2],
             fields: [
-              ["Complainant category", r[1]],
-              ["Jurisdiction", r[3]],
-              ["SLA position", r[4]],
-              ["Current status", r[5]],
-              ["Assigned officer", "Jurisdiction grievance officer"],
-              ["Evidence received", "2 attachments"],
+              ['Complainant category', r[1]],
+              ['Jurisdiction', r[3]],
+              ['SLA position', r[4]],
+              ['Current status', r[5]],
+              ['Assigned officer', 'Jurisdiction grievance officer'],
+              ['Evidence received', '2 attachments'],
             ],
-            note: "Closure requires an action-taken report and, for selected categories, confirmation from the complainant or supervisory officer.",
-            action: "Record action taken",
+            note: 'Closure requires an action-taken report and, for selected categories, confirmation from the complainant or supervisory officer.',
+            action: 'Record action taken',
           })
         }
       />
@@ -2561,50 +2594,50 @@ function Grievances({ open }: { open: (d: Detail) => void }) {
 }
 
 function Schemes({ open }: { open: (d: Detail) => void }) {
-  const [scheme, setScheme] = useState("All");
+  const [scheme, setScheme] = useState('All');
   const data = [
     [
-      "SCH/PM-POSHAN",
-      "PM POSHAN",
-      "1,102 schools",
-      "98.6% reporting",
-      "3 blocks pending",
-      "Review",
+      'SCH/PM-POSHAN',
+      'PM POSHAN',
+      '1,102 schools',
+      '98.6% reporting',
+      '3 blocks pending',
+      'Review',
     ],
     [
-      "SCH/UNIFORM",
-      "Free uniform distribution",
-      "1,86,420 students",
-      "94.2% delivered",
-      "10,802 pending",
-      "Action due",
+      'SCH/UNIFORM',
+      'Free uniform distribution',
+      '1,86,420 students',
+      '94.2% delivered',
+      '10,802 pending',
+      'Action due',
     ],
     [
-      "SCH/TEXTBOOK",
-      "Free textbooks",
-      "2,41,180 students",
-      "98.9% delivered",
-      "2,642 pending",
-      "On track",
+      'SCH/TEXTBOOK',
+      'Free textbooks',
+      '2,41,180 students',
+      '98.9% delivered',
+      '2,642 pending',
+      'On track',
     ],
     [
-      "SCH/SCHOLAR",
-      "Pre-matric scholarships",
-      "62,480 eligible",
-      "88.4% verified",
-      "7,248 pending",
-      "Review",
+      'SCH/SCHOLAR',
+      'Pre-matric scholarships',
+      '62,480 eligible',
+      '88.4% verified',
+      '7,248 pending',
+      'Review',
     ],
     [
-      "SCH/INCLUSIVE",
-      "Inclusive education support",
-      "4,218 students",
-      "91.7% plan coverage",
-      "350 pending",
-      "Action due",
+      'SCH/INCLUSIVE',
+      'Inclusive education support',
+      '4,218 students',
+      '91.7% plan coverage',
+      '350 pending',
+      'Action due',
     ],
   ];
-  const rows = scheme === "All" ? data : data.filter((r) => r[1] === scheme);
+  const rows = scheme === 'All' ? data : data.filter((r) => r[1] === scheme);
   return (
     <>
       <PageHead
@@ -2615,14 +2648,14 @@ function Schemes({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             exportCsv(
-              "scheme-monitoring.csv",
+              'scheme-monitoring.csv',
               [
-                "Scheme ID",
-                "Scheme",
-                "Coverage",
-                "Progress",
-                "Pending",
-                "Status",
+                'Scheme ID',
+                'Scheme',
+                'Coverage',
+                'Progress',
+                'Pending',
+                'Status',
               ],
               data,
             )
@@ -2651,29 +2684,29 @@ function Schemes({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Scheme ID",
-          "Scheme / entitlement",
-          "Coverage",
-          "Progress",
-          "Pending",
-          "Status",
+          'Scheme ID',
+          'Scheme / entitlement',
+          'Coverage',
+          'Progress',
+          'Pending',
+          'Status',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Scheme monitoring file",
+            kind: 'Scheme monitoring file',
             ref: r[0],
             title: r[1],
             fields: [
-              ["Coverage", r[2]],
-              ["Current progress", r[3]],
-              ["Pending beneficiaries / returns", r[4]],
-              ["Current status", r[5]],
-              ["Nodal officer", "Deputy Education Officer — Schemes"],
-              ["Last data receipt", "31 Aug 2026 · 09:30"],
+              ['Coverage', r[2]],
+              ['Current progress', r[3]],
+              ['Pending beneficiaries / returns', r[4]],
+              ['Current status', r[5]],
+              ['Nodal officer', 'Deputy Education Officer — Schemes'],
+              ['Last data receipt', '31 Aug 2026 · 09:30'],
             ],
-            note: "Production monitoring will reconcile sanction, receipt, school distribution and beneficiary acknowledgement.",
-            action: "Issue scheme direction",
+            note: 'Production monitoring will reconcile sanction, receipt, school distribution and beneficiary acknowledgement.',
+            action: 'Issue scheme direction',
           })
         }
       />
@@ -2682,50 +2715,50 @@ function Schemes({ open }: { open: (d: Detail) => void }) {
 }
 
 function Infrastructure({ open }: { open: (d: Detail) => void }) {
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
   const data = [
     [
-      "SAFE/2026/318",
-      "Z.P. School, Parseoni",
-      "Electrical safety",
-      "Critical",
-      "Temporary isolation completed",
-      "48 hours",
+      'SAFE/2026/318',
+      'Z.P. School, Parseoni',
+      'Electrical safety',
+      'Critical',
+      'Temporary isolation completed',
+      '48 hours',
     ],
     [
-      "SAFE/2026/302",
-      "NMC High School, Zone 8",
-      "Structural condition",
-      "High",
-      "Engineer inspection due",
-      "3 days",
+      'SAFE/2026/302',
+      'NMC High School, Zone 8',
+      'Structural condition',
+      'High',
+      'Engineer inspection due',
+      '3 days',
     ],
     [
-      "SAFE/2026/289",
-      "Z.P. School, Kuhi",
-      "Drinking water",
-      "High",
-      "Alternate supply active",
-      "Due today",
+      'SAFE/2026/289',
+      'Z.P. School, Kuhi',
+      'Drinking water',
+      'High',
+      'Alternate supply active',
+      'Due today',
     ],
     [
-      "SAFE/2026/271",
-      "Municipal School, Kamptee",
-      "Fire compliance",
-      "Medium",
-      "Equipment procurement",
-      "7 days",
+      'SAFE/2026/271',
+      'Municipal School, Kamptee',
+      'Fire compliance',
+      'Medium',
+      'Equipment procurement',
+      '7 days',
     ],
     [
-      "SAFE/2026/255",
-      "Z.P. School, Ramtek",
-      "Girls toilet",
-      "Medium",
-      "Estimate submitted",
-      "10 days",
+      'SAFE/2026/255',
+      'Z.P. School, Ramtek',
+      'Girls toilet',
+      'Medium',
+      'Estimate submitted',
+      '10 days',
     ],
   ];
-  const rows = filter === "All" ? data : data.filter((r) => r[3] === filter);
+  const rows = filter === 'All' ? data : data.filter((r) => r[3] === filter);
   return (
     <>
       <PageHead
@@ -2736,17 +2769,17 @@ function Infrastructure({ open }: { open: (d: Detail) => void }) {
           className="outline"
           onClick={() =>
             open({
-              kind: "Safety inspection",
-              ref: "DRAFT",
-              title: "Report critical infrastructure condition",
+              kind: 'Safety inspection',
+              ref: 'DRAFT',
+              title: 'Report critical infrastructure condition',
               fields: [
-                ["School", "Resolve from UDISE"],
-                ["Risk category", "Electrical / Structural / Water / Fire"],
-                ["Immediate safeguard", "Required for critical risk"],
-                ["Escalation", "Engineering and education authorities"],
+                ['School', 'Resolve from UDISE'],
+                ['Risk category', 'Electrical / Structural / Water / Fire'],
+                ['Immediate safeguard', 'Required for critical risk'],
+                ['Escalation', 'Engineering and education authorities'],
               ],
-              note: "Critical risks trigger an immediate safeguarding checklist before the repair workflow begins.",
-              action: "Register safety alert",
+              note: 'Critical risks trigger an immediate safeguarding checklist before the repair workflow begins.',
+              action: 'Register safety alert',
             })
           }
         >
@@ -2800,9 +2833,9 @@ function Infrastructure({ open }: { open: (d: Detail) => void }) {
         </div>
       </div>
       <div className="filter-tabs">
-        {["All", "Critical", "High", "Medium"].map((x) => (
+        {['All', 'Critical', 'High', 'Medium'].map((x) => (
           <button
-            className={filter === x ? "active" : ""}
+            className={filter === x ? 'active' : ''}
             key={x}
             onClick={() => setFilter(x)}
           >
@@ -2812,29 +2845,29 @@ function Infrastructure({ open }: { open: (d: Detail) => void }) {
       </div>
       <RegisterTable
         headers={[
-          "Alert ID",
-          "School",
-          "Risk category",
-          "Severity",
-          "Current safeguard / action",
-          "Compliance due",
+          'Alert ID',
+          'School',
+          'Risk category',
+          'Severity',
+          'Current safeguard / action',
+          'Compliance due',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Infrastructure safety file",
+            kind: 'Infrastructure safety file',
             ref: r[0],
             title: r[1],
             fields: [
-              ["Risk category", r[2]],
-              ["Severity", r[3]],
-              ["Current safeguard / action", r[4]],
-              ["Compliance timeline", r[5]],
-              ["Inspecting authority", "Assigned by jurisdiction"],
-              ["Linked works file", "Created after technical assessment"],
+              ['Risk category', r[2]],
+              ['Severity', r[3]],
+              ['Current safeguard / action', r[4]],
+              ['Compliance timeline', r[5]],
+              ['Inspecting authority', 'Assigned by jurisdiction'],
+              ['Linked works file', 'Created after technical assessment'],
             ],
-            note: "The safety file keeps the immediate safeguard separate from the permanent engineering solution.",
-            action: "Update compliance",
+            note: 'The safety file keeps the immediate safeguard separate from the permanent engineering solution.',
+            action: 'Update compliance',
           })
         }
       />
@@ -2849,51 +2882,51 @@ function DataGovernance({
   open: (d: Detail) => void;
   notify: (x: string) => void;
 }) {
-  const [source, setSource] = useState("All");
+  const [source, setSource] = useState('All');
   const sources = [
     [
-      "SRC/UDISE",
-      "UDISE+ school master",
-      "School identity & enrolment",
-      "30 Aug · 23:10",
-      "Healthy",
-      "1,247 / 1,247",
+      'SRC/UDISE',
+      'UDISE+ school master',
+      'School identity & enrolment',
+      '30 Aug · 23:10',
+      'Healthy',
+      '1,247 / 1,247',
     ],
     [
-      "SRC/NMC",
-      "NMC Education MIS",
-      "Urban schools & staff",
-      "31 Aug · 08:45",
-      "Healthy",
-      "218 / 218",
+      'SRC/NMC',
+      'NMC Education MIS',
+      'Urban schools & staff',
+      '31 Aug · 08:45',
+      'Healthy',
+      '218 / 218',
     ],
     [
-      "SRC/ZP",
-      "ZP monthly returns",
-      "Rural operations",
-      "31 Aug · 09:30",
-      "Partial",
-      "12 / 13 blocks",
+      'SRC/ZP',
+      'ZP monthly returns',
+      'Rural operations',
+      '31 Aug · 09:30',
+      'Partial',
+      '12 / 13 blocks',
     ],
     [
-      "SRC/SARAL",
-      "State student system",
-      "Student records",
-      "31 Aug · 02:15",
-      "Healthy",
-      "2,84,190 records",
+      'SRC/SARAL',
+      'State student system',
+      'Student records',
+      '31 Aug · 02:15',
+      'Healthy',
+      '2,84,190 records',
     ],
     [
-      "SRC/TREASURY",
-      "Treasury / grant feed",
-      "Sanctions & expenditure",
-      "30 Aug · 18:00",
-      "Delayed",
-      "Last feed 15h ago",
+      'SRC/TREASURY',
+      'Treasury / grant feed',
+      'Sanctions & expenditure',
+      '30 Aug · 18:00',
+      'Delayed',
+      'Last feed 15h ago',
     ],
   ];
   const rows =
-    source === "All" ? sources : sources.filter((r) => r[4] === source);
+    source === 'All' ? sources : sources.filter((r) => r[4] === source);
   return (
     <>
       <PageHead
@@ -2904,7 +2937,7 @@ function DataGovernance({
           className="outline"
           onClick={() =>
             notify(
-              "Cross-system validation completed for demonstration data. 14 exceptions require review.",
+              'Simulation only: no live validation ran. Review sample exceptions or open School workflows to record a local action.',
             )
           }
         >
@@ -2919,11 +2952,7 @@ function DataGovernance({
         <b>14 validation exceptions</b>
       </section>
       <section className="stats">
-        <Stat
-          label="Connected data sources"
-          value="9"
-          note="5 active feeds"
-        />
+        <Stat label="Connected data sources" value="9" note="5 active feeds" />
         <Stat
           label="Records validated today"
           value="3,42,881"
@@ -2942,9 +2971,9 @@ function DataGovernance({
         />
       </section>
       <div className="filter-tabs">
-        {["All", "Healthy", "Partial", "Delayed"].map((x) => (
+        {['All', 'Healthy', 'Partial', 'Delayed'].map((x) => (
           <button
-            className={source === x ? "active" : ""}
+            className={source === x ? 'active' : ''}
             key={x}
             onClick={() => setSource(x)}
           >
@@ -2954,32 +2983,32 @@ function DataGovernance({
       </div>
       <RegisterTable
         headers={[
-          "Source ID",
-          "System / register",
-          "Data domain",
-          "Last receipt",
-          "Status",
-          "Coverage",
+          'Source ID',
+          'System / register',
+          'Data domain',
+          'Last receipt',
+          'Status',
+          'Coverage',
         ]}
         rows={rows}
         open={(r) =>
           open({
-            kind: "Data-source control record",
+            kind: 'Data-source control record',
             ref: r[0],
             title: r[1],
             fields: [
-              ["Data domain", r[2]],
-              ["Last successful receipt", r[3]],
-              ["Source status", r[4]],
-              ["Coverage", r[5]],
-              ["Data owner", "Designated department nodal officer"],
+              ['Data domain', r[2]],
+              ['Last successful receipt', r[3]],
+              ['Source status', r[4]],
+              ['Coverage', r[5]],
+              ['Data owner', 'Designated department nodal officer'],
               [
-                "Validation rules",
-                "Schema, identity, range and reconciliation checks",
+                'Validation rules',
+                'Schema, identity, range and reconciliation checks',
               ],
             ],
-            note: "Source values are retained unchanged; corrections are recorded as governed transformations with full lineage.",
-            action: "Open exception log",
+            note: 'Source values are retained unchanged; corrections are recorded as governed transformations with full lineage.',
+            action: 'Open exception log',
           })
         }
       />
@@ -2991,31 +3020,31 @@ function DataGovernance({
         </div>
         {[
           [
-            "12:06:14",
-            "District Administrator",
-            "Approved establishment file",
-            "EO/EST/2026/0418",
+            '12:06:14',
+            'District Administrator',
+            'Approved establishment file',
+            'EO/EST/2026/0418',
           ],
           [
-            "11:42:03",
-            "Education Officer — ZP",
-            "Updated officer assignment",
-            "POS-BEO-HIN",
+            '11:42:03',
+            'Education Officer — ZP',
+            'Updated officer assignment',
+            'POS-BEO-HIN',
           ],
           [
-            "10:18:51",
-            "System validation service",
-            "Raised reconciliation exception",
-            "SRC/ZP-2026-0831",
+            '10:18:51',
+            'System validation service',
+            'Raised reconciliation exception',
+            'SRC/ZP-2026-0831',
           ],
           [
-            "09:54:22",
-            "Zone Inspector 8",
-            "Submitted inspection evidence",
-            "INS/2026/0818",
+            '09:54:22',
+            'Zone Inspector 8',
+            'Submitted inspection evidence',
+            'INS/2026/0818',
           ],
         ].map((r) => (
-          <div className="audit-row" key={r.join("")}>
+          <div className="audit-row" key={r.join('')}>
             <span>{r[0]}</span>
             <strong>{r[1]}</strong>
             <b>{r[2]}</b>
@@ -3036,6 +3065,9 @@ function RegisterTable({
   rows: string[][];
   open: (r: string[]) => void;
 }) {
+  const { session } = useDemoAuth();
+  const { state } = useSchoolRecords();
+  rows = rows.filter((r) => scopeText(r.join(' '), session));
   return (
     <section className="block school-list">
       <div className="result-count">{rows.length} records</div>
@@ -3044,22 +3076,31 @@ function RegisterTable({
           <thead>
             <tr>
               {headers.map((h) => (
-                <th key={h}>{h}</th>
+                <th key={h} scope="col">
+                  {h}
+                </th>
               ))}
+              <th scope="col">Saved demo action</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r[0]} onClick={() => open(r)}>
+              <tr key={r[0]}>
                 {r.map((v, i) => (
                   <td key={i}>
                     {i === 0 ? (
-                      <span className="mono">{v}</span>
+                      <button
+                        className="text-button mono"
+                        onClick={() => open(r)}
+                        aria-label={'Open ' + r[0]}
+                      >
+                        {v}
+                      </button>
                     ) : i === 1 ? (
                       <strong>{v}</strong>
                     ) : i === headers.length - 2 ? (
                       <span
-                        className={`record ${v.toLowerCase().replaceAll(" ", "-")}`}
+                        className={`record ${v.toLowerCase().replaceAll(' ', '-')}`}
                       >
                         {v}
                       </span>
@@ -3068,6 +3109,16 @@ function RegisterTable({
                     )}
                   </td>
                 ))}
+                <td>
+                  {state.actions
+                    .filter(
+                      (a) =>
+                        a.reference === r[0] &&
+                        (['executive', 'mis'].includes(session.app) ||
+                          a.actor === session.userId),
+                    )
+                    .at(-1)?.status || 'No action recorded'}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -3081,47 +3132,103 @@ function RegisterTable({
 function DetailDrawer({
   detail,
   close,
-  action,
 }: {
   detail: Detail;
   close: () => void;
-  action: () => void;
 }) {
+  const { session } = useDemoAuth(),
+    { state, save } = useSchoolRecords(),
+    [remarks, setRemarks] = useState(''),
+    [status, setStatus] = useState(
+      session.app === 'executive' ? 'Decision recorded' : 'Submitted',
+    ),
+    [error, setError] = useState('');
+  const history = state.actions.filter(
+    (r) =>
+      r.reference === detail.ref &&
+      (['executive', 'mis'].includes(session.app) ||
+        r.actor === session.userId),
+  );
+  const record = () => {
+    try {
+      save({
+        kind: 'action',
+        reference: detail.ref,
+        title: detail.title,
+        app: session.app,
+        remarks,
+        status,
+      });
+      setRemarks('');
+      setError('');
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
   return (
-    <div className="overlay" onClick={close}>
-      <section className="file-sheet" onClick={(e) => e.stopPropagation()}>
-        <header>
-          <div>
-            <span>{detail.kind}</span>
-            <strong>{detail.ref}</strong>
-          </div>
-          <button onClick={close}>
-            <X size={18} />
-          </button>
-        </header>
-        <div className="file-body">
-          <h2>{detail.title}</h2>
-          <dl>
-            {detail.fields.map(([a, b]) => (
-              <div key={a}>
-                <dt>{a}</dt>
-                <dd>{b}</dd>
-              </div>
-            ))}
-          </dl>
-          <label>
-            Remarks
-            <textarea placeholder="Remarks" />
-          </label>
+    <AccessibleDialog label={detail.title} onClose={close}>
+      <header>
+        <div>
+          <span>{detail.kind}</span>
+          <strong>{detail.ref}</strong>
         </div>
-        <footer>
-          <button onClick={close}>Close</button>
-          <button onClick={action}>
-            <Send size={14} />
-            {detail.action || "Save"}
-          </button>
-        </footer>
-      </section>
-    </div>
+        <button onClick={close} aria-label="Close details">
+          ×
+        </button>
+      </header>
+      <div className="file-body">
+        <h2>{detail.title}</h2>
+        <dl>
+          {detail.fields.map(([a, b]) => (
+            <div key={a}>
+              <dt>{a}</dt>
+              <dd>{b}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="workflow-help">
+          {detail.note} This is a saved local demo action; no external approval,
+          document upload or integration is performed.
+        </p>
+        <label>
+          Recorded status
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            {(session.app === 'executive'
+              ? ['Decision recorded', 'Under review', 'Approved', 'Returned']
+              : ['Submitted', 'Under review', 'Returned']
+            ).map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Remarks required
+          <textarea
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+            maxLength={2000}
+          />
+        </label>
+        {error && (
+          <p className="auth-error" role="alert">
+            {error}
+          </p>
+        )}
+        <h3>Saved actions</h3>
+        {history.map((r) => (
+          <div className="wf-history" key={r.id}>
+            <strong>
+              {r.status} · {r.actor}
+            </strong>
+            <span>{new Date(r.at).toLocaleString('en-IN')}</span>
+            <p>{r.remarks}</p>
+          </div>
+        ))}
+      </div>
+      <footer>
+        <button onClick={close}>Close</button>
+        <button onClick={record}>Save local action</button>
+      </footer>
+    </AccessibleDialog>
   );
 }

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Building2,
@@ -9,7 +9,7 @@ import {
   LockKeyhole,
   ShieldCheck,
   UserRound,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   createContext,
   type ReactNode,
@@ -18,76 +18,14 @@ import {
   useEffect,
   useMemo,
   useState,
-} from "react";
+} from 'react';
 
-export type DemoSession = {
-  userId: string;
-  name: string;
-  office: string;
-  role: string;
-  app: string;
-};
-
-type DemoAccount = DemoSession & { password: string };
-
-const accounts: DemoAccount[] = [
-  {
-    userId: "district.admin",
-    password: "Nagpur@2026",
-    name: "District Administrator",
-    office: "District Education Office, Nagpur",
-    role: "Education Officer — Primary",
-    app: "executive",
-  },
-  {
-    userId: "commissioner",
-    password: "Nagpur@2026",
-    name: "Municipal Commissioner",
-    office: "Nagpur Municipal Corporation",
-    role: "Municipal Commissioner",
-    app: "executive",
-  },
-  {
-    userId: "field.officer",
-    password: "Nagpur@2026",
-    name: "Block Education Officer",
-    office: "Hingna Block",
-    role: "Block Education Officer — Hingna",
-    app: "field",
-  },
-  {
-    userId: "headmaster",
-    password: "Nagpur@2026",
-    name: "Headmaster",
-    office: "Z.P. Upper Primary School, Parseoni",
-    role: "Headmaster",
-    app: "school",
-  },
-  {
-    userId: "teacher",
-    password: "Nagpur@2026",
-    name: "Class Teacher",
-    office: "Class VIII A",
-    role: "Class Teacher — VIII A",
-    app: "teacher",
-  },
-  {
-    userId: "parent",
-    password: "Nagpur@2026",
-    name: "Parent / Guardian",
-    office: "Family & SMC",
-    role: "Parent / Guardian",
-    app: "community",
-  },
-  {
-    userId: "mis.admin",
-    password: "Nagpur@2026",
-    name: "District MIS Officer",
-    office: "District MIS Cell",
-    role: "District MIS Officer",
-    app: "mis",
-  },
-];
+import {
+  accounts,
+  canonicalSession,
+  type DemoSession,
+} from '@/lib/demo-accounts';
+export type { DemoSession } from '@/lib/demo-accounts';
 
 type AuthContextValue = {
   session: DemoSession;
@@ -95,42 +33,59 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const SESSION_KEY = "shikshan-setu-demo-session";
+const SESSION_KEY = 'shikshan-setu-demo-session';
 
 export function useDemoAuth() {
   const value = useContext(AuthContext);
-  if (!value) throw new Error("useDemoAuth must be used within DemoAuthGate");
+  if (!value) throw new Error('useDemoAuth must be used within DemoAuthGate');
   return value;
 }
 
 export function DemoAuthGate({ children }: { children: ReactNode }) {
+  const [storageWarning, setStorageWarning] = useState('');
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<DemoSession | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
-      const stored = window.localStorage.getItem(SESSION_KEY);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as DemoSession;
-          if (accounts.some((account) => account.userId === parsed.userId)) {
-            setSession(parsed);
-          }
-        } catch {
-          window.localStorage.removeItem(SESSION_KEY);
+      try {
+        const stored = window.localStorage.getItem(SESSION_KEY);
+        if (stored) {
+          const restored = canonicalSession(JSON.parse(stored));
+          if (restored) setSession(restored);
+          else
+            setStorageWarning(
+              'The saved demo profile was invalid. Please sign in again.',
+            );
         }
+      } catch {
+        setStorageWarning(
+          'Browser storage is unavailable or invalid. You can sign in for this visit.',
+        );
       }
       setReady(true);
     });
   }, []);
 
   const login = (account: DemoSession) => {
-    window.localStorage.setItem(SESSION_KEY, JSON.stringify(account));
+    try {
+      window.localStorage.setItem(SESSION_KEY, JSON.stringify(account));
+    } catch {
+      setStorageWarning(
+        'Storage is unavailable. This demo session lasts only for this visit.',
+      );
+    }
     setSession(account);
   };
 
   const logout = () => {
-    window.localStorage.removeItem(SESSION_KEY);
+    try {
+      window.localStorage.removeItem(SESSION_KEY);
+    } catch {
+      setStorageWarning(
+        'Storage could not be cleared. This visit is signed out; check browser storage before reloading.',
+      );
+    }
     setSession(null);
   };
 
@@ -142,10 +97,19 @@ export function DemoAuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!session) return <LoginScreen onLogin={login} />;
+  if (!session)
+    return (
+      <>
+        <output className="demo-storage-warning">{storageWarning}</output>
+        <LoginScreen onLogin={login} />
+      </>
+    );
 
   return (
     <AuthContext.Provider value={{ session, logout }}>
+      {storageWarning && (
+        <output className="demo-storage-warning">{storageWarning}</output>
+      )}
       {children}
     </AuthContext.Provider>
   );
@@ -156,7 +120,7 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
   const [userId, setUserId] = useState(accounts[0].userId);
   const [password, setPassword] = useState(accounts[0].password);
   const [visible, setVisible] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const selected = useMemo(
     () => accounts.find((account) => account.userId === selectedId)!,
@@ -168,7 +132,7 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
     setSelectedId(id);
     setUserId(account.userId);
     setPassword(account.password);
-    setError("");
+    setError('');
   };
 
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
@@ -177,7 +141,7 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
       (item) => item.userId === userId.trim() && item.password === password,
     );
     if (!account) {
-      setError("Invalid user ID or password");
+      setError('Invalid user ID or password');
       return;
     }
     const { password: _password, ...safeSession } = account;
@@ -223,7 +187,7 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
 
         <div className="auth-panel">
           <div className="auth-panel-head">
-            <span>SECURE ACCESS</span>
+            <span>DEMO ACCESS</span>
             <h2>Sign in</h2>
           </div>
 
@@ -268,14 +232,14 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
                 <LockKeyhole size={16} />
                 <input
                   autoComplete="current-password"
-                  type={visible ? "text" : "password"}
+                  type={visible ? 'text' : 'password'}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
                 <button
                   type="button"
                   onClick={() => setVisible((value) => !value)}
-                  aria-label={visible ? "Hide password" : "Show password"}
+                  aria-label={visible ? 'Hide password' : 'Show password'}
                 >
                   {visible ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -291,7 +255,7 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
           </form>
 
           <footer>
-            <span>Demo password</span>
+            <span>Sample account password · Not production authentication</span>
             <code>Nagpur@2026</code>
           </footer>
         </div>
