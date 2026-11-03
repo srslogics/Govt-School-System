@@ -28,10 +28,11 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDemoAuth } from '@/components/demo-auth';
 import { useSchoolRecords } from '@/components/school-records';
 import { WorkflowDesk } from '@/components/workflow-desk';
+import { RoleHome } from '@/components/role-home';
 import { AccessibleDialog } from '@/components/accessible-dialog';
 import { moduleAccess, scopeText } from '@/lib/demo-access';
 
@@ -393,9 +394,14 @@ function detailOfIssue(x: Issue): Detail {
 
 export default function Home() {
   const { session, logout } = useDemoAuth();
-  const [active, setActive] = useState(
-    session.app === 'executive' ? 'District overview' : 'School workflows',
-  );
+  const [active, setActive] = useState('My work');
+  useEffect(() => {
+    const selectedModule = new URLSearchParams(window.location.search).get(
+      'module',
+    );
+    if (selectedModule && moduleAccess[session.app]?.includes(selectedModule))
+      queueMicrotask(() => setActive(selectedModule));
+  }, [session.app]);
   const [lang, setLang] = useState<'EN' | 'मराठी'>('EN');
   const [menu, setMenu] = useState(false);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -472,10 +478,6 @@ export default function Home() {
       </div>
       <div className="portal-body">
         <aside className={menu ? 'side open' : 'side'}>
-          <Link className="suite-link" href="/apps">
-            <span>▦</span>
-            <b>Applications</b>
-          </Link>
           <button
             className="close"
             aria-label="Close navigation"
@@ -483,57 +485,96 @@ export default function Home() {
           >
             <X size={18} />
           </button>
-          <p>MODULES</p>
-          {[
-            'School workflows',
-            ...nav.filter((n) => moduleAccess[session.app]?.includes(n)),
-          ].map((item) => (
-            <button
-              key={item}
-              className={active === item ? 'active' : ''}
-              onClick={() => {
-                setActive(item);
-                setMenu(false);
-              }}
+          <button
+            className={active === 'My work' ? 'active' : ''}
+            onClick={() => {
+              setActive('My work');
+              setMenu(false);
+            }}
+          >
+            My work
+          </button>
+          <button
+            className={active === 'School workflows' ? 'active' : ''}
+            onClick={() => {
+              setActive('School workflows');
+              setMenu(false);
+            }}
+          >
+            Requests
+          </button>
+          <button
+            className={active === 'Saved history' ? 'active' : ''}
+            onClick={() => {
+              setActive('Saved history');
+              setMenu(false);
+            }}
+          >
+            History
+          </button>
+          {
+            <details
+              className="more-nav"
+              open={moduleAccess[session.app]?.includes(active)}
             >
-              {item === 'Executive review' ? (
-                <CalendarDays />
-              ) : item === 'District risk map' ? (
-                <MapPinned />
-              ) : item === 'Student early warning' ? (
-                <GraduationCap />
-              ) : item === 'Grievance escalation' ? (
-                <MessageSquareWarning />
-              ) : item === 'Schemes & entitlements' ? (
-                <IndianRupee />
-              ) : item === 'Infrastructure & safety' ? (
-                <HeartPulse />
-              ) : item === 'School register' ? (
-                <School />
-              ) : item === 'Officer hierarchy' ? (
-                <Network />
-              ) : item === 'Staff position' ? (
-                <Users />
-              ) : item === 'Inspection register' ? (
-                <ClipboardCheck />
-              ) : item === 'Grants & works' ? (
-                <IndianRupee />
-              ) : item === 'Data governance & audit' ? (
-                <Database />
-              ) : (
-                <FileText />
-              )}
-              <span>{item}</span>
-              {item === 'Inspection register' && <em>23</em>}
-              {item === 'Grievance escalation' && <em>11</em>}
-            </button>
-          ))}
+              <summary>More tools & registers</summary>
+              <Link className="suite-link" href="/apps?tools=1">
+                <b>More role tools →</b>
+              </Link>
+
+              {nav
+                .filter((n) => moduleAccess[session.app]?.includes(n))
+                .map((item) => (
+                  <button
+                    key={item}
+                    className={active === item ? 'active' : ''}
+                    onClick={() => {
+                      setActive(item);
+                      setMenu(false);
+                    }}
+                  >
+                    {item === 'Executive review' ? (
+                      <CalendarDays />
+                    ) : item === 'District risk map' ? (
+                      <MapPinned />
+                    ) : item === 'Student early warning' ? (
+                      <GraduationCap />
+                    ) : item === 'Grievance escalation' ? (
+                      <MessageSquareWarning />
+                    ) : item === 'Schemes & entitlements' ? (
+                      <IndianRupee />
+                    ) : item === 'Infrastructure & safety' ? (
+                      <HeartPulse />
+                    ) : item === 'School register' ? (
+                      <School />
+                    ) : item === 'Officer hierarchy' ? (
+                      <Network />
+                    ) : item === 'Staff position' ? (
+                      <Users />
+                    ) : item === 'Inspection register' ? (
+                      <ClipboardCheck />
+                    ) : item === 'Grants & works' ? (
+                      <IndianRupee />
+                    ) : item === 'Data governance & audit' ? (
+                      <Database />
+                    ) : (
+                      <FileText />
+                    )}
+                    <span>{item}</span>
+                    {item === 'Inspection register' && <em>23</em>}
+                    {item === 'Grievance escalation' && <em>11</em>}
+                  </button>
+                ))}
+            </details>
+          }
           <div className="side-help">
             <span>District MIS Cell</span>
             <small>0712-256 0124 · Ext. 204</small>
           </div>
         </aside>
         <section className="main-content">
+          {active === 'My work' && <RoleHome onNavigate={setActive} />}
+          {active === 'Saved history' && <WorkflowDesk view="Saved activity" />}
           {active === 'School workflows' && <WorkflowDesk />}
           {active === 'District overview' && (
             <Overview

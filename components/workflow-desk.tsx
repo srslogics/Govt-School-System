@@ -14,16 +14,28 @@ import {
 export function WorkflowDesk({
   view = 'Requests',
   embedded = false,
+  attentionOnly = false,
+  waitingOnly = false,
+  openOnly = false,
+  initialSelected,
+  initialCreate = false,
+  initialCategory = 'Staffing',
 }: {
   view?: string;
   embedded?: boolean;
+  attentionOnly?: boolean;
+  waitingOnly?: boolean;
+  openOnly?: boolean;
+  initialSelected?: string;
+  initialCreate?: boolean;
+  initialCategory?: string;
 }) {
   const { session } = useDemoAuth(),
     { state, save } = useSchoolRecords(),
     [tab, setTab] = useState('All'),
     [q, setQ] = useState(''),
-    [open, setOpen] = useState(false),
-    [selected, setSelected] = useState<string | null>(null),
+    [open, setOpen] = useState(initialCreate),
+    [selected, setSelected] = useState<string | null>(initialSelected || null),
     [remarks, setRemarks] = useState(''),
     [error, setError] = useState('');
   const Heading = embedded ? 'h2' : 'h1';
@@ -46,6 +58,11 @@ export function WorkflowDesk({
   };
   const rows = visible.filter(
     (r) =>
+      (!attentionOnly || allowedTransitions(r, session).length > 0) &&
+      (!waitingOnly ||
+        (!['Closed', 'Rejected'].includes(r.status) &&
+          allowedTransitions(r, session).length === 0)) &&
+      (!openOnly || !['Closed', 'Rejected'].includes(r.status)) &&
       (!categoryByView[view] || r.category === categoryByView[view]) &&
       (!/approvals/i.test(view) ||
         ['Submitted', 'Under review'].includes(r.status)) &&
@@ -131,19 +148,25 @@ export function WorkflowDesk({
         <div>
           <span>CONNECTED DEMONSTRATION WORKSPACE</span>
           <Heading>
-            {activity
-              ? 'Saved activity & history'
-              : schools
-                ? 'Assigned schools'
-                : config
-                  ? 'Demo access assignment'
-                  : drafts
-                    ? 'Saved request drafts'
-                    : reports
-                      ? 'Workflow report'
-                      : categoryByView[view]
-                        ? view + ' requests'
-                        : 'School requests & decisions'}
+            {attentionOnly
+              ? 'Requests needing your action'
+              : waitingOnly
+                ? 'Waiting for another profile'
+                : openOnly
+                  ? 'Open school requests'
+                  : activity
+                    ? 'Saved activity & history'
+                    : schools
+                      ? 'Assigned schools'
+                      : config
+                        ? 'Demo access assignment'
+                        : drafts
+                          ? 'Saved request drafts'
+                          : reports
+                            ? 'Workflow report'
+                            : categoryByView[view]
+                              ? view + ' requests'
+                              : 'School requests & decisions'}
           </Heading>
         </div>
         <div>
@@ -365,7 +388,7 @@ export function WorkflowDesk({
               </label>
               <label>
                 Category
-                <select name="category">
+                <select name="category" defaultValue={initialCategory}>
                   {[
                     'Staffing',
                     'Infrastructure',

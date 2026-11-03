@@ -196,3 +196,111 @@ void test('Restoring a tampered profile uses canonical parent role', async () =>
   assert(screen.getByText(/Family & SMC/));
   cleanup();
 });
+
+const { RoleHome } = await import('../components/role-home');
+const { moduleAccess } = await import('../lib/demo-access');
+const { emptyState, applyCommand } = await import('../lib/school-workflow');
+async function homeProfile(id: string) {
+  cleanup();
+  memory.set(
+    'shikshan-setu-demo-session',
+    JSON.stringify(canonicalSession({ userId: id })),
+  );
+  const view = render(
+    <DemoAuthGate>
+      <SchoolRecordsProvider>
+        <RoleHome onNavigate={() => {}} />
+      </SchoolRecordsProvider>
+    </DemoAuthGate>,
+  );
+  await screen.findByRole('heading', { level: 1 });
+  return view;
+}
+void test('All eight profiles have focused homes and retain every authorized advanced register', async () => {
+  memory.delete(STORE_KEY);
+  for (const id of [
+    'district.admin',
+    'commissioner',
+    'field.officer',
+    'parseoni.officer',
+    'headmaster',
+    'teacher',
+    'parent',
+    'mis.admin',
+  ]) {
+    const view = await homeProfile(id);
+    assert(screen.getByRole('heading', { name: 'What needs your attention?' }));
+    assert.equal(
+      view.container.querySelectorAll('.my-work-counts button').length,
+      3,
+    );
+    assert.equal(
+      view.container.querySelectorAll('.more-tools button').length,
+      (moduleAccess[canonicalSession({ userId: id })!.app] || []).length + 1,
+    );
+    assert.equal(
+      view.container.querySelector('details.more-tools')?.hasAttribute('open'),
+      false,
+    );
+  }
+  cleanup();
+});
+void test('My work attention opens the right request directly and updates its live queues', async () => {
+  const head = canonicalSession({ userId: 'headmaster' })!,
+    field = canonicalSession({ userId: 'parseoni.officer' })!;
+  let saved = applyCommand(emptyState(), head, {
+    kind: 'create',
+    schoolId: 'parseoni',
+    category: 'Infrastructure',
+    title: 'Review from My work',
+    description: 'Sample school request',
+  });
+  saved = applyCommand(saved, head, {
+    kind: 'transition',
+    id: saved.requests[0].id,
+    status: 'Submitted',
+    remarks: 'Review requested',
+  });
+  memory.set(STORE_KEY, JSON.stringify(saved));
+  const view = await homeProfile(field.userId);
+  const entry =
+    view.container.querySelector<HTMLButtonElement>('.attention-item')!;
+  assert(entry.textContent?.includes('Review from My work'));
+  fireEvent.click(entry);
+  const dialog = screen.getByRole('dialog');
+  fireEvent.change(within(dialog).getByLabelText('Remarks required'), {
+    target: { value: 'Reviewed from the attention queue' },
+  });
+  fireEvent.click(
+    within(dialog).getByRole('button', { name: 'Record review' }),
+  );
+  fireEvent.click(
+    within(dialog).getByRole('button', { name: 'Close request' }),
+  );
+  fireEvent.click(screen.getByRole('button', { name: '← Back to My work' }));
+  assert.equal(view.container.querySelectorAll('.attention-item').length, 0);
+  fireEvent.click(
+    screen.getByRole('button', { name: /Waiting on someone else/ }),
+  );
+  assert(
+    screen.getByRole('heading', {
+      level: 1,
+      name: 'Waiting for another profile',
+    }),
+  );
+  assert(screen.getByText('Review from My work'));
+  cleanup();
+});
+void test('Parent primary action opens a grievance draft without removing other categories', async () => {
+  memory.delete(STORE_KEY);
+  await homeProfile('parent');
+  fireEvent.click(screen.getByRole('button', { name: 'Raise a concern' }));
+  const dialog = screen.getByRole('dialog');
+  const category = within(dialog).getByLabelText(
+    'Category',
+  ) as unknown as HTMLSelectElement;
+  assert.equal(category.value, 'Grievance');
+  assert.equal(category.querySelectorAll('option').length, 6);
+  fireEvent.keyDown(document, { key: 'Escape' });
+  cleanup();
+});

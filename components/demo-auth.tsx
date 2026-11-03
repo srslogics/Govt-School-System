@@ -192,61 +192,92 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
           </div>
 
           <form onSubmit={submit}>
-            <label>
-              Access profile
-              <span className="auth-field">
-                <UserRound size={16} />
-                <select
-                  value={selectedId}
-                  onChange={(event) => chooseAccount(event.target.value)}
+            <div className="demo-role-choices" aria-label="Choose a demo role">
+              {[
+                {
+                  id: 'district.admin',
+                  label: 'District office',
+                  app: 'executive',
+                },
+                { id: 'field.officer', label: 'Field officer', app: 'field' },
+                { id: 'headmaster', label: 'Headmaster', app: 'school' },
+                { id: 'teacher', label: 'Teacher', app: 'teacher' },
+                { id: 'parent', label: 'Parent / guardian', app: 'community' },
+                { id: 'mis.admin', label: 'MIS officer', app: 'mis' },
+              ].map((r) => (
+                <button
+                  type="button"
+                  key={r.id}
+                  aria-pressed={selected.app === r.app}
+                  onClick={() => chooseAccount(r.id)}
                 >
-                  {accounts.map((account) => (
-                    <option key={account.userId} value={account.userId}>
-                      {account.name}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            </label>
-
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <details className="demo-login-details">
+              <summary>Specific office/profile · {selected.role}</summary>
+              <label>
+                Choose a demo role
+                <span className="auth-field">
+                  <UserRound size={16} />
+                  <select
+                    value={selectedId}
+                    onChange={(event) => chooseAccount(event.target.value)}
+                  >
+                    {accounts.map((account) => (
+                      <option key={account.userId} value={account.userId}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              </label>
+            </details>
             <div className="auth-profile-record">
               <span>{selected.office}</span>
               <strong>{selected.role}</strong>
             </div>
 
-            <label>
-              User ID
-              <span className="auth-field">
-                <KeyRound size={16} />
-                <input
-                  autoComplete="username"
-                  value={userId}
-                  onChange={(event) => setUserId(event.target.value)}
-                />
-              </span>
-            </label>
+            <details className="demo-login-details">
+              <summary>Demo sign-in details</summary>
+              <label>
+                User ID
+                <span className="auth-field">
+                  <KeyRound size={16} />
+                  <input
+                    autoComplete="username"
+                    value={userId}
+                    onChange={(event) => setUserId(event.target.value)}
+                  />
+                </span>
+              </label>
 
-            <label>
-              Password
-              <span className="auth-field">
-                <LockKeyhole size={16} />
-                <input
-                  autoComplete="current-password"
-                  type={visible ? 'text' : 'password'}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => setVisible((value) => !value)}
-                  aria-label={visible ? 'Hide password' : 'Show password'}
-                >
-                  {visible ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </span>
-            </label>
-
-            {error && <div className="auth-error">{error}</div>}
+              <label>
+                Password
+                <span className="auth-field">
+                  <LockKeyhole size={16} />
+                  <input
+                    autoComplete="current-password"
+                    type={visible ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVisible((value) => !value)}
+                    aria-label={visible ? 'Hide password' : 'Show password'}
+                  >
+                    {visible ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </span>
+              </label>
+            </details>
+            {error && (
+              <div className="auth-error" role="alert">
+                {error}
+              </div>
+            )}
 
             <button className="auth-submit" type="submit">
               <ShieldCheck size={17} />

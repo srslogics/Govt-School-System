@@ -17,10 +17,12 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { useDemoAuth } from '@/components/demo-auth';
 import { useSchoolRecords } from '@/components/school-records';
 import { WorkflowDesk } from '@/components/workflow-desk';
+import { RoleHome } from '@/components/role-home';
 import { AccessibleDialog } from '@/components/accessible-dialog';
 import { scopeText } from '@/lib/demo-access';
 
@@ -360,16 +362,17 @@ const apps: AppDef[] = [
 ];
 
 export default function AppsPage() {
+  const router = useRouter();
   const { session, logout } = useDemoAuth();
   const sessionApp = apps.find((app) => app.id === session.app) || apps[0];
-  const [selected, setSelected] = useState(sessionApp);
-  const [role, setRole] = useState(
-    sessionApp.roles.includes(session.role)
-      ? session.role
-      : sessionApp.roles[0],
-  );
+  const selected = sessionApp;
+  const role = session.role;
   const [q, setQ] = useState('');
-  const [nav, setNav] = useState(sessionApp.nav[0]);
+  const [nav, setNav] = useState('My work');
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('tools') === '1')
+      queueMicrotask(() => setNav(sessionApp.nav[0]));
+  }, [sessionApp]);
   const [task, setTask] = useState<string[] | null>(null);
   const { state, save } = useSchoolRecords();
   const [remarks, setRemarks] = useState('');
@@ -379,17 +382,6 @@ export default function AppsPage() {
     .map((a) => a.reference);
   const [toast, setToast] = useState('');
   const [mobile, setMobile] = useState(false);
-  const choose = (app: AppDef) => {
-    if (app.id !== session.app) {
-      setToast('Sign out and choose that demo profile to change application.');
-      return;
-    }
-    setSelected(app);
-    setRole(app.roles[0]);
-    setNav(app.nav[0]);
-    setQ('');
-    setMobile(false);
-  };
   const tasks = useMemo(
     () =>
       selected.tasks.filter(
@@ -444,7 +436,7 @@ export default function AppsPage() {
           <span>शिक्षण सेतु</span>
           <strong>Applications</strong>
         </div>
-        <Link href="/">Command centre →</Link>
+        <Link href="/">My work →</Link>
         <button className="suite-account" onClick={logout} title="Sign out">
           <span>{session.name}</span>
           <LogOut size={15} />
@@ -460,31 +452,39 @@ export default function AppsPage() {
             <X size={18} />
           </button>
           <div className="launcher-title">
-            <span>APPLICATIONS</span>
+            <span>MY WORKSPACE</span>
           </div>
-          {apps.map((app) => {
-            const I = app.icon;
-            return (
+          {['My work', 'Requests', 'History'].map((x) => (
+            <button
+              key={x}
+              aria-label={x}
+              className={nav === x ? 'active' : ''}
+              onClick={() => {
+                setNav(x);
+                setMobile(false);
+              }}
+            >
+              <span>
+                <strong>{x}</strong>
+              </span>
+            </button>
+          ))}
+          <details className="more-nav" open={selected.nav.includes(nav)}>
+            <summary>More tools</summary>
+            {selected.nav.map((x) => (
               <button
-                key={app.id}
-                className={selected.id === app.id ? 'active' : ''}
-                onClick={() => choose(app)}
-                disabled={app.id !== session.app}
-                title={
-                  app.id !== session.app
-                    ? 'Sign out and choose this demo profile'
-                    : 'Current demo workspace'
-                }
+                key={x}
+                aria-label={x}
+                className={nav === x ? 'active' : ''}
+                onClick={() => {
+                  setNav(x);
+                  setMobile(false);
+                }}
               >
-                <i>
-                  <I size={18} />
-                </i>
-                <span>
-                  <strong>{app.name}</strong>
-                </span>
+                {x === selected.nav[0] ? 'Reference snapshot' : x}
               </button>
-            );
-          })}
+            ))}
+          </details>
         </aside>
         <section className="role-app">
           <header className="role-top">
@@ -496,17 +496,7 @@ export default function AppsPage() {
                 <strong>{selected.name}</strong>
               </div>
             </div>
-            <nav>
-              {selected.nav.map((x) => (
-                <button
-                  className={nav === x ? 'active' : ''}
-                  onClick={() => setNav(x)}
-                  key={x}
-                >
-                  {x}
-                </button>
-              ))}
-            </nav>
+            <span className="simple-current-view">{nav}</span>
             <div className="role-select" aria-label="Active demo assignment">
               <UserRound size={15} />
               <span>{session.role}</span>
@@ -525,19 +515,31 @@ export default function AppsPage() {
             </button>
           </header>
           <div className="role-content">
-            <div className="role-page-head">
-              <div>
-                <span>{nav.toUpperCase()}</span>
-                <h1>{selected.name}</h1>
+            {nav !== 'My work' && (
+              <div className="role-page-head">
+                <div>
+                  <span>{nav.toUpperCase()}</span>
+                  <h1>{selected.name}</h1>
+                </div>
+                <div className="role-date">
+                  <small>MONDAY</small>
+                  <strong>31 AUG 2026</strong>
+                  <span>Demo data</span>
+                </div>
               </div>
-              <div className="role-date">
-                <small>MONDAY</small>
-                <strong>31 AUG 2026</strong>
-                <span>Demo data</span>
-              </div>
-            </div>
-            {!primary ? (
-              <WorkflowDesk key={nav} view={nav} embedded />
+            )}
+            {nav === 'My work' ? (
+              <RoleHome
+                onNavigate={(module) => {
+                  router.push('/?module=' + encodeURIComponent(module));
+                }}
+              />
+            ) : !primary ? (
+              <WorkflowDesk
+                key={nav}
+                view={nav === 'History' ? 'Saved activity' : nav}
+                embedded
+              />
             ) : (
               <>
                 <section className="role-metrics">

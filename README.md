@@ -86,3 +86,13 @@ This remains a browser-local demo. Production requires server-backed authenticat
 The retained generated UI component catalogue (`components/ui`) and its unused generated mobile hook are outside the application lint scope; their legacy patterns have not been comprehensively audited. Active application components, workflow logic and tests are linted and typechecked. Original large reference pages remain in place; the new authentication definitions, permissions, workflow model, persistence, dialogs and request UI are extracted into separate modules.
 
 Validated for this update: application-code lint, TypeScript, 9 workflow/UI regression tests, production build and `npm audit` (zero known findings at verification time). A local built-Worker HTTP smoke check returned 200 for both `/` and `/apps`. No browser was opened and no hosting deployment was performed. Vinext emits upstream sourcemap/route-classification warnings; these did not prevent the build or local HTTP checks.
+
+## Role-led daily experience
+
+Every profile now starts on **My work** on both routes. The everyday navigation is **My work, Requests, History**. Each role has its own wording, primary action and live attention queue, derived from saved request status and permitted transitions. Open and waiting counts lead to matching filtered queues. Clicking an attention item opens that request directly, without another search.
+
+All authorized district registers remain under **More tools & registers**. All six applications and all their existing tabs, quick actions and reference snapshots remain available; specialist role tools are under **More tools** in the role workspace. Reference snapshots are no longer the default home screen. The existing root/apps routes are retained, and navigation between them uses client routing to preserve temporary in-memory sessions when storage is blocked.
+
+Login offers six concise demo-role choices. The original eight profiles, including Commissioner and Parseoni Field Officer, remain under **Specific office/profile**. Manual ID/password entry remains under **Demo sign-in details**. Saved accounts, request records and workflow permissions have not changed. This is presentation convenience, not a production auto-login design.
+
+The expanded 12-test suite verifies the role homes for all eight profiles, every authorized advanced-register entry, direct attention-to-review interaction, live queue updates and parent grievance defaults, in addition to the original persistence and approval tests. Real browser/mobile visual verification remains outstanding under the user's no-browser instruction.
