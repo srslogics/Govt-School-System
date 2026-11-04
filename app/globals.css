@@ -40,3 +40,111 @@ dialog.file-sheet,dialog.suite-drawer{margin:0;padding:0;border:0;max-height:non
 @media(max-width:900px){.my-work-heading h1,.role-app .my-work h1{font-size:24px}.my-work-heading{gap:16px}.my-work-counts button{padding:16px}.my-work-counts strong{font-size:26px}.my-attention>header{padding:16px}.attention-item{padding:16px}.more-tools>div{flex-direction:column;align-items:flex-start}.role-select{max-width:180px}.simple-current-view{display:none}}
 @media(max-width:480px){.my-work-counts{grid-template-columns:1fr}.my-work-counts button{display:flex;gap:16px;align-items:center;padding:15px 17px;border-right:0;border-bottom:1px solid #d6e0e9}.my-work-counts span{margin:0}.my-work-counts strong{font-size:26px;min-width:35px}.my-work-heading .wf-primary{width:100%}.my-work-links{grid-template-columns:1fr}.my-work-heading h1{font-size:23px}.my-attention>header .text-button{padding-left:0}.demo-role-choices{gap:7px}.demo-role-choices button{font-size:11px;padding:10px}.simple-current-view{display:none}}
 @media print{.my-work-back,.more-tools,.my-work-links{display:none!important}}
+
+/* Navigation styles follow the item, including inside the More disclosure. */
+.side {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 117px);
+  min-height: 0;
+  padding: 17px 11px 16px;
+  overflow: hidden;
+  align-self: flex-start;
+}
+.side-navigation {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.side .side-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  height: auto;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  padding: 10px 9px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #425165;
+}
+.side .side-nav-item > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.side .side-nav-item > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.side .side-nav-item > em {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.side .side-nav-item:hover,
+.side .side-tools-link:hover { background: #edf1f5; }
+.side .side-nav-item.active {
+  background: #e7edf4;
+  border-left-color: var(--navy);
+  color: var(--navy);
+  font-weight: 700;
+}
+.side .more-nav { margin-top: 12px; }
+.side .more-nav > summary { padding: 13px 9px; font-size: 11px; }
+.side .side-tools-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 12px;
+  border: 1px solid #d6e0e9;
+  background: #eef3f8;
+  color: var(--navy);
+  font-size: 11px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.side .side-help {
+  position: static;
+  flex: 0 0 auto;
+  margin: 14px 5px 0;
+  padding-top: 12px;
+}
+.main-content { min-width: 0; }
+.suite-launcher button.suite-nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  gap: 10px;
+  border: 0;
+  border-left: 3px solid transparent;
+  padding: 11px 12px;
+  background: transparent;
+  color: #425165;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.suite-launcher button.suite-nav-item > span { min-width: 0; }
+.suite-launcher button.suite-nav-item > span strong { font-size: inherit; }
+.suite-launcher button.suite-nav-item:hover { background: #edf1f5; }
+.suite-launcher button.suite-nav-item.active {
+  background: #e4ebf2;
+  border-left-color: var(--navy);
+  color: var(--navy);
+  font-weight: 700;
+}
+.suite-launcher { min-height: 0; overflow-y: auto; }
+@media (max-width: 900px) {
+  .side { height: 100dvh; max-height: 100dvh; padding-top: 46px; }
+}

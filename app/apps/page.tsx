@@ -458,7 +458,8 @@ export default function AppsPage() {
             <button
               key={x}
               aria-label={x}
-              className={nav === x ? 'active' : ''}
+              className={`suite-nav-item${nav === x ? ' active' : ''}`}
+              aria-current={nav === x ? 'page' : undefined}
               onClick={() => {
                 setNav(x);
                 setMobile(false);
@@ -475,7 +476,8 @@ export default function AppsPage() {
               <button
                 key={x}
                 aria-label={x}
-                className={nav === x ? 'active' : ''}
+                className={`suite-nav-item${nav === x ? ' active' : ''}`}
+                aria-current={nav === x ? 'page' : undefined}
                 onClick={() => {
                   setNav(x);
                   setMobile(false);

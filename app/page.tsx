@@ -485,88 +485,97 @@ export default function Home() {
           >
             <X size={18} />
           </button>
-          <button
-            className={active === 'My work' ? 'active' : ''}
-            onClick={() => {
-              setActive('My work');
-              setMenu(false);
-            }}
-          >
-            My work
-          </button>
-          <button
-            className={active === 'School workflows' ? 'active' : ''}
-            onClick={() => {
-              setActive('School workflows');
-              setMenu(false);
-            }}
-          >
-            Requests
-          </button>
-          <button
-            className={active === 'Saved history' ? 'active' : ''}
-            onClick={() => {
-              setActive('Saved history');
-              setMenu(false);
-            }}
-          >
-            History
-          </button>
-          {
-            <details
-              className="more-nav"
-              open={moduleAccess[session.app]?.includes(active)}
+          <nav className="side-navigation" aria-label="School administration">
+            <button
+              className={`side-nav-item${active === 'My work' ? ' active' : ''}`}
+              aria-current={active === 'My work' ? 'page' : undefined}
+              onClick={() => {
+                setActive('My work');
+                setMenu(false);
+              }}
             >
-              <summary>More tools & registers</summary>
-              <Link className="suite-link" href="/apps?tools=1">
-                <b>More role tools →</b>
-              </Link>
+              <ClipboardCheck aria-hidden="true" />
+              <span>My work</span>
+            </button>
+            <button
+              className={`side-nav-item${active === 'School workflows' ? ' active' : ''}`}
+              aria-current={active === 'School workflows' ? 'page' : undefined}
+              onClick={() => {
+                setActive('School workflows');
+                setMenu(false);
+              }}
+            >
+              <FileText aria-hidden="true" />
+              <span>Requests</span>
+            </button>
+            <button
+              className={`side-nav-item${active === 'Saved history' ? ' active' : ''}`}
+              aria-current={active === 'Saved history' ? 'page' : undefined}
+              onClick={() => {
+                setActive('Saved history');
+                setMenu(false);
+              }}
+            >
+              <CalendarDays aria-hidden="true" />
+              <span>History</span>
+            </button>
+            {
+              <details
+                className="more-nav"
+                open={moduleAccess[session.app]?.includes(active)}
+              >
+                <summary>More tools & registers</summary>
+                <Link className="side-tools-link" href="/apps?tools=1">
+                  More role tools <span aria-hidden="true">→</span>
+                </Link>
 
-              {nav
-                .filter((n) => moduleAccess[session.app]?.includes(n))
-                .map((item) => (
-                  <button
-                    key={item}
-                    className={active === item ? 'active' : ''}
-                    onClick={() => {
-                      setActive(item);
-                      setMenu(false);
-                    }}
-                  >
-                    {item === 'Executive review' ? (
-                      <CalendarDays />
-                    ) : item === 'District risk map' ? (
-                      <MapPinned />
-                    ) : item === 'Student early warning' ? (
-                      <GraduationCap />
-                    ) : item === 'Grievance escalation' ? (
-                      <MessageSquareWarning />
-                    ) : item === 'Schemes & entitlements' ? (
-                      <IndianRupee />
-                    ) : item === 'Infrastructure & safety' ? (
-                      <HeartPulse />
-                    ) : item === 'School register' ? (
-                      <School />
-                    ) : item === 'Officer hierarchy' ? (
-                      <Network />
-                    ) : item === 'Staff position' ? (
-                      <Users />
-                    ) : item === 'Inspection register' ? (
-                      <ClipboardCheck />
-                    ) : item === 'Grants & works' ? (
-                      <IndianRupee />
-                    ) : item === 'Data governance & audit' ? (
-                      <Database />
-                    ) : (
-                      <FileText />
-                    )}
-                    <span>{item}</span>
-                    {item === 'Inspection register' && <em>23</em>}
-                    {item === 'Grievance escalation' && <em>11</em>}
-                  </button>
-                ))}
-            </details>
-          }
+                {nav
+                  .filter((n) => moduleAccess[session.app]?.includes(n))
+                  .map((item) => (
+                    <button
+                      key={item}
+                      className={`side-nav-item${active === item ? ' active' : ''}`}
+                      aria-current={active === item ? 'page' : undefined}
+                      onClick={() => {
+                        setActive(item);
+                        setMenu(false);
+                      }}
+                    >
+                      {item === 'Executive review' ? (
+                        <CalendarDays />
+                      ) : item === 'District risk map' ? (
+                        <MapPinned />
+                      ) : item === 'Student early warning' ? (
+                        <GraduationCap />
+                      ) : item === 'Grievance escalation' ? (
+                        <MessageSquareWarning />
+                      ) : item === 'Schemes & entitlements' ? (
+                        <IndianRupee />
+                      ) : item === 'Infrastructure & safety' ? (
+                        <HeartPulse />
+                      ) : item === 'School register' ? (
+                        <School />
+                      ) : item === 'Officer hierarchy' ? (
+                        <Network />
+                      ) : item === 'Staff position' ? (
+                        <Users />
+                      ) : item === 'Inspection register' ? (
+                        <ClipboardCheck />
+                      ) : item === 'Grants & works' ? (
+                        <IndianRupee />
+                      ) : item === 'Data governance & audit' ? (
+                        <Database />
+                      ) : (
+                        <FileText />
+                      )}
+                      <span>{item}</span>
+                      {item === 'Inspection register' && <em>23</em>}
+                      {item === 'Grievance escalation' && <em>11</em>}
+                    </button>
+                  ))}
+              </details>
+            }
+          </nav>
           <div className="side-help">
             <span>District MIS Cell</span>
             <small>0712-256 0124 · Ext. 204</small>
