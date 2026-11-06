@@ -41,7 +41,13 @@ export function useDemoAuth() {
   return value;
 }
 
-export function DemoAuthGate({ children }: { children: ReactNode }) {
+export function DemoAuthGate({
+  children,
+  erpLink,
+}: {
+  children: ReactNode;
+  erpLink?: ReactNode;
+}) {
   const [storageWarning, setStorageWarning] = useState('');
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<DemoSession | null>(null);
@@ -101,7 +107,7 @@ export function DemoAuthGate({ children }: { children: ReactNode }) {
     return (
       <>
         <output className="demo-storage-warning">{storageWarning}</output>
-        <LoginScreen onLogin={login} />
+        <LoginScreen onLogin={login} erpLink={erpLink} />
       </>
     );
 
@@ -115,7 +121,13 @@ export function DemoAuthGate({ children }: { children: ReactNode }) {
   );
 }
 
-function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
+function LoginScreen({
+  onLogin,
+  erpLink,
+}: {
+  onLogin: (account: DemoSession) => void;
+  erpLink?: ReactNode;
+}) {
   const [selectedId, setSelectedId] = useState(accounts[0].userId);
   const [userId, setUserId] = useState(accounts[0].userId);
   const [password, setPassword] = useState(accounts[0].password);
@@ -162,6 +174,8 @@ function LoginScreen({ onLogin }: { onLogin: (account: DemoSession) => void }) {
           </div>
           <span className="auth-marathi">शिक्षण सेतु</span>
           <h1>District School Administration System</h1>
+          <p>Reference preview · Fictional data</p>
+          {erpLink}
           <div className="auth-department">
             <Building2 size={17} />
             <span>

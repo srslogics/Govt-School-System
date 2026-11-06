@@ -1,8 +1,71 @@
-# Shikshan Setu — school administration demo
+# Shiksha-Setu school operations pilot
 
 React/TypeScript demonstration of a Nagpur school-administration command centre and six role workspaces. All schools, counts, contacts and governance routing shown here are illustrative and unverified. No government endorsement or live data connection is implied. Do not enter real student, family, personnel or financial information.
 
-## Run
+## Run the shared attendance workspace
+
+The live pilot is at **`/erp`**. Attendance, assignments, enrolments, credentials and session records use one server-side database. Render uses hosted Turso libSQL. Local development can use a SQLite file. All seeded names are fictional. The principal/officer assignments are configurable and do not represent a confirmed NMC hierarchy.
+
+Use Node 22.13+ and run these commands from this repository:
+
+```sh
+npm ci --ignore-scripts --include=optional
+export ERP_DB_PATH="$PWD/.erp-data/pilot.sqlite"
+export ERP_ORIGIN="http://127.0.0.1:3000"
+npm run seed:erp
+npm run build:erp
+npm run start:erp -- --hostname 127.0.0.1 --port 3000
+```
+
+Open `http://127.0.0.1:3000/erp`. Seed only once per empty database. The seed creates separate random passwords for the seven accounts and writes them to `.erp-data/pilot.sqlite.accounts.json` with owner-only permissions. Keep the file private and give each participant only their assigned account. For development, use `npm run dev:erp -- --host 127.0.0.1 --port 3000` with the same environment.
+
+| Account        | Assignment                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| `admin`        | Add schools, classes/sections, fictional enrolments and staff. Assign or remove class or school access. |
+| `teacher.a`    | School A, Class 5 Section A                                                                             |
+| `teacher.b`    | School B, Class 6 Section A                                                                             |
+| `principal.a`  | School A, including both Class 5 sections                                                               |
+| `principal.b`  | School B                                                                                                |
+| `officer.a`    | School A summary and school drill-down                                                                  |
+| `commissioner` | Municipal summaries across both schools and class coverage in school drill-down                         |
+
+### Teacher to Commissioner walkthrough
+
+1. Use today's date in Nagpur, or select the date the demo was seeded. Sign in as `teacher.a`. Mark two learners **Present** and one **On leave**, then submit Class 5 Section A.
+2. In a separate browser profile, sign in as `principal.a`. Open **Attendance reports**, refresh if needed and open the submitted register. Class 5 Section B shows **not submitted**.
+3. Sign in as `teacher.b` in another profile. School A's direct register link `/erp?class=class-a&date=YYYY-MM-DD` cannot reveal its roster. The register endpoint also rejects the School B session for both reads and writes. Submit five **Absent** marks for School B to show a reported 0% rate.
+4. Sign in as `commissioner`. Select the same date. The total is **2 present out of 8 marks, or 25%**, and **2 of 3** expected registers are included. Select each school for class coverage. The Commissioner export contains only summaries.
+5. Return School A's register from `principal.a` with a reason. It is excluded from the combined rate until resubmitted. Correct the last mark as `teacher.a`, add a correction note and resubmit. Mark it reviewed as `principal.a`. The history records actors, timestamps, notes and the number of changed marks. With three present marks in School A, the combined rate is **37.5%**.
+6. As `officer.a`, check that the report and CSV contain School A only. To see an administrator change propagate, add a class and enrol a fictional learner, then assign a teacher. The teacher sees that class after reloading the workspace.
+
+The daily coverage denominator counts classes with at least one enrolment effective on the selected date. Submitted and reviewed registers contribute to attendance. The rate uses present marks divided by present, absent and on-leave marks. Missing and returned registers remain visible in coverage. The submitted roster is saved with the register so subsequent enrolments do not rewrite it. This pilot uses a date selector and class enrolment dates. A school calendar and term rules are later scope.
+
+### Hosting and checks
+
+#### Render
+
+Use a **Free Node web service on Render** and a **Turso Free libSQL database**. The database lives outside Render, so attendance and sessions survive restarts and redeploys. Render can spin down the service after 15 minutes of inactivity, so allow time for the first request before the walkthrough. [Render Free documentation](https://render.com/docs/free) · [Turso pricing](https://turso.tech/pricing)
+
+1. Create an empty **libSQL** database in Turso. With the Turso CLI, use `turso db create shiksha-setu-pilot` without `--tursodb`. Get its URL with `turso db show shiksha-setu-pilot --url` and create a database token with `turso db tokens create shiksha-setu-pilot`. Keep the token private. [Turso quickstart](https://docs.turso.tech/quickstart)
+2. In your local shell, export the URL as `TURSO_DATABASE_URL` and the token as `TURSO_AUTH_TOKEN`. From the repository, run `npm ci --ignore-scripts --include=optional` and then `npm run seed:erp` once. The generated sign-in credentials are written to the private file `.erp-data/hosted.accounts.json`. Use each account separately during the walkthrough. Seed only a new, empty database. If the database already contains pilot records, keep its original credentials and use that database as-is.
+3. For a new service, import [render.yaml](render.yaml) as a Render Blueprint. For an existing Render **Web Service**, apply the following settings. Set both Turso variables in Render's environment settings and deploy. Visit `/erp`.
+
+| Setting                   | Value                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| Runtime and instance type | Node, Free                                                                      |
+| Node version              | Set `NODE_VERSION` to `>=22.13.0 <23`                                           |
+| Build command             | `npm ci --ignore-scripts --include=dev --include=optional && npm run build:erp` |
+| Start command             | `npm run start:erp -- --hostname 0.0.0.0`                                       |
+| Environment variables     | `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`                                        |
+| Health check path         | `/erp`                                                                          |
+
+The server listens on Render's assigned `PORT`. The default `onrender.com` URL works through Render's `RENDER_EXTERNAL_URL` variable. For a custom domain, set `ERP_ORIGIN` to its full HTTPS origin and use that domain for sign-in. On Render, the app requires the shared database variables even if `ERP_DB_PATH` is present. The Worker build serves the reference previews and returns 503 for the shared ERP API.
+
+Run `npm test` for independent HTTP-session tests covering scoped URLs and edits, CSV, school setup, duplicate submission, review/correction history and database restart. The two build modes are checked with `npm run build` for the Worker previews and `npm run build:erp` for the shared Node pilot. They both use `dist`, so rebuild the intended target before starting it.
+
+The original request approvals and six role workspaces remain previews. Later milestones include extended student records, staff and leave, timetables, assessments and report cards, parent access and school administration. The shared pilot uses fictional data only.
+
+## Run the reference previews
 
 Node 22.13+ and npm are required.
 
@@ -13,7 +76,7 @@ npm run dev
 
 The dev command prints the local URL. `npm run build` emits `dist/client` and a Cloudflare Worker under `dist/server`. `npm start` runs the built worker locally through Wrangler. It is a preview command, not an internet-facing production hosting command. This project is not a static HTML export.
 
-The Vite configuration uses Vinext, Cloudflare and the Sites packaging plugin. The existing `.openai/hosting.json` identifies its original Sites project; repository pushes alone do not prove that Site has deployed. A Cloudflare deployment needs that account's normal Wrangler deployment configuration. No Render deployment has been performed or verified in this change. Do not configure `dist/client` alone as a Render Static Site and expect server-rendered routes to work. Choose a supported Node deployment strategy or static-export conversion separately before deploying to Render.
+The Vite configuration uses Vinext, Cloudflare and the Sites packaging plugin. The existing `.openai/hosting.json` identifies its original Sites project; repository pushes alone do not prove that Site has deployed. A Cloudflare deployment needs that account's normal Wrangler deployment configuration. No Render deployment has been performed or verified in this change. Do not configure `dist/client` alone as a Render Static Site and expect server-rendered routes to work. Use the Render Node web service settings above for the shared ERP.
 
 For sharing metadata, `SITE_URL` takes precedence over `RENDER_EXTERNAL_URL`; otherwise the original demo origin is retained. The public Open Graph image is `public/og.png`. Static administrative fixtures use 31 August 2026 as their sample data date. Saved workflow actions use their actual entry timestamps.
 
@@ -79,9 +142,9 @@ Tests exercise the full request lifecycle, returns/resubmission, profile and sch
 
 GitHub Actions runs install, application-code lint, TypeScript, tests, build and dependency audit on pushes/PRs. Dependency versions are pinned. `fast-uri` and `fflate` overrides select compatible patched releases for inherited dependencies; re-evaluate them on future upgrades. The vendored shadcn Tailwind variants preserve existing component styling without shipping its unused CLI/tooling dependency; its MIT license is in `app/vendor/SHADCN-LICENSE`.
 
-## Production boundaries
+## Reference preview boundaries
 
-This remains a browser-local demo. Production requires server-backed authentication, authorized jurisdiction/role checks, a transactional shared database, protected child/personnel data, audit retention, secure file handling, tested backup restoration, monitoring and approved integrations. Browser roles, local history and storage are editable by the browser owner. No real approval, statutory filing, offline synchronization or government integration is performed.
+The original routes at `/` and `/apps` remain browser-local previews. Production requires server-backed authentication, authorized jurisdiction/role checks, a transactional shared database, protected child/personnel data, audit retention, secure file handling, tested backup restoration, monitoring and approved integrations. Browser roles, local history and storage are editable by the browser owner. No real approval, statutory filing, offline synchronization or government integration is performed.
 
 The retained generated UI component catalogue (`components/ui`) and its unused generated mobile hook are outside the application lint scope; their legacy patterns have not been comprehensively audited. Active application components, workflow logic and tests are linted and typechecked. Original large reference pages remain in place; the new authentication definitions, permissions, workflow model, persistence, dialogs and request UI are extracted into separate modules.
 

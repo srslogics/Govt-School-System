@@ -10,7 +10,7 @@ const css = readFileSync(
 
 // A DOM/CSS regression check, not a browser geometry or screenshot test.
 // The failure occurred only after navigation items moved into <details>.
-test('nested register navigation retains row layout and a non-overlapping footer', () => {
+void test('nested register navigation retains row layout and a non-overlapping footer', () => {
   const window = new Window({ width: 1440, height: 900 });
   const style = window.document.createElement('style');
   style.textContent = css;
@@ -40,7 +40,7 @@ test('nested register navigation retains row layout and a non-overlapping footer
   window.close();
 });
 
-test('role workspace links use a full-width row at both navigation depths', () => {
+void test('role workspace links use a full-width row at both navigation depths', () => {
   const window = new Window({ width: 1440, height: 900 });
   const style = window.document.createElement('style');
   style.textContent = css;

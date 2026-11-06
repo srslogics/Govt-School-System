@@ -36,3 +36,9 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# Shared ERP demo databases
+/.erp-data/
+*.sqlite
+*.sqlite-*
+*.accounts.json

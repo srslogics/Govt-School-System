@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: shiksha-setu-erp
+    runtime: node
+    plan: free
+    buildCommand: npm ci --ignore-scripts --include=dev --include=optional && npm run build:erp
+    startCommand: npm run start:erp -- --hostname 0.0.0.0
+    healthCheckPath: /erp
+    envVars:
+      - key: NODE_VERSION
+        value: '>=22.13.0 <23'
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false

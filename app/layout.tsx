@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { DemoAuthGate } from '@/components/demo-auth';
 import './globals.css';
-import { SchoolRecordsProvider } from '@/components/school-records';
 
 const siteUrl =
   new URL(
@@ -26,12 +24,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'Shikshan Setu | Nagpur School Command Centre',
   description:
-    'A unified governance and decision platform for every government school in Nagpur district.',
+    'Shiksha-Setu school operations pilot with fictional records and separate reference previews.',
   alternates: { canonical: siteUrl },
   openGraph: {
     title: 'Shikshan Setu | Nagpur School Command Centre',
     description:
-      'One governance and decision platform for every government school in Nagpur.',
+      'School operations pilot with fictional records and reference previews.',
     url: siteUrl,
     siteName: 'Shikshan Setu',
     type: 'website',
@@ -50,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Shikshan Setu | Nagpur School Command Centre',
     description:
-      'One governance and decision platform for every government school in Nagpur.',
+      'School operations pilot with fictional records and reference previews.',
     images: [previewImage],
   },
 };
@@ -65,9 +63,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <DemoAuthGate>
-          <SchoolRecordsProvider>{children}</SchoolRecordsProvider>
-        </DemoAuthGate>
+        {children}
       </body>
     </html>
   );

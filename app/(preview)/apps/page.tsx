@@ -452,7 +452,8 @@ export default function AppsPage() {
             <X size={18} />
           </button>
           <div className="launcher-title">
-            <span>MY WORKSPACE</span>
+            <span>REFERENCE PREVIEW</span>
+            <Link href="/erp">Shared school operations</Link>
           </div>
           {['My work', 'Requests', 'History'].map((x) => (
             <button

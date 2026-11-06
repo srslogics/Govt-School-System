@@ -148,3 +148,5 @@ dialog.file-sheet,dialog.suite-drawer{margin:0;padding:0;border:0;max-height:non
 @media (max-width: 900px) {
   .side { height: 100dvh; max-height: 100dvh; padding-top: 46px; }
 }
+
+.erp-preview-link { display: inline-block; color: inherit; text-decoration: underline; margin: 10px 0 14px; }

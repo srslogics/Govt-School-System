@@ -2,6 +2,8 @@ import { sites } from '@openai/sites-vite-plugin';
 import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import hostingConfig from './.openai/hosting.json' with { type: 'json' };
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -35,6 +37,30 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
+  if (process.env.ERP_RUNTIME === 'node') {
+    const dbFile = process.env.ERP_DB_PATH
+      ? resolve(process.env.ERP_DB_PATH)
+      : undefined;
+    return {
+      server: {
+        fs: {
+          deny: [
+            '.env',
+            '.env.*',
+            '*.{crt,pem}',
+            '**/.git/**',
+            '**/.erp-data/**',
+            '**/*.sqlite*',
+            '**/*.accounts.json',
+            ...(dbFile ? [dbFile, dbFile + '-*'] : []),
+          ],
+        },
+      },
+      css: { postcss: { plugins: [tailwindcss()] } },
+      plugins: [vinext()],
+    };
+  }
+
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';
@@ -45,6 +71,13 @@ export default defineConfig(async () => {
   const { cloudflare } = await import('@cloudflare/vite-plugin');
 
   return {
+    resolve: {
+      alias: {
+        '@/lib/erp/runtime': fileURLToPath(
+          new URL('./lib/erp/preview-runtime.ts', import.meta.url),
+        ),
+      },
+    },
     css: { postcss: { plugins: [tailwindcss()] } },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
