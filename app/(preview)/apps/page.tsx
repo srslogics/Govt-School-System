@@ -436,7 +436,7 @@ export default function AppsPage() {
           <span>शिक्षण सेतु</span>
           <strong>Applications</strong>
         </div>
-        <Link href="/">My work →</Link>
+        <Link href="/preview">My work →</Link>
         <button className="suite-account" onClick={logout} title="Sign out">
           <span>{session.name}</span>
           <LogOut size={15} />

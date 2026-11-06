@@ -111,7 +111,6 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
               </button>
             </>
           )}
-          <Link href="/">Reference previews</Link>
         </div>
       </header>
       <div className="erp-environment">
@@ -260,8 +259,6 @@ function SignedWorkspace({
             Attendance reports
           </button>
         )}
-        <Link href="/apps">Six role previews</Link>
-        <Link href="/">Request and approval preview</Link>
       </nav>
       <div className="erp-main">
         <header className="erp-page-title">
@@ -365,7 +362,7 @@ function SignedWorkspace({
           </p>
         )}
         <details className="erp-roadmap">
-          <summary>ERP scope and previews</summary>
+          <summary>Preview modules and planned features</summary>
           <p>
             Shared workflows in this milestone cover school setup, enrolment,
             staff assignments and daily attendance.
@@ -377,7 +374,10 @@ function SignedWorkspace({
           </p>
           <p>
             The six reference workspaces and request approvals use sample data
-            stored separately in the browser.
+            stored separately in the browser. The previews have their own sign-in.
+          </p>
+          <p>
+            <Link href="/preview">Open preview modules</Link>
           </p>
         </details>
       </div>

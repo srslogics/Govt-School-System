@@ -3,6 +3,8 @@ import { createHandler } from './http';
 
 let handler: ReturnType<typeof createHandler> | undefined;
 
+export const sharedErpAvailable = true;
+
 export async function handleErp(request: Request) {
   const origin = process.env.ERP_ORIGIN || process.env.RENDER_EXTERNAL_URL;
   if (!origin)

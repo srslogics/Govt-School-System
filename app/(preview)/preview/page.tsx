@@ -489,9 +489,6 @@ export default function Home() {
             <Link className="side-tools-link" href="/erp">
               Shared school operations
             </Link>
-            <Link className="side-tools-link" href="/erp">
-              Shared school operations
-            </Link>
             <button
               className={`side-nav-item${active === 'My work' ? ' active' : ''}`}
               aria-current={active === 'My work' ? 'page' : undefined}

@@ -1,3 +1,5 @@
+export const sharedErpAvailable = false;
+
 export function handleErp() {
   return Response.json(
     {

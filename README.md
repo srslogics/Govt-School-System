@@ -4,7 +4,7 @@ React/TypeScript demonstration of a Nagpur school-administration command centre 
 
 ## Run the shared attendance workspace
 
-The live pilot is at **`/erp`**. Attendance, assignments, enrolments, credentials and session records use one server-side database. Render uses hosted Turso libSQL. Local development can use a SQLite file. All seeded names are fictional. The principal/officer assignments are configurable and do not represent a confirmed NMC hierarchy.
+On the Node host, the main URL opens the shared pilot at **`/erp`**. The original sample modules have a separate sign-in at **`/preview`**. Attendance, assignments, enrolments, credentials and session records use one server-side database. Render uses hosted Turso libSQL. Local development can use a SQLite file. All seeded names are fictional. The principal/officer assignments are configurable and do not represent a confirmed NMC hierarchy.
 
 Use Node 22.13+ and run these commands from this repository:
 
