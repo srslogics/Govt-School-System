@@ -175,3 +175,9 @@ New empty-database seeds create `parent.a`, `parent.b`, `office.a`, `accounts.a`
 Requests, responses, task completion, and notices are stored in the shared database. Mutations write an activity record; requests/tasks use version checks. The portal returns at most 100 requests/tasks, 50 notices and 200 directory learners per view. Pagination and larger district-scale workflows remain later work.
 
 On Node startup, schema initialization atomically expands the original account-role constraint while preserving account IDs, password hashes, sessions and foreign-key references, then creates the portal tables. Take and verify a database backup before any production upgrade. Migration and permission tests cover local libSQL; a hosted Turso upgrade has not been exercised in this change. No live data is seeded or migrated by local testing.
+
+### Public meeting demo sign-in
+
+At `https://govt-school-system.onrender.com/erp`, the requested shared meeting password is **`Demo@2026`** for all thirteen fictional demo accounts. The sign-in chooser fills the account username; enter the shared password. This is a public fictional demonstration, not a private school deployment.
+
+A one-time Node startup setup runs only when both the configured origin and Render's external URL match this exact demo host and `RENDER=true`. It also verifies the two original fictional schools, all existing account identities/roles, and the sample learner relationships before changing anything. It sets the demo account passwords and adds missing parent/staff accounts, linking only newly created accounts to the fictional fixtures. Existing assignments, parent links, school data, enrolments and attendance are retained. Existing sessions are invalidated once. A database marker prevents further automatic password resets on restarts. Other hosts and databases with non-fixture accounts are left unchanged. Normal account creation still requires a 12-character password.
