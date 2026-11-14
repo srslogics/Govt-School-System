@@ -287,9 +287,10 @@ function SignedWorkspace({
   const [tab, setTab] = useState(
     account.role === 'administrator'
       ? 'setup'
-      : account.role === 'teacher' || allowedInitial
+      : allowedInitial
         ? 'register'
-        : account.role === 'parent' ||
+        : account.role === 'teacher' ||
+            account.role === 'parent' ||
             ['clerk', 'accountant', 'librarian', 'support'].includes(
               account.role,
             )
@@ -545,7 +546,12 @@ function SignedWorkspace({
               Record not found in your workspace.
             </p>
           ) : tab === 'portal' ? (
-            <PortalPanel key={date} workspace={workspace} date={date} />
+            <PortalPanel
+              key={date}
+              workspace={workspace}
+              date={date}
+              onOpenRegister={openRegister}
+            />
           ) : tab === 'setup' ? (
             <SetupPanel date={workspace.date} onSaved={refresh} />
           ) : tab === 'report' ? (

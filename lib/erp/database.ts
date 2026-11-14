@@ -57,6 +57,12 @@ CREATE TABLE IF NOT EXISTS school (
       happened_at TEXT NOT NULL, note TEXT NOT NULL, changed_marks INTEGER NOT NULL,
       entries TEXT NOT NULL CHECK(json_valid(entries)), PRIMARY KEY(register_id, version)
     );
+    CREATE TABLE IF NOT EXISTS teaching_period (
+      id TEXT PRIMARY KEY, teacher_id TEXT NOT NULL REFERENCES account(id), class_id TEXT NOT NULL REFERENCES class_section(id),
+      weekday INTEGER NOT NULL CHECK(weekday BETWEEN 1 AND 7), start TEXT NOT NULL, end TEXT NOT NULL,
+      subject TEXT NOT NULL, room TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0)
+    );
+    CREATE INDEX IF NOT EXISTS period_teacher ON teaching_period(teacher_id,weekday);
     CREATE TABLE IF NOT EXISTS assessment (
       id TEXT PRIMARY KEY, student_id TEXT NOT NULL REFERENCES enrolment(id), subject TEXT NOT NULL,
       exam TEXT NOT NULL, day TEXT NOT NULL, score REAL NOT NULL CHECK(score>=0),

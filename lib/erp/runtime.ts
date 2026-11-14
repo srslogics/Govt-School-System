@@ -1,5 +1,6 @@
 import { configuredDatabase, initializeDatabase } from './database';
 import { createHandler } from './http';
+import { seedTeacherDemo } from './teacher-demo';
 import { seedLearningDemo } from './learning-demo';
 import { prepareHostedMeetingDemo } from './hosted-demo';
 
@@ -37,6 +38,7 @@ export async function handleErp(request: Request) {
         if (demoSetup !== 'not this host')
           console.info('Meeting demo sign-in setup:', demoSetup);
         await seedLearningDemo(db);
+        await seedTeacherDemo(db);
         return createHandler(db, url.origin);
       } catch (error) {
         db.close();

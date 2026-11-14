@@ -223,3 +223,147 @@ void test('parent screens expose four sections, scoped reports, truthful empty a
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+const { seedTeacherDemo } = await import('../lib/erp/teacher-demo');
+void test('teacher My Day opens attendance, timetable, student profiles and saves a class marks grid', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'teacher-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'TeacherUI-Test-1234');
+    await seedLearningDemo(db);
+    await seedTeacherDemo(db);
+    const handler = createHandler(db, origin),
+      login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'teacher.a',
+            password: 'TeacherUI-Test-1234',
+          }),
+        }),
+      );
+    const cookie = login.headers.get('set-cookie')!.split(';')[0];
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const teacher = await one<Account>(
+      db,
+      "SELECT id,username,name,role FROM account WHERE id='teacher.a'",
+    );
+    assert(teacher);
+    let opened = '';
+    render(
+      <PortalPanel
+        workspace={await workspace(db, teacher)}
+        date={todayInNagpur()}
+        onOpenRegister={(id) => {
+          opened = id;
+        }}
+      />,
+    );
+    await screen.findByRole('heading', { name: 'My Day' });
+    for (const name of [
+      'My Day',
+      'Timetable',
+      'Students',
+      'Marks Entry',
+      'School tasks',
+    ])
+      assert(screen.getByRole('button', { name }));
+    fireEvent.click(screen.getByRole('button', { name: 'Open register' }));
+    assert.equal(opened, 'class-a');
+    fireEvent.click(screen.getByRole('button', { name: 'Timetable' }));
+    await screen.findByRole('heading', { name: 'Weekly timetable' });
+    await screen.findAllByText('Mathematics');
+    assert(!screen.queryByText('Demo Teacher B'));
+    fireEvent.click(screen.getByRole('button', { name: 'Students' }));
+    await screen.findByRole('heading', { name: 'Student profiles' });
+    await screen.findByRole('button', {
+      name: 'Sample learner A-2 Class 5 · Section A · Roll 2',
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Sample learner A-2 Class 5 · Section A · Roll 2',
+      }),
+    );
+    assert(screen.getByRole('heading', { name: 'Sample learner A-2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Marks Entry' }));
+    await screen.findByRole('heading', { name: 'Class marks entry' });
+    fireEvent.change(screen.getByLabelText('Subject'), {
+      target: { value: 'Mathematics' },
+    });
+    fireEvent.change(screen.getByLabelText('Assessment name'), {
+      target: { value: 'Teacher UI test' },
+    });
+    fireEvent.change(screen.getByLabelText('Marks for Sample learner A-1'), {
+      target: { value: '86' },
+    });
+    fireEvent.change(screen.getByLabelText('Feedback for Sample learner A-1'), {
+      target: { value: 'Clear reasoning. Practise the last question.' },
+    });
+    fireEvent.change(screen.getByLabelText('Marks for Sample learner A-2'), {
+      target: { value: '74' },
+    });
+    fireEvent.change(screen.getByLabelText('Feedback for Sample learner A-2'), {
+      target: { value: 'Practise multiplication with examples.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save draft marks' }));
+    await screen.findByText('2 draft results saved for principal publication.');
+    await waitFor(async () =>
+      assert.equal(
+        (
+          await one<{ score: number }>(
+            db,
+            "SELECT score FROM assessment WHERE student_id='class-a-student-1' AND exam='Teacher UI test'",
+          )
+        )?.score,
+        86,
+      ),
+    );
+    await screen.findByDisplayValue('86');
+    fireEvent.change(screen.getByLabelText('Marks for Sample learner A-1'), {
+      target: { value: '88' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save draft marks' }));
+    await waitFor(async () =>
+      assert.equal(
+        (
+          await one<{ score: number }>(
+            db,
+            "SELECT score FROM assessment WHERE student_id='class-a-student-1' AND exam='Teacher UI test'",
+          )
+        )?.score,
+        88,
+      ),
+    );
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

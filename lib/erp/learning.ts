@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { InStatement } from '@libsql/client';
 import { many, one, run, write, type Database, type Query } from './database';
 import type {
   Account,
@@ -8,7 +9,13 @@ import type {
   Student,
 } from './model';
 import { workspace } from './attendance';
-import { dateValue, ErpError, missing, requiredText } from './validation';
+import {
+  dateValue,
+  ErpError,
+  missing,
+  object,
+  requiredText,
+} from './validation';
 
 export type Learner = Student & {
   classId: string;
@@ -187,7 +194,152 @@ export async function updateLearning(
     let target = '';
     let schoolId = '';
     let action = '';
-    if (body.action === 'assessment') {
+    if (body.action === 'bulk-marks') {
+      if (account.role !== 'teacher')
+        throw new ErpError(403, 'Only assigned teachers enter marks.');
+      const section = classes.find((row) => row.id === body.classId);
+      if (!section) missing();
+      if (
+        !Array.isArray(body.entries) ||
+        !body.entries.length ||
+        body.entries.length > 200
+      )
+        throw new ErpError(400, 'Enter marks for 1 to 200 learners at a time.');
+      const subject = requiredText(body.subject, 'Subject', 60),
+        exam = requiredText(body.exam, 'Assessment', 100),
+        day = validDay(body.day),
+        maximum = boundedNumber(body.maximum, 'Maximum marks', 1000);
+      if (!maximum)
+        throw new ErpError(400, 'Maximum marks must be greater than zero.');
+      const saved = await many<Assessment>(
+        tx,
+        'SELECT a.id,a.student_id AS studentId,a.published,a.version,a.score,a.maximum,a.feedback FROM assessment a JOIN enrolment e ON e.id=a.student_id WHERE e.class_id=? AND a.subject=? COLLATE NOCASE AND a.exam=? COLLATE NOCASE AND a.day=?',
+        section.id,
+        subject,
+        exam,
+        day,
+      );
+      const statements: InStatement[] = [];
+      const seen = new Set<string>();
+      for (const input of body.entries) {
+        const entry = object(input),
+          child = learners.find(
+            (row) => row.id === entry.studentId && row.classId === section.id,
+          );
+        if (!child) missing();
+        if (seen.has(child.id))
+          throw new ErpError(400, 'Each learner can appear only once.');
+        seen.add(child.id);
+        const matches = saved.filter((row) => row.studentId === child.id);
+        if (matches.length > 1)
+          throw new ErpError(
+            409,
+            'Duplicate legacy assessment rows need school review before bulk editing.',
+          );
+        const existing = matches[0];
+        if (existing?.published)
+          throw new ErpError(409, 'A published result cannot be overwritten.');
+        if (entry.version !== (existing?.version ?? 0))
+          throw new ErpError(409, 'Marks changed. Refresh before saving.');
+        const score = boundedNumber(entry.score, 'Marks', maximum),
+          feedback = requiredText(entry.feedback, 'Feedback', 1000),
+          id = existing?.id ?? randomUUID();
+        if (existing)
+          statements.push({
+            sql: 'UPDATE assessment SET score=?,maximum=?,feedback=?,version=version+1 WHERE id=?',
+            args: [score, maximum, feedback, id],
+          });
+        else
+          statements.push({
+            sql: 'INSERT INTO assessment VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, 1)',
+            args: [
+              id,
+              child.id,
+              subject,
+              exam,
+              day,
+              score,
+              maximum,
+              feedback,
+              account.id,
+            ],
+          });
+        statements.push({
+          sql: 'INSERT INTO school_activity VALUES (?, ?, ?, ?, ?, ?, ?)',
+          args: [
+            randomUUID(),
+            child.schoolId,
+            account.id,
+            id,
+            existing ? 'draft marks edited' : 'draft marks entered',
+            JSON.stringify({
+              previous: existing
+                ? {
+                    score: existing.score,
+                    maximum: existing.maximum,
+                    feedback: existing.feedback,
+                  }
+                : null,
+              score,
+              maximum,
+              feedback,
+            }),
+            new Date().toISOString(),
+          ],
+        });
+      }
+      await tx.batch(statements);
+      return;
+    } else if (body.action === 'edit-assessment') {
+      if (account.role !== 'teacher')
+        throw new ErpError(403, 'Only assigned teachers edit draft marks.');
+      const row = await one<Assessment>(
+        tx,
+        'SELECT id,student_id AS studentId,published,version,score,maximum,feedback FROM assessment WHERE id=?',
+        requiredText(body.id, 'Assessment'),
+      );
+      const child = learners.find((child) => child.id === row?.studentId);
+      if (!row || !child) missing();
+      if (row.published || row.version !== body.version)
+        throw new ErpError(
+          409,
+          'This result is published or changed. Refresh before editing.',
+        );
+      const maximum = boundedNumber(body.maximum, 'Maximum marks', 1000);
+      if (!maximum)
+        throw new ErpError(400, 'Maximum marks must be greater than zero.');
+      const score = boundedNumber(body.score, 'Marks', maximum),
+        feedback = requiredText(body.feedback, 'Feedback', 1000);
+      await run(
+        tx,
+        'UPDATE assessment SET score=?,maximum=?,feedback=?,version=version+1 WHERE id=?',
+        score,
+        maximum,
+        feedback,
+        row.id,
+      );
+      await run(
+        tx,
+        'INSERT INTO school_activity VALUES (?, ?, ?, ?, ?, ?, ?)',
+        randomUUID(),
+        child.schoolId,
+        account.id,
+        row.id,
+        'draft marks edited',
+        JSON.stringify({
+          previous: {
+            score: row.score,
+            maximum: row.maximum,
+            feedback: row.feedback,
+          },
+          score,
+          maximum,
+          feedback,
+        }),
+        new Date().toISOString(),
+      );
+      return;
+    } else if (body.action === 'assessment') {
       if (account.role !== 'teacher')
         throw new ErpError(403, 'Only assigned teachers enter marks.');
       const child = learners.find((row) => row.id === body.studentId);
@@ -196,6 +348,20 @@ export async function updateLearning(
       if (!maximum)
         throw new ErpError(400, 'Maximum marks must be greater than zero.');
       const score = boundedNumber(body.score, 'Marks', maximum);
+      if (
+        await one(
+          tx,
+          'SELECT id FROM assessment WHERE student_id=? AND subject=? COLLATE NOCASE AND exam=? COLLATE NOCASE AND day=?',
+          child.id,
+          requiredText(body.subject, 'Subject', 60),
+          requiredText(body.exam, 'Assessment', 100),
+          validDay(body.day),
+        )
+      )
+        throw new ErpError(
+          409,
+          'This learner already has a result for this assessment. Edit its draft instead.',
+        );
       target = randomUUID();
       schoolId = child.schoolId;
       action = 'assessment entered';
