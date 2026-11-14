@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Report, SchoolPortal, Workspace } from '@/lib/erp/model';
 import { attendanceRate, roleLabels } from '@/lib/erp/model';
+import type { MaintenanceView } from '@/lib/erp/maintenance';
 import type { OperationsView } from '@/lib/erp/operations';
 import type { TeacherView } from '@/lib/erp/teacher';
 import { errorMessage, request } from './client';
@@ -24,6 +25,7 @@ export function PrincipalPanel({
   onOpenRegister?: (id: string) => void;
   onOpenReport?: () => void;
 }) {
+  const [maintenance, setMaintenance] = useState<MaintenanceView>();
   const [operations, setOperations] = useState<OperationsView>();
   const [report, setReport] = useState<Report>();
   const [teaching, setTeaching] = useState<TeacherView>();
@@ -33,6 +35,7 @@ export function PrincipalPanel({
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
+      request<MaintenanceView>('maintenance', undefined, controller.signal),
       request<OperationsView>('operations', undefined, controller.signal),
       request<Report>(
         `report?date=${encodeURIComponent(date)}`,
@@ -45,8 +48,9 @@ export function PrincipalPanel({
         controller.signal,
       ),
     ])
-      .then(([schoolOperations, attendance, learning]) => {
+      .then(([schoolMaintenance, schoolOperations, attendance, learning]) => {
         if (!controller.signal.aborted) {
+          setMaintenance(schoolMaintenance);
           setOperations(schoolOperations);
           setReport(attendance);
           setTeaching(learning);
@@ -226,6 +230,19 @@ export function PrincipalPanel({
                   </strong>
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => onNavigate('maintenance-verification')}
+              >
+                <span>Maintenance completion reports</span>
+                <strong>
+                  {maintenance?.tickets.filter(
+                    (row) =>
+                      (!school || row.schoolId === school) &&
+                      row.status === 'reported',
+                  ).length ?? 0}
+                </strong>
+              </button>
               <small>
                 Result and work counts reflect the records loaded in this pilot;
                 they are not an all-time census.

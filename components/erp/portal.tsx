@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
+import { MaintenancePanel } from './maintenance';
 import { LibraryPanel } from './library';
 import { LearningPanel } from './learning';
 import { TeacherPanel } from './teacher';
@@ -53,7 +54,7 @@ const roleCopy = {
   },
   support: {
     title: 'A school ready for learning',
-    text: 'Follow assigned work and raise or respond to maintenance needs.',
+    text: 'Follow assigned school care work, report progress and close the loop with principal verification.',
     work: 'My assigned work',
     category: 'maintenance',
   },
@@ -91,7 +92,9 @@ export function PortalPanel({
           ? 'principal-overview'
           : account.role === 'librarian'
             ? 'library-home'
-            : 'home',
+            : account.role === 'support'
+              ? 'maintenance-home'
+              : 'home',
   );
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
@@ -218,7 +221,28 @@ export function PortalPanel({
                       ['library-history', 'Borrowing history'],
                       ['home', 'Library tasks'],
                     ]
-                  : [['home', copy.work]]),
+                  : account.role === 'support'
+                    ? [
+                        ['maintenance-home', 'School care'],
+                        ['maintenance-work', 'My maintenance work'],
+                        ['maintenance-reported', 'Reported issues'],
+                        ['maintenance-history', 'Work history'],
+                        ['operations-inventory', 'Inventory'],
+                        ['home', 'General staff tasks'],
+                      ]
+                    : [['home', copy.work]]),
+          ...(account.role !== 'support' &&
+          account.role !== 'parent' &&
+          account.role !== 'administrator'
+            ? [
+                [
+                  'maintenance-home',
+                  account.role === 'principal'
+                    ? 'Facilities & maintenance'
+                    : 'Report facility issue',
+                ],
+              ]
+            : []),
           ...(['principal', 'parent'].includes(account.role)
             ? [['library-home', parent ? 'Library' : 'School library']]
             : []),
@@ -255,7 +279,14 @@ export function PortalPanel({
               (id === 'library-home' &&
                 account.role !== 'librarian' &&
                 view.startsWith('library-')) ||
-              (id === 'operations' && view.startsWith('operations-'))
+              (id === 'maintenance-home' &&
+                account.role !== 'support' &&
+                view.startsWith('maintenance-')) ||
+              (id === 'operations' &&
+                view.startsWith('operations-') &&
+                !(
+                  account.role === 'support' && view === 'operations-inventory'
+                ))
                 ? 'page'
                 : undefined
             }
@@ -269,6 +300,14 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view.startsWith('maintenance-') && (
+        <MaintenancePanel
+          workspace={workspace}
+          view={view.replace('maintenance-', '')}
+          onNavigate={(id) => setView(`maintenance-${id}`)}
+          onOffice={() => setView('oversight')}
+        />
+      )}
       {view.startsWith('library-') && (
         <LibraryPanel
           key={view}
