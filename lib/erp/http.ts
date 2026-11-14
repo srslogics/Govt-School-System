@@ -7,6 +7,7 @@ import {
   updateRegister,
   workspace,
 } from './attendance';
+import { readLibrary, readBorrowers, updateLibrary } from './library';
 import { readMunicipal, updateMunicipal, municipalCsv } from './municipal';
 import { readOversight, updateOversight } from './oversight';
 import { readOperations, updateOperations } from './operations';
@@ -113,6 +114,21 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
+        if (endpoint === 'library-borrowers' && method === 'GET')
+          return json(
+            await readBorrowers(
+              db,
+              account,
+              url.searchParams.get('school'),
+              url.searchParams.get('q') ?? '',
+            ),
+          );
+        if (endpoint === 'library')
+          return json(
+            method === 'GET'
+              ? await readLibrary(db, account, url.searchParams.get('school'))
+              : await updateLibrary(db, account, body),
+          );
         if (endpoint === 'municipal')
           return json(
             method === 'GET'

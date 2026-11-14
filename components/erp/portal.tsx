@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
+import { LibraryPanel } from './library';
 import { LearningPanel } from './learning';
 import { TeacherPanel } from './teacher';
 import { OversightPanel } from './oversight';
@@ -46,7 +47,7 @@ const roleCopy = {
   },
   librarian: {
     title: 'Library & learning resources',
-    text: 'Track assigned library work and respond to reading-resource requests. Book cataloguing and circulation are planned separately.',
+    text: 'Manage catalogue titles and copies, issue and return books, and follow up student borrowing.',
     work: 'Library work',
     category: 'library',
   },
@@ -88,7 +89,9 @@ export function PortalPanel({
         ? 'teacher-day'
         : account.role === 'principal'
           ? 'principal-overview'
-          : 'home',
+          : account.role === 'librarian'
+            ? 'library-home'
+            : 'home',
   );
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
@@ -206,7 +209,19 @@ export function PortalPanel({
                     ['teacher-students', 'Student profiles'],
                     ['home', 'Staff tasks'],
                   ]
-                : [['home', copy.work]]),
+                : account.role === 'librarian'
+                  ? [
+                      ['library-home', 'Library home'],
+                      ['library-catalogue', 'Catalogue'],
+                      ['library-loans', 'Issue & returns'],
+                      ['library-overdue', 'Overdue'],
+                      ['library-history', 'Borrowing history'],
+                      ['home', 'Library tasks'],
+                    ]
+                  : [['home', copy.work]]),
+          ...(['principal', 'parent'].includes(account.role)
+            ? [['library-home', parent ? 'Library' : 'School library']]
+            : []),
           ...(['teacher', 'principal'].includes(account.role)
             ? [['learning', 'Academics & homework']]
             : []),
@@ -237,6 +252,9 @@ export function PortalPanel({
             type="button"
             aria-current={
               view === id ||
+              (id === 'library-home' &&
+                account.role !== 'librarian' &&
+                view.startsWith('library-')) ||
               (id === 'operations' && view.startsWith('operations-'))
                 ? 'page'
                 : undefined
@@ -251,6 +269,14 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view.startsWith('library-') && (
+        <LibraryPanel
+          key={view}
+          workspace={workspace}
+          view={view.replace('library-', '')}
+          onNavigate={(id) => setView(`library-${id}`)}
+        />
+      )}
       {view === 'oversight' && (
         <OversightPanel workspace={workspace} date={date} />
       )}
