@@ -1,7 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Landmark } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  Building2,
+  ChevronRight,
+  ClipboardCheck,
+  GraduationCap,
+  Landmark,
+  LayoutDashboard,
+  LogOut,
+  Settings2,
+  ShieldCheck,
+} from 'lucide-react';
 import {
   useEffect,
   useState,
@@ -14,7 +26,7 @@ import { errorMessage, request, RequestError } from './client';
 
 type Initial = { classId?: string; date?: string };
 const roleLabel = {
-  administrator: 'Setup administrator',
+  administrator: 'Administrator',
   teacher: 'Teacher',
   principal: 'Principal',
   officer: 'Education officer',
@@ -82,99 +94,137 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
   }
 
   return (
-    <main className="erp-shell">
-      <div className="tricolour">
-        <i />
-        <i />
-        <i />
-      </div>
-      <header className="erp-masthead">
-        <div className="dept-mark">
-          <Landmark size={22} aria-hidden="true" />
-        </div>
-        <div>
-          <strong>Shiksha-Setu</strong>
-          <p>NMC school operations pilot</p>
-        </div>
-        <div className="erp-account">
-          {workspace && (
-            <>
-              <span>
-                {workspace.account.name} · {roleLabel[workspace.account.role]}
-              </span>
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                disabled={busy}
-              >
-                Sign out
-              </button>
-            </>
-          )}
-        </div>
-      </header>
-      <div className="erp-environment">
-        Fictional school data · Independent pilot with no NMC connection or
-        endorsement
-      </div>
+    <main className={`erp-shell${workspace ? '' : ' erp-signed-out'}`}>
       {loading ? (
-        <output className="erp-login">Checking your session…</output>
+        <output className="erp-loading">Opening your workspace…</output>
       ) : workspace ? (
-        <>
-          {error && (
-            <p className="erp-error" role="alert">
-              {error}
-            </p>
-          )}
-          <SignedWorkspace
-            key={workspace.account.id}
-            workspace={workspace}
-            initial={initial}
-            refresh={() => {
-              void request<Workspace>('session')
-                .then(setWorkspace)
-                .catch((failure: unknown) => setError(errorMessage(failure)));
-            }}
-          />
-        </>
+        <SignedWorkspace
+          key={workspace.account.id}
+          workspace={workspace}
+          initial={initial}
+          busy={busy}
+          error={error}
+          onSignOut={() => void signOut()}
+          refresh={() => {
+            void request<Workspace>('session')
+              .then(setWorkspace)
+              .catch((failure: unknown) => {
+                if (failure instanceof RequestError && failure.status === 401)
+                  setWorkspace(undefined);
+                setError(errorMessage(failure));
+              });
+          }}
+        />
       ) : (
-        <section className="erp-card erp-login">
-          <h1>Sign in to school operations</h1>
-          <p>Use your assigned pilot account to access saved school records.</p>
-          {error && (
-            <p className="erp-error" role="alert">
-              {error}
+        <div className="erp-login-layout">
+          <section className="erp-login-intro">
+            <Brand />
+            <div className="erp-login-story">
+              <span className="erp-eyebrow">SCHOOL OPERATIONS, CONNECTED</span>
+              <h1>
+                Every school.
+                <br />
+                One clear picture.
+              </h1>
+              <p>
+                From the classroom register to the education office. A simpler
+                way to record, review and understand school attendance.
+              </p>
+              <div className="erp-login-steps">
+                <div>
+                  <ClipboardCheck size={20} />
+                  <span>
+                    <strong>Record with confidence</strong>
+                    <small>Class attendance, saved in one place.</small>
+                  </span>
+                </div>
+                <div>
+                  <ShieldCheck size={20} />
+                  <span>
+                    <strong>Review with context</strong>
+                    <small>Corrections and an accountable history.</small>
+                  </span>
+                </div>
+                <div>
+                  <LayoutDashboard size={20} />
+                  <span>
+                    <strong>See the whole picture</strong>
+                    <small>School summaries and submission coverage.</small>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p className="erp-login-disclaimer">
+              Independent demonstration · Fictional records · No NMC endorsement
             </p>
-          )}
-          {!unavailable && (
-            <form onSubmit={(event) => void signIn(event)}>
-              <label>
-                Username
-                <input
-                  name="username"
-                  required
-                  autoComplete="username"
-                  maxLength={64}
-                />
-              </label>
-              <label>
-                Password
-                <input
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  maxLength={128}
-                />
-              </label>
-              <button className="erp-primary" disabled={busy}>
-                Sign in
-              </button>
-            </form>
-          )}
-        </section>
+          </section>
+          <section className="erp-login-side">
+            <div className="erp-login">
+              <span className="erp-pilot-badge">
+                <span /> SHARED ATTENDANCE PILOT
+              </span>
+              <h2>Welcome to Shiksha-Setu</h2>
+              <p>Sign in with your assigned account.</p>
+              {error && (
+                <p className="erp-error" role="alert">
+                  {error}
+                </p>
+              )}
+              {!unavailable && (
+                <form onSubmit={(event) => void signIn(event)}>
+                  <label>
+                    Username
+                    <input
+                      name="username"
+                      required
+                      autoComplete="username"
+                      maxLength={64}
+                      placeholder="Enter your username"
+                    />
+                  </label>
+                  <label>
+                    Password
+                    <input
+                      name="password"
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      maxLength={128}
+                      placeholder="Enter your password"
+                    />
+                  </label>
+                  <button className="erp-primary" disabled={busy}>
+                    {busy ? 'Signing in…' : 'Open workspace'}
+                    <ArrowRight size={17} />
+                  </button>
+                </form>
+              )}
+              <div className="erp-login-note">
+                <ShieldCheck size={18} />
+                <p>
+                  Your account opens only the schools and classes assigned to
+                  you.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
       )}
     </main>
+  );
+}
+
+function Brand() {
+  return (
+    <div className="erp-brand">
+      <span className="erp-brand-mark">
+        <GraduationCap size={24} />
+      </span>
+      <span>
+        <strong>Shiksha-Setu</strong>
+        <small>School operations</small>
+      </span>
+    </div>
   );
 }
 
@@ -182,10 +232,16 @@ function SignedWorkspace({
   workspace,
   initial,
   refresh,
+  busy,
+  error,
+  onSignOut,
 }: {
   workspace: Workspace;
   initial: Initial;
   refresh: () => void;
+  busy: boolean;
+  error: string;
+  onSignOut: () => void;
 }) {
   const { account, schools, classes } = workspace;
   const allowedInitial = classes.find((row) => row.id === initial.classId);
@@ -210,7 +266,6 @@ function SignedWorkspace({
   const scopedClasses = classes.filter((row) => row.schoolId === schoolId);
   const selectedClass =
     scopedClasses.find((row) => row.id === classId) ?? scopedClasses[0];
-  const school = schools.find((row) => row.id === schoolId);
   const canReport =
     account.role === 'principal' ||
     account.role === 'officer' ||
@@ -226,160 +281,232 @@ function SignedWorkspace({
     setBadLink(false);
   }
 
+  const title =
+    tab === 'setup'
+      ? 'School administration'
+      : tab === 'register'
+        ? 'Class attendance'
+        : account.role === 'principal'
+          ? 'School overview'
+          : 'Attendance overview';
+  const description =
+    tab === 'setup'
+      ? 'Manage your schools, people and access, one step at a time.'
+      : tab === 'register'
+        ? 'Mark the register, submit for review and keep every correction on record.'
+        : 'See attendance, spot missing submissions and follow up where it matters.';
   return (
     <div className="erp-layout">
-      <nav className="erp-nav" aria-label="School workspace">
-        <span>WORKSPACE</span>
-        {account.role === 'administrator' && (
-          <button aria-current="page" type="button">
-            School setup
-          </button>
-        )}
-        {canRegister && (
-          <button
-            type="button"
-            aria-current={tab === 'register' ? 'page' : undefined}
-            onClick={() => {
-              setBadLink(false);
-              setTab('register');
-            }}
-          >
-            Attendance register
-          </button>
-        )}
-        {canReport && (
-          <button
-            type="button"
-            aria-current={tab === 'report' ? 'page' : undefined}
-            onClick={() => {
-              setBadLink(false);
-              setTab('report');
-            }}
-          >
-            Attendance reports
-          </button>
-        )}
-      </nav>
-      <div className="erp-main">
-        <header className="erp-page-title">
-          <p>{roleLabel[account.role]}</p>
-          <h1>
-            {school?.name ??
-              (account.role === 'administrator'
-                ? 'School configuration'
-                : account.role === 'commissioner'
-                  ? 'Municipal attendance overview'
-                  : 'Assigned school operations')}
-          </h1>
+      <aside className="erp-sidebar">
+        <Brand />
+        <div className="erp-workspace-label">YOUR WORKSPACE</div>
+        <nav className="erp-nav" aria-label="School workspace">
+          {account.role === 'administrator' && (
+            <button aria-current="page" type="button">
+              <Settings2 size={18} />
+              School administration
+            </button>
+          )}
+          {canReport && (
+            <button
+              type="button"
+              aria-current={tab === 'report' ? 'page' : undefined}
+              onClick={() => {
+                setBadLink(false);
+                setTab('report');
+              }}
+            >
+              <LayoutDashboard size={18} />
+              Overview & reports
+            </button>
+          )}
+          {canRegister && (
+            <button
+              type="button"
+              aria-current={tab === 'register' ? 'page' : undefined}
+              onClick={() => {
+                setBadLink(false);
+                setTab('register');
+              }}
+            >
+              <BookOpen size={18} />
+              Attendance register
+            </button>
+          )}
+        </nav>
+        <div className="erp-sidebar-context">
+          <Building2 size={20} />
+          <strong>
+            {schools.length} {schools.length === 1 ? 'school' : 'schools'} in
+            your workspace
+          </strong>
+          <p>Access follows your assigned role and school scope.</p>
+        </div>
+        <div className="erp-sidebar-bottom">
+          <details className="erp-preview-menu">
+            <summary>
+              Explore other modules <ChevronRight size={14} />
+            </summary>
+            <p>
+              Reference previews use fictional records saved in this browser and
+              a separate sign-in.
+            </p>
+            <Link href="/preview">Open reference previews</Link>
+          </details>
+          <div className="erp-profile">
+            <span className="erp-avatar">
+              {account.name
+                .split(' ')
+                .filter(Boolean)
+                .slice(-2)
+                .map((word) => word[0])
+                .join('')}
+            </span>
+            <div>
+              <strong>{account.name}</strong>
+              <small>{roleLabel[account.role]}</small>
+            </div>
+            <button
+              type="button"
+              aria-label="Sign out"
+              onClick={onSignOut}
+              disabled={busy}
+            >
+              <LogOut size={17} />
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div className="erp-content">
+        <header className="erp-topbar">
+          <span>
+            <Landmark size={15} /> Nagpur · School operations
+          </span>
+          <span className="erp-pilot-badge">
+            <span /> FICTIONAL DATA PILOT
+          </span>
         </header>
-        {tab !== 'setup' && (
-          <div className="erp-filters">
-            <label>
-              School workspace
-              <select
-                value={schoolId}
-                onChange={(event) => {
-                  setSchoolId(event.target.value);
-                  setClassId('');
-                  setBadLink(false);
-                }}
-              >
-                {(account.role === 'officer' ||
-                  account.role === 'commissioner') && (
-                  <option value="">All schools in scope</option>
-                )}
-                {!schools.length && canRegister && (
-                  <option value="">No school assigned</option>
-                )}
-                {schools.map((row) => (
-                  <option key={row.id} value={row.id}>
-                    {row.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Attendance date
-              <input
-                type="date"
-                required
-                value={date}
-                max={workspace.date}
-                onChange={(event) => {
-                  if (event.target.value) setDate(event.target.value);
-                }}
-              />
-            </label>
-            {tab === 'register' && (
+        <div className="erp-main">
+          <header className="erp-page-title">
+            <div>
+              <p>{roleLabel[account.role]} workspace</p>
+              <h1>{title}</h1>
+              <span>{description}</span>
+            </div>
+            <div className="erp-date-stamp">
+              {new Intl.DateTimeFormat('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                timeZone: 'Asia/Kolkata',
+              }).format(new Date(workspace.date + 'T00:00:00+05:30'))}
+            </div>
+          </header>
+          {error && (
+            <p className="erp-error" role="alert">
+              {error}
+            </p>
+          )}
+          {tab !== 'setup' && (
+            <div className="erp-filters">
               <label>
-                Class and section
+                School
                 <select
-                  value={selectedClass?.id ?? ''}
+                  value={schoolId}
                   onChange={(event) => {
-                    setClassId(event.target.value);
+                    setSchoolId(event.target.value);
+                    setClassId('');
                     setBadLink(false);
                   }}
                 >
-                  {!scopedClasses.length && (
-                    <option value="">No class assigned</option>
+                  {(account.role === 'officer' ||
+                    account.role === 'commissioner') && (
+                    <option value="">All schools in scope</option>
                   )}
-                  {scopedClasses.map((row) => (
+                  {!schools.length && canRegister && (
+                    <option value="">No school assigned</option>
+                  )}
+                  {schools.map((row) => (
                     <option key={row.id} value={row.id}>
-                      {row.grade} · Section {row.section}
+                      {row.name}
                     </option>
                   ))}
                 </select>
               </label>
-            )}
-          </div>
-        )}
-        {badLink ? (
-          <p role="alert" className="erp-error">
-            Record not found in your workspace.
-          </p>
-        ) : tab === 'setup' ? (
-          <SetupPanel date={workspace.date} onSaved={refresh} />
-        ) : tab === 'report' ? (
-          <ReportPanel
-            key={`${date}:${schoolId}`}
-            date={date}
-            schoolId={schoolId}
-            canReview={account.role === 'principal'}
-            onOpen={openRegister}
-          />
-        ) : selectedClass ? (
-          <RegisterPanel
-            key={`${selectedClass.id}:${date}`}
-            classId={selectedClass.id}
-            date={date}
-            role={account.role}
-            onSaved={refresh}
-          />
-        ) : (
-          <p>
-            No class is available in this workspace. Ask the setup administrator
-            to check your assignment.
-          </p>
-        )}
-        <details className="erp-roadmap">
-          <summary>Preview modules and planned features</summary>
-          <p>
-            Shared workflows in this milestone cover school setup, enrolment,
-            staff assignments and daily attendance.
-          </p>
-          <p>
-            Next phases cover extended student records, staff and leave,
-            timetables, assessments and report cards, parent access and school
-            administration.
-          </p>
-          <p>
-            The six reference workspaces and request approvals use sample data
-            stored separately in the browser. The previews have their own sign-in.
-          </p>
-          <p>
-            <Link href="/preview">Open preview modules</Link>
-          </p>
-        </details>
+              <label>
+                Date
+                <input
+                  type="date"
+                  required
+                  value={date}
+                  max={workspace.date}
+                  onChange={(event) => {
+                    if (event.target.value) setDate(event.target.value);
+                  }}
+                />
+              </label>
+              {tab === 'register' && (
+                <label>
+                  Class and section
+                  <select
+                    value={selectedClass?.id ?? ''}
+                    onChange={(event) => {
+                      setClassId(event.target.value);
+                      setBadLink(false);
+                    }}
+                  >
+                    {!scopedClasses.length && (
+                      <option value="">No class assigned</option>
+                    )}
+                    {scopedClasses.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.grade} · Section {row.section}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+          )}
+          {badLink ? (
+            <p role="alert" className="erp-error">
+              Record not found in your workspace.
+            </p>
+          ) : tab === 'setup' ? (
+            <SetupPanel date={workspace.date} onSaved={refresh} />
+          ) : tab === 'report' ? (
+            <ReportPanel
+              key={`${date}:${schoolId}`}
+              date={date}
+              schoolId={schoolId}
+              canReview={account.role === 'principal'}
+              onOpen={openRegister}
+              onSchool={(id) => {
+                setSchoolId(id);
+                setClassId('');
+              }}
+            />
+          ) : selectedClass ? (
+            <RegisterPanel
+              key={`${selectedClass.id}:${date}`}
+              classId={selectedClass.id}
+              date={date}
+              role={account.role}
+              onSaved={refresh}
+            />
+          ) : (
+            <p>
+              No class is available in this workspace. Ask the setup
+              administrator to check your assignment.
+            </p>
+          )}
+          <footer className="erp-footer">
+            <span>Shiksha-Setu · Shared school operations</span>
+            <span>
+              Independent pilot · No government connection or endorsement
+            </span>
+          </footer>
+        </div>
       </div>
     </div>
   );
