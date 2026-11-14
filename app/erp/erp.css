@@ -1815,3 +1815,182 @@ progress.erp-coverage-track::-moz-progress-bar {
     gap: 13px;
   }
 }
+.erp-teacher {
+  margin-top: 18px;
+  box-shadow: none;
+  border-color: #e1eaf1;
+}
+.erp-day-period {
+  display: flex;
+  gap: 20px;
+  padding: 17px 0;
+  border-bottom: 1px solid var(--erp-line);
+}
+.erp-day-period > span {
+  color: #446e8c;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 48px;
+}
+.erp-day-period small {
+  display: block;
+  font-size: 10px;
+  color: #93a3b0;
+  margin-top: 3px;
+}
+.erp-day-period strong {
+  font-size: 12px;
+}
+.erp-day-period p {
+  font-size: 11px;
+  color: #8398aa;
+  margin-top: 4px;
+}
+.erp-day-register {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--erp-line);
+}
+.erp-day-register strong {
+  font-size: 12px;
+  display: block;
+}
+.erp-day-register small {
+  font-size: 10px;
+  color: #869aab;
+}
+.erp-timetable-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+.erp-timetable-day {
+  border: 1px solid var(--erp-line);
+  border-radius: 8px;
+  padding: 17px;
+  background: #fafcfe;
+}
+.erp-timetable-day > h3 {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--erp-line);
+  padding-bottom: 13px;
+}
+.erp-timetable-day h3 small {
+  font-size: 9px;
+  color: #669285;
+}
+.erp-timetable-today {
+  border-color: #a8c4c0;
+  background: #f5faf8;
+}
+.erp-timetable-day article {
+  border-bottom: 1px solid var(--erp-line);
+  padding: 15px 0;
+}
+.erp-timetable-day article > span {
+  font-size: 10px;
+  color: #6d8da3;
+  display: block;
+}
+.erp-timetable-day article > strong {
+  font-size: 13px;
+  display: block;
+  margin: 5px 0;
+}
+.erp-timetable-day article p,
+.erp-timetable-day article small {
+  font-size: 10px;
+  color: #7d93a5;
+}
+.erp-profile-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 25px;
+}
+.erp-student-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+}
+.erp-student-list button {
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 5px;
+}
+.erp-student-list button[aria-pressed='true'] {
+  background: #eaf3fa;
+  border-color: #aac6d9;
+}
+.erp-student-list strong {
+  font-size: 11px;
+}
+.erp-student-list small {
+  font-size: 10px;
+  font-weight: 400;
+  color: #7d95a8;
+}
+.erp-profile-result {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--erp-line);
+  margin-bottom: 14px;
+}
+.erp-profile-result header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.erp-profile-result strong {
+  font-size: 12px;
+}
+.erp-profile-result small {
+  display: block;
+  font-size: 10px;
+  color: #8ba0b1;
+  margin-top: 5px;
+}
+.erp-profile-result p {
+  font-size: 11px;
+  color: #6d899f;
+  line-height: 1.8;
+  margin-top: 9px;
+}
+.erp-table-note {
+  display: block;
+  color: #8a9eae;
+  font-size: 10px;
+  font-weight: 400;
+  margin-top: 5px;
+}
+.erp-teacher .erp-table input {
+  min-width: 85px;
+}
+.erp-teacher .erp-table textarea {
+  min-width: 180px;
+  min-height: 62px;
+}
+.erp-teacher .erp-actions > span {
+  max-width: 450px;
+}
+@media (max-width: 760px) {
+  .erp-teacher {
+    padding: 14px;
+    margin: 12px -5px;
+  }
+  .erp-profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .erp-student-list {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    max-height: 210px;
+    overflow: auto;
+  }
+  .erp-day-register {
+    flex-wrap: wrap;
+  }
+}

@@ -76,13 +76,15 @@ export function LearningPanel({
       setMessage(
         action === 'publish'
           ? 'Result published to the linked family.'
-          : action === 'assessment'
-            ? 'Marks saved for principal publication.'
-            : action === 'homework'
-              ? 'Homework assigned to the class.'
-              : action === 'feedback'
-                ? 'Teacher feedback saved.'
-                : 'Completion reported to the teacher.',
+          : action === 'edit-assessment'
+            ? 'Draft result corrected. It remains hidden until publication.'
+            : action === 'assessment'
+              ? 'Marks saved for principal publication.'
+              : action === 'homework'
+                ? 'Homework assigned to the class.'
+                : action === 'feedback'
+                  ? 'Teacher feedback saved.'
+                  : 'Completion reported to the teacher.',
       );
       form.reset();
     } catch (failure) {
@@ -594,6 +596,7 @@ export function LearningPanel({
                         row={row}
                         principal={workspace.account.role === 'principal'}
                         showLearner={!parent}
+                        editable={teacher}
                         busy={busy}
                         save={save}
                       />
@@ -810,12 +813,14 @@ function Result({
   row,
   principal,
   showLearner,
+  editable,
   busy,
   save,
 }: {
   row: Assessment;
   principal: boolean;
   showLearner: boolean;
+  editable: boolean;
   busy: boolean;
   save: (event: SubmitEvent<HTMLFormElement>, action: string) => Promise<void>;
 }) {
@@ -836,6 +841,49 @@ function Result({
       </header>
       {showLearner && <small>{row.studentName}</small>}
       <p>{row.feedback}</p>
+      {editable && !row.published && (
+        <details>
+          <summary>Edit draft result</summary>
+          <form onSubmit={(event) => void save(event, 'edit-assessment')}>
+            <input type="hidden" name="id" value={row.id} />
+            <input type="hidden" name="version" value={row.version} />
+            <label>
+              Marks obtained
+              <input
+                name="score"
+                type="number"
+                min={0}
+                max={1000}
+                step="0.5"
+                defaultValue={row.score}
+                required
+              />
+            </label>
+            <label>
+              Maximum marks
+              <input
+                name="maximum"
+                type="number"
+                min={1}
+                max={1000}
+                step="0.5"
+                defaultValue={row.maximum}
+                required
+              />
+            </label>
+            <label>
+              Feedback
+              <textarea
+                name="feedback"
+                maxLength={1000}
+                defaultValue={row.feedback}
+                required
+              />
+            </label>
+            <button disabled={busy}>Save draft correction</button>
+          </form>
+        </details>
+      )}
       {principal && !row.published && (
         <form onSubmit={(event) => void save(event, 'publish')}>
           <input type="hidden" name="id" value={row.id} />

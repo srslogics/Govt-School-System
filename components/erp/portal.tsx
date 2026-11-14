@@ -14,6 +14,7 @@ import {
 import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
 import { LearningPanel } from './learning';
+import { TeacherPanel } from './teacher';
 
 const roleCopy = {
   parent: {
@@ -51,9 +52,11 @@ const roleCopy = {
 export function PortalPanel({
   workspace,
   date,
+  onOpenRegister,
 }: {
   workspace: Workspace;
   date: string;
+  onOpenRegister?: (classId: string) => void;
 }) {
   const { account, schools } = workspace;
   const parent = account.role === 'parent';
@@ -67,7 +70,13 @@ export function PortalPanel({
     category: 'general',
   };
   const [data, setData] = useState<SchoolPortal>();
-  const [view, setView] = useState(parent ? 'learning-home' : 'home');
+  const [view, setView] = useState(
+    parent
+      ? 'learning-home'
+      : account.role === 'teacher'
+        ? 'teacher-day'
+        : 'home',
+  );
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
   const [error, setError] = useState('');
@@ -168,9 +177,20 @@ export function PortalPanel({
                 ['learning-academics', 'Academics'],
                 ['learning-homework', 'Homework'],
               ]
-            : [['home', copy.work]]),
+            : account.role === 'teacher'
+              ? [
+                  ['teacher-day', 'My Day'],
+                  ['teacher-timetable', 'Timetable'],
+                  ['teacher-students', 'Students'],
+                  ['teacher-marks', 'Marks Entry'],
+                  ['home', 'School tasks'],
+                ]
+              : [['home', copy.work]]),
           ...(['teacher', 'principal'].includes(account.role)
             ? [['learning', 'Academics & homework']]
+            : []),
+          ...(account.role === 'principal'
+            ? [['teacher-timetable', 'Teaching timetable']]
             : []),
           ['requests', 'Requests & replies'],
           ['notices', 'School notices'],
@@ -190,6 +210,16 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view.startsWith('teacher-') && (
+        <TeacherPanel
+          key={`${date}:${view}`}
+          workspace={workspace}
+          date={date}
+          view={view.replace('teacher-', '')}
+          onNavigate={setView}
+          onOpenRegister={onOpenRegister}
+        />
+      )}
       {view.startsWith('learning') && (
         <LearningPanel
           key={`${date}:${view}`}
