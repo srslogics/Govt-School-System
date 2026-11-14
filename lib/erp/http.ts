@@ -7,6 +7,7 @@ import {
   updateRegister,
   workspace,
 } from './attendance';
+import { readLearning, updateLearning } from './learning';
 import { readSetup, updateSetup } from './setup';
 import { readPortal, updatePortal } from './portal';
 import {
@@ -108,6 +109,16 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
+        if (endpoint === 'learning')
+          return json(
+            method === 'GET'
+              ? await readLearning(
+                  db,
+                  account,
+                  dateValue(url.searchParams.get('date')),
+                )
+              : await updateLearning(db, account, body),
+          );
         if (endpoint === 'portal')
           return json(
             method === 'GET'

@@ -1,5 +1,6 @@
 import { configuredDatabase, initializeDatabase } from './database';
 import { createHandler } from './http';
+import { seedLearningDemo } from './learning-demo';
 import { prepareHostedMeetingDemo } from './hosted-demo';
 
 let handler: Promise<ReturnType<typeof createHandler>> | undefined;
@@ -35,6 +36,7 @@ export async function handleErp(request: Request) {
         const demoSetup = await prepareHostedMeetingDemo(db, url.origin);
         if (demoSetup !== 'not this host')
           console.info('Meeting demo sign-in setup:', demoSetup);
+        await seedLearningDemo(db);
         return createHandler(db, url.origin);
       } catch (error) {
         db.close();
