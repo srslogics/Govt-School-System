@@ -447,19 +447,107 @@ void test('principal dashboard keeps attendance brief and opens school leadershi
     await screen.findByRole('heading', { name: 'Staff & responsibilities' });
     await screen.findByText('Demo Teacher A');
     assert(!screen.queryByText('Demo Teacher B'));
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Performance' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Performance' }));
     await screen.findByRole('heading', { name: 'School academic performance' });
     assert(screen.getByRole('columnheader', { name: 'Draft results' }));
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Student profiles' }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Student profiles' }));
     await screen.findByRole('heading', { name: 'Student profiles' });
     await screen.findByRole('button', {
       name: 'Sample learner A-1 Class 5 · Section A · Roll 1',
     });
     assert(!screen.queryByText('Sample learner B-1'));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'School administration' }),
+    );
+    await screen.findByText('No staff attendance records yet');
+    const change = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    change('Staff member', 'teacher.a');
+    change('Details / purpose', 'Verified at morning assembly');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save staff attendance' }),
+    );
+    await screen.findByRole('heading', { name: 'Demo Teacher A' });
+    assert(screen.getByText(/Verified at morning assembly/));
+    fireEvent.click(screen.getByRole('button', { name: 'Staff leave' }));
+    change('Reason', 'Personal appointment');
+    fireEvent.click(screen.getByRole('button', { name: 'Save leave request' }));
+    await screen.findByText(/Personal appointment/);
+    assert(!screen.queryByText('Record principal decision'));
+    fireEvent.click(screen.getByRole('button', { name: 'Admissions' }));
+    change('Learner name', 'UI admitted learner');
+    change('Guardian name', 'UI guardian');
+    change('Guardian contact', 'Fictional contact');
+    change('Requested class', 'class-a');
+    change('Details / purpose', 'Documents checked');
+    fireEvent.click(screen.getByRole('button', { name: 'Save application' }));
+    await screen.findByRole('heading', { name: 'UI admitted learner' });
+    change('Roll number (for admission)', '95');
+    change('Decision note', 'Admission checked and approved');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save principal decision' }),
+    );
+    await screen.findByText(/Enrolled · Roll 95/);
+    assert(
+      await one(
+        db,
+        "SELECT id FROM enrolment WHERE class_id='class-a' AND roll='95'",
+      ),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Payroll' }));
+    change('Staff member', 'teacher.a');
+    change('Gross pay (₹)', '2000.10');
+    change('Deductions (₹)', '100.05');
+    change('Payroll preparation note', 'Salary prepared for review');
+    fireEvent.click(screen.getByRole('button', { name: 'Save payroll draft' }));
+    await screen.findByRole('heading', { name: 'Demo Teacher A' });
+    await screen.findByText('Net ₹1,900.05');
+    change('Decision note', 'Salary checked');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save principal decision' }),
+    );
+    await screen.findByText('approved');
+    assert(!screen.queryByText('Revise payroll draft'));
+    fireEvent.click(screen.getByRole('button', { name: 'Grants & expenses' }));
+    change('Grant name', 'UI learning grant');
+    change('Sanction reference', 'UI-SANCTION-1');
+    change('Sanctioned amount (₹)', '1000');
+    change('Details / purpose', 'Learning material allocation');
+    fireEvent.click(screen.getByRole('button', { name: 'Save grant' }));
+    await screen.findByRole('heading', { name: 'UI learning grant' });
+    change('Expense amount (₹)', '200.25');
+    change('Voucher reference', 'UI-VOUCHER-1');
+    change('Expense purpose', 'Books for class 5');
+    fireEvent.click(screen.getByRole('button', { name: 'Save grant expense' }));
+    await screen.findByText('Remaining ₹799.75');
+    fireEvent.click(screen.getByRole('button', { name: 'Inventory' }));
+    change('Item name', 'UI chairs');
+    change('Item code', 'UI-CHAIR');
+    change('Unit', 'pieces');
+    change('Opening quantity', '10');
+    change('Opening stock note', 'Opening count verified');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save inventory item' }),
+    );
+    await screen.findByRole('heading', { name: 'UI chairs' });
+    change('Stock movement', 'issue');
+    change('Movement quantity', '3');
+    change('Recipient / purpose', 'Class 5 room');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save stock movement' }),
+    );
+    await screen.findByText('Available 7 pieces');
+    fireEvent.click(screen.getByRole('button', { name: 'School calendar' }));
+    change('Event title', 'UI parent meeting');
+    change('Details / purpose', 'Meet class teacher');
+    change('Event audience', 'parents');
+    fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
+    await screen.findByRole('heading', { name: 'UI parent meeting' });
+    change('Decision note', 'Postponed to next week');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save principal decision' }),
+    );
+    await screen.findByText('cancelled');
   } finally {
     cleanup();
     globalThis.fetch = originalFetch;

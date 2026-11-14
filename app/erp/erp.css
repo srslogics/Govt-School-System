@@ -2054,3 +2054,28 @@ progress.erp-coverage-track::-moz-progress-bar {
     flex-direction: column;
   }
 }
+
+.erp-operations {
+  display: grid;
+  gap: 20px;
+  padding-top: 10px;
+}
+.erp-operations .erp-section-tabs {
+  margin: 0;
+}
+.erp-operations-create {
+  border: 1px solid #d8e4ed;
+  border-radius: 12px;
+  padding: 18px;
+}
+.erp-operations-create > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #193b55;
+}
+.erp-operations .erp-portal-form {
+  margin-top: 16px;
+}
+.erp-operations .erp-portal-record h3 {
+  overflow-wrap: anywhere;
+}

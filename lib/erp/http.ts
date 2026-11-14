@@ -7,6 +7,7 @@ import {
   updateRegister,
   workspace,
 } from './attendance';
+import { readOperations, updateOperations } from './operations';
 import { readTeacher, updateTeacher } from './teacher';
 import { readLearning, updateLearning } from './learning';
 import { readSetup, updateSetup } from './setup';
@@ -110,6 +111,12 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
+        if (endpoint === 'operations')
+          return json(
+            method === 'GET'
+              ? await readOperations(db, account)
+              : await updateOperations(db, account, body),
+          );
         if (endpoint === 'teacher')
           return json(
             method === 'GET'

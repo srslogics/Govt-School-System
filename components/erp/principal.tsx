@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Report, SchoolPortal, Workspace } from '@/lib/erp/model';
 import { attendanceRate, roleLabels } from '@/lib/erp/model';
+import type { OperationsView } from '@/lib/erp/operations';
 import type { TeacherView } from '@/lib/erp/teacher';
 import { errorMessage, request } from './client';
 
@@ -23,6 +24,7 @@ export function PrincipalPanel({
   onOpenRegister?: (id: string) => void;
   onOpenReport?: () => void;
 }) {
+  const [operations, setOperations] = useState<OperationsView>();
   const [report, setReport] = useState<Report>();
   const [teaching, setTeaching] = useState<TeacherView>();
   const [error, setError] = useState('');
@@ -31,6 +33,7 @@ export function PrincipalPanel({
   useEffect(() => {
     const controller = new AbortController();
     Promise.all([
+      request<OperationsView>('operations', undefined, controller.signal),
       request<Report>(
         `report?date=${encodeURIComponent(date)}`,
         undefined,
@@ -42,8 +45,9 @@ export function PrincipalPanel({
         controller.signal,
       ),
     ])
-      .then(([attendance, learning]) => {
+      .then(([schoolOperations, attendance, learning]) => {
         if (!controller.signal.aborted) {
+          setOperations(schoolOperations);
           setReport(attendance);
           setTeaching(learning);
           setError('');
@@ -201,6 +205,27 @@ export function PrincipalPanel({
                 <span>Open staff tasks</span>
                 <strong>{tasks.length}</strong>
               </button>
+              {[
+                ['leave', 'Pending staff leave', 'pending'],
+                ['admission', 'Admissions awaiting decision', 'pending'],
+                ['payroll', 'Payroll drafts awaiting approval', 'draft'],
+              ].map(([kind, label, status]) => (
+                <button
+                  type="button"
+                  key={kind}
+                  onClick={() => onNavigate(`operations-${kind}`)}
+                >
+                  <span>{label}</span>
+                  <strong>
+                    {operations?.records.filter(
+                      (row) =>
+                        (!school || row.schoolId === school) &&
+                        row.kind === kind &&
+                        row.status === status,
+                    ).length ?? 0}
+                  </strong>
+                </button>
+              ))}
               <small>
                 Result and work counts reflect the records loaded in this pilot;
                 they are not an all-time census.
@@ -214,6 +239,7 @@ export function PrincipalPanel({
                 ['principal-staff', 'View staff & responsibilities'],
                 ['teacher-timetable', 'Manage teaching timetable'],
                 ['home', 'Assign and follow up staff work'],
+                ['operations', 'Open school administration modules'],
                 ['notices', 'Publish parent or staff notices'],
               ].map(([id, label]) => (
                 <button type="button" key={id} onClick={() => onNavigate(id)}>
@@ -269,9 +295,9 @@ export function PrincipalPanel({
           </div>
           {!coverage.length && <p>No classes are effective on this date.</p>}
           <p className="erp-directory-help">
-            Staff attendance and leave, admissions, payroll, grants, inventory,
-            examinations and school calendar management need dedicated
-            workflows. Staff accounts and tasks here do not indicate staff
+            Open School administration for staff attendance and leave,
+            admissions, payroll preparation, grant expenses, inventory and the
+            school calendar. Staff accounts and tasks do not indicate staff
             presence or a complete HR roster.
           </p>
         </>
