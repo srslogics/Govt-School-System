@@ -15,6 +15,7 @@ import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
 import { LearningPanel } from './learning';
 import { TeacherPanel } from './teacher';
+import { OversightPanel } from './oversight';
 import { OperationsPanel } from './operations';
 import { PrincipalPanel } from './principal';
 
@@ -224,6 +225,9 @@ export function PortalPanel({
                 ],
               ]
             : []),
+          ...(account.role === 'principal'
+            ? [['oversight', 'Officer coordination']]
+            : []),
           ['requests', 'Requests & replies'],
           ['notices', 'School notices'],
           ...(directory ? [['directory', 'Learner directory']] : []),
@@ -247,6 +251,9 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view === 'oversight' && (
+        <OversightPanel workspace={workspace} date={date} />
+      )}
       {view.startsWith('operations') && (
         <OperationsPanel
           key={view}

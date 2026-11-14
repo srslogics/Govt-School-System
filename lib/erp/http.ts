@@ -7,6 +7,7 @@ import {
   updateRegister,
   workspace,
 } from './attendance';
+import { readOversight, updateOversight } from './oversight';
 import { readOperations, updateOperations } from './operations';
 import { readTeacher, updateTeacher } from './teacher';
 import { readLearning, updateLearning } from './learning';
@@ -111,6 +112,16 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
+        if (endpoint === 'oversight')
+          return json(
+            method === 'GET'
+              ? await readOversight(
+                  db,
+                  account,
+                  dateValue(url.searchParams.get('date')),
+                )
+              : await updateOversight(db, account, body),
+          );
         if (endpoint === 'operations')
           return json(
             method === 'GET'

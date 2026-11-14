@@ -2079,3 +2079,21 @@ progress.erp-coverage-track::-moz-progress-bar {
 .erp-operations .erp-portal-record h3 {
   overflow-wrap: anywhere;
 }
+
+.erp-oversight {
+  display: grid;
+  gap: 22px;
+}
+.erp-oversight-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.erp-oversight .erp-principal-box button {
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .erp-oversight-filters {
+    grid-template-columns: 1fr;
+  }
+}

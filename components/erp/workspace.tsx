@@ -20,6 +20,7 @@ import {
   type SubmitEvent as ReactSubmitEvent,
 } from 'react';
 import { roleLabels, schoolStaffRoles, type Workspace } from '@/lib/erp/model';
+import { OversightPanel } from './oversight';
 import { PortalPanel } from './portal';
 import { RegisterPanel, ReportPanel } from './attendance';
 import { SetupPanel } from './setup';
@@ -285,18 +286,20 @@ function SignedWorkspace({
   const [classId, setClassId] = useState(allowedInitial?.id ?? '');
   const [date, setDate] = useState(initial.date ?? workspace.date);
   const [tab, setTab] = useState(
-    account.role === 'administrator'
-      ? 'setup'
-      : allowedInitial
-        ? 'register'
-        : account.role === 'teacher' ||
-            account.role === 'principal' ||
-            account.role === 'parent' ||
-            ['clerk', 'accountant', 'librarian', 'support'].includes(
-              account.role,
-            )
-          ? 'portal'
-          : 'report',
+    account.role === 'officer'
+      ? 'oversight'
+      : account.role === 'administrator'
+        ? 'setup'
+        : allowedInitial
+          ? 'register'
+          : account.role === 'teacher' ||
+              account.role === 'principal' ||
+              account.role === 'parent' ||
+              ['clerk', 'accountant', 'librarian', 'support'].includes(
+                account.role,
+              )
+            ? 'portal'
+            : 'report',
   );
   const scopedClasses = classes.filter((row) => row.schoolId === schoolId);
   const selectedClass =
@@ -317,35 +320,54 @@ function SignedWorkspace({
   }
 
   const title =
-    tab === 'setup'
-      ? 'School administration'
-      : tab === 'portal'
-        ? account.role === 'parent'
-          ? 'Family workspace'
-          : account.role === 'principal'
-            ? 'School leadership'
-            : `${roleLabels[account.role]} workspace`
-        : tab === 'register'
-          ? 'Class attendance'
-          : account.role === 'principal'
-            ? 'School overview'
-            : 'Attendance overview';
+    tab === 'oversight'
+      ? 'School oversight'
+      : tab === 'setup'
+        ? 'School administration'
+        : tab === 'portal'
+          ? account.role === 'parent'
+            ? 'Family workspace'
+            : account.role === 'principal'
+              ? 'School leadership'
+              : `${roleLabels[account.role]} workspace`
+          : tab === 'register'
+            ? 'Class attendance'
+            : account.role === 'principal'
+              ? 'School overview'
+              : 'Attendance overview';
   const description =
-    tab === 'setup'
-      ? 'Manage your schools, people and access, one step at a time.'
-      : tab === 'portal'
-        ? account.role === 'parent'
-          ? 'A closer connection to your child’s school.'
-          : 'One place for your school work, requests and announcements.'
-        : tab === 'register'
-          ? 'Mark the register, submit for review and keep every correction on record.'
-          : 'See attendance, spot missing submissions and follow up where it matters.';
+    tab === 'oversight'
+      ? 'Monitor assigned schools, coordinate inspections and follow up decisions and compliance.'
+      : tab === 'setup'
+        ? 'Manage your schools, people and access, one step at a time.'
+        : tab === 'portal'
+          ? account.role === 'parent'
+            ? 'A closer connection to your child’s school.'
+            : 'One place for your school work, requests and announcements.'
+          : tab === 'register'
+            ? 'Mark the register, submit for review and keep every correction on record.'
+            : 'See attendance, spot missing submissions and follow up where it matters.';
   return (
     <div className="erp-layout">
       <aside className="erp-sidebar">
         <Brand />
         <div className="erp-workspace-label">YOUR WORKSPACE</div>
         <nav className="erp-nav" aria-label="School workspace">
+          {['officer', 'commissioner'].includes(account.role) && (
+            <button
+              type="button"
+              aria-current={tab === 'oversight' ? 'page' : undefined}
+              onClick={() => {
+                setBadLink(false);
+                setTab('oversight');
+              }}
+            >
+              <Building2 size={18} />
+              {account.role === 'officer'
+                ? 'School oversight'
+                : 'School oversight & escalations'}
+            </button>
+          )}
           {account.role === 'administrator' && (
             <button
               aria-current={tab === 'setup' ? 'page' : undefined}
@@ -369,7 +391,7 @@ function SignedWorkspace({
               }}
             >
               <LayoutDashboard size={18} />
-              {account.role === 'principal'
+              {account.role === 'principal' || account.role === 'officer'
                 ? 'Attendance reports'
                 : 'Overview & reports'}
             </button>
@@ -484,7 +506,7 @@ function SignedWorkspace({
           )}
           {tab !== 'setup' && (
             <div className="erp-filters">
-              {tab !== 'portal' && (
+              {tab !== 'portal' && tab !== 'oversight' && (
                 <label>
                   School
                   <select
@@ -549,6 +571,12 @@ function SignedWorkspace({
             <p role="alert" className="erp-error">
               Record not found in your workspace.
             </p>
+          ) : tab === 'oversight' ? (
+            <OversightPanel
+              workspace={workspace}
+              date={date}
+              onOpenReports={() => setTab('report')}
+            />
           ) : tab === 'portal' ? (
             <PortalPanel
               key={date}
