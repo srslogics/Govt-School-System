@@ -290,6 +290,7 @@ function SignedWorkspace({
       : allowedInitial
         ? 'register'
         : account.role === 'teacher' ||
+            account.role === 'principal' ||
             account.role === 'parent' ||
             ['clerk', 'accountant', 'librarian', 'support'].includes(
               account.role,
@@ -322,7 +323,7 @@ function SignedWorkspace({
         ? account.role === 'parent'
           ? 'Family workspace'
           : account.role === 'principal'
-            ? 'School team & families'
+            ? 'School leadership'
             : `${roleLabels[account.role]} workspace`
         : tab === 'register'
           ? 'Class attendance'
@@ -368,7 +369,9 @@ function SignedWorkspace({
               }}
             >
               <LayoutDashboard size={18} />
-              Overview & reports
+              {account.role === 'principal'
+                ? 'Attendance reports'
+                : 'Overview & reports'}
             </button>
           )}
           {canRegister && (
@@ -398,10 +401,11 @@ function SignedWorkspace({
               <GraduationCap size={18} />
               {account.role === 'parent'
                 ? 'My family'
-                : account.role === 'principal' ||
-                    account.role === 'administrator'
-                  ? 'Team & families'
-                  : 'My school workspace'}
+                : account.role === 'principal'
+                  ? 'School dashboard'
+                  : account.role === 'administrator'
+                    ? 'Team & families'
+                    : 'My school workspace'}
             </button>
           )}
         </nav>
@@ -551,6 +555,10 @@ function SignedWorkspace({
               workspace={workspace}
               date={date}
               onOpenRegister={openRegister}
+              onOpenReport={() => {
+                setBadLink(false);
+                setTab('report');
+              }}
             />
           ) : tab === 'setup' ? (
             <SetupPanel date={workspace.date} onSaved={refresh} />

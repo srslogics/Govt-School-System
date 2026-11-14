@@ -1994,3 +1994,63 @@ progress.erp-coverage-track::-moz-progress-bar {
     flex-wrap: wrap;
   }
 }
+
+.erp-principal {
+  display: grid;
+  gap: 22px;
+}
+.erp-principal h3 {
+  margin: 0 0 8px;
+}
+.erp-principal-attendance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  border: 1px solid #d8e4ed;
+  border-radius: 14px;
+  background: #f2f7fa;
+}
+.erp-principal-attendance h3 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+.erp-principal-attendance h3 small {
+  font-size: 14px;
+  font-weight: 400;
+}
+.erp-principal-attendance p {
+  margin: 6px 0;
+}
+.erp-principal small,
+.erp-principal p {
+  color: #60748a;
+}
+.erp-principal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.erp-principal-box {
+  padding: 22px;
+  border: 1px solid #d8e4ed;
+  border-radius: 14px;
+}
+.erp-principal-box button {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  margin: 9px 0;
+}
+@media (max-width: 800px) {
+  .erp-principal-grid {
+    grid-template-columns: 1fr;
+  }
+  .erp-principal-attendance {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
