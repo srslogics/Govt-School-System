@@ -2111,3 +2111,14 @@ progress.erp-coverage-track::-moz-progress-bar {
   text-align: left;
   margin: 10px 0;
 }
+
+.erp-library {
+  display: grid;
+  gap: 22px;
+}
+.erp-library .erp-portal-form {
+  margin-top: 16px;
+}
+.erp-library .erp-portal-record h3 {
+  overflow-wrap: anywhere;
+}

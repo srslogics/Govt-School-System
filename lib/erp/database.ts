@@ -109,6 +109,32 @@ CREATE TABLE IF NOT EXISTS school (
       UNIQUE(school_id,kind,record_key)
     );
     CREATE INDEX IF NOT EXISTS operation_school ON school_operation(school_id,kind,happened_at);
+    CREATE TABLE IF NOT EXISTS library_book (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
+      code TEXT NOT NULL COLLATE NOCASE, title TEXT NOT NULL, author TEXT NOT NULL,
+      category TEXT NOT NULL, language TEXT NOT NULL, isbn TEXT NOT NULL, shelf TEXT NOT NULL,
+      version INTEGER NOT NULL CHECK(version>0), UNIQUE(school_id,code), UNIQUE(id,school_id)
+    );
+    CREATE TABLE IF NOT EXISTS library_copy (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), book_id TEXT NOT NULL,
+      accession TEXT NOT NULL COLLATE NOCASE, state TEXT NOT NULL CHECK(state IN ('active','damaged','lost','withdrawn')),
+      version INTEGER NOT NULL CHECK(version>0), UNIQUE(school_id,accession), UNIQUE(id,school_id),
+      FOREIGN KEY(book_id,school_id) REFERENCES library_book(id,school_id)
+    );
+    CREATE TABLE IF NOT EXISTS library_loan (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), copy_id TEXT NOT NULL,
+      student_id TEXT NOT NULL REFERENCES enrolment(id), issued_on TEXT NOT NULL, due_on TEXT NOT NULL,
+      closed_on TEXT, outcome TEXT CHECK(outcome IN ('returned','damaged','lost')),
+      issue_note TEXT NOT NULL, close_note TEXT NOT NULL,
+      issuer_id TEXT NOT NULL REFERENCES account(id), closer_id TEXT REFERENCES account(id),
+      version INTEGER NOT NULL CHECK(version>0), FOREIGN KEY(copy_id,school_id) REFERENCES library_copy(id,school_id),
+      CHECK(due_on>=issued_on), CHECK(closed_on IS NULL OR closed_on>=issued_on),
+      CHECK((closed_on IS NULL AND outcome IS NULL) OR (closed_on IS NOT NULL AND outcome IS NOT NULL))
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS library_open_copy ON library_loan(copy_id) WHERE closed_on IS NULL;
+    CREATE INDEX IF NOT EXISTS library_school_due ON library_loan(school_id,closed_on,due_on);
+    CREATE INDEX IF NOT EXISTS library_student ON library_loan(student_id,issued_on);
+    CREATE INDEX IF NOT EXISTS library_book_school ON library_book(school_id,title);
     CREATE TABLE IF NOT EXISTS municipal_priority (
       id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
       officer_id TEXT NOT NULL REFERENCES account(id), title TEXT NOT NULL, category TEXT NOT NULL,

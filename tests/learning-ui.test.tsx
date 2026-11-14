@@ -876,3 +876,153 @@ void test('Commissioner municipal dashboard compares schools and verifies assign
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+void test('librarian catalogue and circulation UI supports overdue, renewal, return, repair and linked-family history', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'library-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'OfficerUI-Test-1234');
+    const handler = createHandler(db, origin);
+    let cookie = '';
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const as = async (username: string) => {
+      cleanup();
+      const login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password: 'OfficerUI-Test-1234' }),
+        }),
+      );
+      cookie = login.headers.get('set-cookie')!.split(';')[0];
+      const account = await one<Account>(
+        db,
+        'SELECT id,name,username,role FROM account WHERE username=?',
+        username,
+      );
+      assert(account);
+      render(
+        <PortalPanel
+          workspace={await workspace(db, account)}
+          date={todayInNagpur()}
+        />,
+      );
+      await screen.findByRole('navigation', {
+        name: 'School community sections',
+      });
+      if (username === 'library.a')
+        await screen.findByLabelText('Library school');
+    };
+    const change = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    const click = (name: string) =>
+      fireEvent.click(screen.getByRole('button', { name }));
+    const today = todayInNagpur(),
+      past = new Date(today + 'T12:00:00Z');
+    past.setUTCDate(past.getUTCDate() - 1);
+    const yesterday = past.toISOString().slice(0, 10);
+    await run(db, 'UPDATE class_section SET effective_on=?', yesterday);
+    await run(db, 'UPDATE enrolment SET effective_on=?', yesterday);
+    await as('library.a');
+    await screen.findByRole('heading', { name: 'Library home' });
+    click('Catalogue');
+    await screen.findByText(
+      'No catalogue titles match. Add a title, then add its physical copies.',
+    );
+    change('Catalogue code', 'UI-READ-1');
+    change('Book title', 'UI reading book');
+    change('Author', 'Fictional Author');
+    change('Book category', 'Reading');
+    change('Language', 'English');
+    change('Shelf / location', 'Shelf A');
+    click('Save catalogue title');
+    await screen.findByRole('heading', { name: 'UI reading book' });
+    change('Accession number', 'UI-ACC-1');
+    change('Copy acquisition note', 'Opening library copy');
+    click('Save book copy');
+    await screen.findByText('1 available of 1 copies');
+    const copy = await one<{ id: string }>(
+      db,
+      "SELECT id FROM library_copy WHERE accession='UI-ACC-1'",
+    );
+    assert(copy);
+    click('Issue & returns');
+    await screen.findByRole('option', {
+      name: 'Sample learner A-1 · Class 5 · Section A · Roll 1',
+    });
+    change('Available book copy', copy.id);
+    change('Student borrower', 'class-a-student-1');
+    change('Issue date', yesterday);
+    change('Due date', yesterday);
+    change('Issue note', 'Reading practice for home');
+    click('Issue selected book');
+    await screen.findByText('Book issued.');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    click('Overdue');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    assert(screen.getByText('Overdue', { selector: 'span.erp-status' }));
+    await as('parent.a');
+    click('Library');
+    await screen.findByRole('heading', { name: 'Your child’s library books' });
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    assert(!screen.queryByRole('button', { name: 'Save book return' }));
+    assert(!screen.queryByText('Sample learner A-2'));
+    await as('library.a');
+    click('Overdue');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    change('Renewal reason', 'Extra reading time approved');
+    click('Save loan renewal');
+    await screen.findByText('No overdue books in this school.');
+    click('Issue & returns');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    change('Return outcome', 'damaged');
+    change('Return / loss note', 'Cover needs repair');
+    click('Save book return');
+    await screen.findByText('Loan closed and copy availability updated.');
+    click('Catalogue');
+    await screen.findByText('0 available of 1 copies');
+    change('Copy state', 'active');
+    change('Copy state reason', 'Cover repaired and checked');
+    click('Save copy state');
+    await screen.findByText('1 available of 1 copies');
+    click('Borrowing history');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    change('Filter borrower', 'class-a-student-1');
+    assert(screen.getByText('Cover needs repair'));
+    await as('parent.a');
+    click('Library');
+    await screen.findByRole('heading', { name: 'UI reading book · UI-ACC-1' });
+    assert(screen.getByText('damaged'));
+    assert(screen.getByRole('heading', { name: 'Previous borrowing' }));
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
