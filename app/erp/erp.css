@@ -2122,3 +2122,21 @@ progress.erp-coverage-track::-moz-progress-bar {
 .erp-library .erp-portal-record h3 {
   overflow-wrap: anywhere;
 }
+
+.erp-maintenance {
+  display: grid;
+  gap: 22px;
+}
+.erp-maintenance-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.erp-maintenance .erp-portal-form {
+  margin-top: 16px;
+}
+@media (max-width: 700px) {
+  .erp-maintenance-filters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -155,6 +155,19 @@ CREATE TABLE IF NOT EXISTS school (
     CREATE INDEX IF NOT EXISTS assignment_school ON school_assignment(school_id,account_id);
     CREATE INDEX IF NOT EXISTS assignment_class ON class_assignment(class_id,account_id);
     CREATE INDEX IF NOT EXISTS education_school ON education_record(school_id,kind,status);
+    CREATE TABLE IF NOT EXISTS maintenance_ticket (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
+      title TEXT NOT NULL, category TEXT NOT NULL, location TEXT NOT NULL,
+      priority TEXT NOT NULL CHECK(priority IN ('normal','high','urgent')),
+      status TEXT NOT NULL CHECK(status IN ('open','assigned','in-progress','blocked','reported','closed','cancelled')),
+      reporter_id TEXT NOT NULL REFERENCES account(id), assignee_id TEXT REFERENCES account(id), due TEXT,
+      details TEXT NOT NULL, progress TEXT NOT NULL, verification TEXT NOT NULL,
+      request_id TEXT REFERENCES education_record(id), created_at TEXT NOT NULL,
+      version INTEGER NOT NULL CHECK(version>0)
+    );
+    CREATE INDEX IF NOT EXISTS maintenance_school ON maintenance_ticket(school_id,status,due);
+    CREATE INDEX IF NOT EXISTS maintenance_assignee ON maintenance_ticket(assignee_id,status);
+    CREATE INDEX IF NOT EXISTS maintenance_reporter ON maintenance_ticket(reporter_id,created_at);
     CREATE TABLE IF NOT EXISTS school_activity (
       id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), actor_id TEXT NOT NULL REFERENCES account(id),
       target_id TEXT NOT NULL, action TEXT NOT NULL, note TEXT NOT NULL, happened_at TEXT NOT NULL

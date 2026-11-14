@@ -1026,3 +1026,173 @@ void test('librarian catalogue and circulation UI supports overdue, renewal, ret
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+void test('support staff screens connect reported issues, principal assignments, blocked escalation and verified closure', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'maintenance-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'OfficerUI-Test-1234');
+    const handler = createHandler(db, origin);
+    let cookie = '';
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const as = async (username: string) => {
+      cleanup();
+      const login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password: 'OfficerUI-Test-1234' }),
+        }),
+      );
+      cookie = login.headers.get('set-cookie')!.split(';')[0];
+      const account = await one<Account>(
+        db,
+        'SELECT id,name,username,role FROM account WHERE username=?',
+        username,
+      );
+      assert(account);
+      render(
+        <PortalPanel
+          workspace={await workspace(db, account)}
+          date={todayInNagpur()}
+        />,
+      );
+      await screen.findByRole('navigation', {
+        name: 'School community sections',
+      });
+      if (username === 'library.a')
+        await screen.findByLabelText('Library school');
+    };
+    const change = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    const click = (name: string) =>
+      fireEvent.click(screen.getByRole('button', { name }));
+    await as('teacher.a');
+    click('Report facility issue');
+    await screen.findByRole('heading', { name: 'School care overview' });
+    click('My reported issues');
+    change('Ticket title', 'UI washroom repair');
+    change('Maintenance category', 'water');
+    change('Issue location', 'Ground-floor washroom');
+    change('Ticket urgency', 'high');
+    change('Issue details', 'Water tap is leaking');
+    click('Submit maintenance ticket');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    await as('principal.a');
+    click('Facilities & maintenance');
+    await screen.findByRole('heading', { name: 'School care overview' });
+    click('All active work');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Assigned support staff', 'support.a');
+    change(
+      'Assignment instructions',
+      'Replace tap valve and check water supply',
+    );
+    click('Save maintenance assignment');
+    await screen.findByText('assigned', { selector: 'span.erp-status' });
+    await as('support.a');
+    await screen.findByRole('heading', { name: 'School care overview' });
+    click('My maintenance work');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Work progress status', 'blocked');
+    change('Work progress report', 'Replacement valve is required');
+    click('Save maintenance progress');
+    await screen.findByText('blocked', { selector: 'span.erp-status' });
+    assert(
+      !screen.queryByRole('button', { name: 'Save maintenance verification' }),
+    );
+    await as('principal.a');
+    click('Facilities & maintenance');
+    click('All active work');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Escalation reason', 'Request external repair assistance');
+    click('Create education-office request');
+    await screen.findByText(
+      'Education-office request created. Follow it in Officer coordination.',
+    );
+    click('Open officer coordination');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    assert(screen.getByText('submitted', { selector: 'span.erp-status' }));
+    await as('support.a');
+    click('My maintenance work');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Work progress status', 'reported');
+    change('Work progress report', 'Valve replaced and tested');
+    click('Save maintenance progress');
+    await screen.findByText('reported', { selector: 'span.erp-status' });
+    await as('principal.a');
+    const verifyQueue = await screen.findByRole('button', {
+      name: /Maintenance completion reports/,
+    });
+    assert(verifyQueue.textContent?.includes('1'));
+    fireEvent.click(verifyQueue);
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Completion decision', 'in-progress');
+    change('Completion verification note', 'Check the adjacent tap too');
+    click('Save maintenance verification');
+    await screen.findByText(
+      'No maintenance tickets match this section and filter.',
+    );
+    await as('support.a');
+    click('My maintenance work');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Work progress status', 'reported');
+    change('Work progress report', 'Both taps checked and functioning');
+    click('Save maintenance progress');
+    await screen.findByText('reported', { selector: 'span.erp-status' });
+    await as('principal.a');
+    click('Facilities & maintenance');
+    click('Verify completion');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    change('Completion verification note', 'Verified both taps at school');
+    click('Save maintenance verification');
+    await waitFor(async () =>
+      assert.equal(
+        (
+          await one<{ status: string }>(
+            db,
+            "SELECT status FROM maintenance_ticket WHERE title='UI washroom repair'",
+          )
+        )?.status,
+        'closed',
+      ),
+    );
+    await as('support.a');
+    click('Work history');
+    await screen.findByRole('heading', { name: 'UI washroom repair' });
+    assert(screen.getByText('closed', { selector: 'span.erp-status' }));
+    assert(screen.getByText('Both taps checked and functioning'));
+    click('Inventory');
+    await screen.findByRole('heading', { name: 'Inventory' });
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
