@@ -1,0 +1,678 @@
+'use client';
+
+import { useEffect, useState, type SubmitEvent } from 'react';
+import {
+  Bell,
+  CheckCheck,
+  ClipboardList,
+  GraduationCap,
+  MessageSquare,
+  Plus,
+  RefreshCw,
+  Users,
+} from 'lucide-react';
+import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
+import { request, errorMessage } from './client';
+
+const roleCopy = {
+  parent: {
+    title: 'Your child, connected to school',
+    text: 'Follow attendance, read school notices and send a request to the school team.',
+    work: 'My children',
+    category: 'leave',
+  },
+  clerk: {
+    title: 'The school office, organised',
+    text: 'Keep track of office work, find learner records and respond to school requests.',
+    work: 'Office work',
+    category: 'general',
+  },
+  accountant: {
+    title: 'Accounts & administration',
+    text: 'Follow assigned accounts work and respond to finance-related requests. Payments and accounting ledgers are not part of this pilot.',
+    work: 'Accounts work',
+    category: 'finance',
+  },
+  librarian: {
+    title: 'Library & learning resources',
+    text: 'Track assigned library work and respond to reading-resource requests. Book cataloguing and circulation are planned separately.',
+    work: 'Library work',
+    category: 'library',
+  },
+  support: {
+    title: 'A school ready for learning',
+    text: 'Follow assigned work and raise or respond to maintenance needs.',
+    work: 'My assigned work',
+    category: 'maintenance',
+  },
+};
+
+export function PortalPanel({
+  workspace,
+  date,
+}: {
+  workspace: Workspace;
+  date: string;
+}) {
+  const { account, schools } = workspace;
+  const parent = account.role === 'parent';
+  const leader =
+    account.role === 'principal' || account.role === 'administrator';
+  const directory = leader || account.role === 'clerk';
+  const copy = roleCopy[account.role as keyof typeof roleCopy] ?? {
+    title: 'Your school community',
+    text: 'Coordinate school work, share notices and follow up on requests.',
+    work: 'School team work',
+    category: 'general',
+  };
+  const [data, setData] = useState<SchoolPortal>();
+  const [view, setView] = useState('home');
+  const [form, setForm] = useState(false);
+  const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    request<SchoolPortal>(
+      `portal?date=${encodeURIComponent(date)}`,
+      undefined,
+      controller.signal,
+    )
+      .then((result) => {
+        if (!controller.signal.aborted) {
+          setData(result);
+          setError('');
+        }
+      })
+      .catch((failure: unknown) => {
+        if (!controller.signal.aborted) setError(errorMessage(failure));
+      });
+    return () => controller.abort();
+  }, [date, reload]);
+  async function save(event: SubmitEvent<HTMLFormElement>, action: string) {
+    event.preventDefault();
+    if (busy) return;
+    const target = event.currentTarget;
+    const payload = Object.fromEntries(new FormData(target));
+    setBusy(true);
+    setError('');
+    setMessage('');
+    try {
+      await request('portal', {
+        ...payload,
+        ...(payload.version ? { version: Number(payload.version) } : {}),
+        action,
+      });
+      setData(
+        await request<SchoolPortal>(`portal?date=${encodeURIComponent(date)}`),
+      );
+      target.reset();
+      setForm(false);
+      setMessage(
+        action === 'request'
+          ? 'Request sent to your school.'
+          : action === 'complete'
+            ? 'Task completed. Your note has been saved.'
+            : action === 'respond'
+              ? 'Response saved.'
+              : action === 'notice'
+                ? 'Notice published.'
+                : 'Work assigned.',
+      );
+    } catch (failure) {
+      setError(errorMessage(failure));
+    } finally {
+      setBusy(false);
+    }
+  }
+  const schoolField = (
+    <label>
+      School
+      <select
+        name="schoolId"
+        required
+        value={schoolId}
+        onChange={(event) => setSchoolId(event.target.value)}
+      >
+        {!schools.length && <option value="">No school assigned</option>}
+        {schools.map((school) => (
+          <option key={school.id} value={school.id}>
+            {school.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  return (
+    <section className="erp-card erp-portal">
+      <header className="erp-card-title">
+        <div>
+          <span className="erp-eyebrow">{roleLabels[account.role]}</span>
+          <h2>{copy.title}</h2>
+          <p>{copy.text}</p>
+        </div>
+        <button type="button" onClick={() => setReload(reload + 1)}>
+          <RefreshCw size={14} />
+          Refresh
+        </button>
+      </header>
+      <nav className="erp-section-tabs" aria-label="School community sections">
+        {[
+          ['home', copy.work],
+          ['requests', 'Requests & replies'],
+          ['notices', 'School notices'],
+          ...(directory ? [['directory', 'Learner directory']] : []),
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            aria-current={view === id ? 'page' : undefined}
+            onClick={() => {
+              setView(id);
+              setForm(false);
+              setMessage('');
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      {error && (
+        <p role="alert" className="erp-error">
+          {error}
+        </p>
+      )}
+      {message && <output className="erp-success">{message}</output>}
+      {!data ? (
+        <output>Loading your school workspace…</output>
+      ) : (
+        <>
+          {view === 'home' && (
+            <>
+              <div className="erp-portal-metrics">
+                <div>
+                  <GraduationCap size={18} />
+                  <strong>
+                    {parent
+                      ? data.children.length
+                      : data.tasks.filter((task) => task.status === 'open')
+                          .length}
+                  </strong>
+                  <span>{parent ? 'Linked children' : 'Open tasks'}</span>
+                </div>
+                <div>
+                  <MessageSquare size={18} />
+                  <strong>
+                    {
+                      data.requests.filter((row) => row.status === 'open')
+                        .length
+                    }
+                  </strong>
+                  <span>Open requests in your view</span>
+                </div>
+                <div>
+                  <Bell size={18} />
+                  <strong>{data.notices.length}</strong>
+                  <span>School notices</span>
+                </div>
+              </div>
+              {parent ? (
+                <div className="erp-child-grid">
+                  {data.children.map((child) => (
+                    <article className="erp-child-card" key={child.id}>
+                      <div className="erp-child-icon">
+                        <GraduationCap size={24} />
+                      </div>
+                      <span className="erp-eyebrow">
+                        LINKED CHILD · ROLL {child.roll}
+                      </span>
+                      <h3>{child.name}</h3>
+                      <p>{child.classLabel}</p>
+                      <small>{child.schoolName}</small>
+                      <div className="erp-child-attendance">
+                        <span>Attendance · {date}</span>
+                        <strong
+                          className={`erp-status erp-${child.mark ?? 'not-submitted'}`}
+                        >
+                          {child.mark === 'present'
+                            ? 'Present'
+                            : child.mark === 'absent'
+                              ? 'Absent'
+                              : child.mark === 'leave'
+                                ? 'On leave'
+                                : child.status === 'returned'
+                                  ? 'Being corrected'
+                                  : 'Not yet reported'}
+                        </strong>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSchoolId(child.schoolId);
+                          setView('requests');
+                          setForm(true);
+                        }}
+                      >
+                        Contact school <MessageSquare size={14} />
+                      </button>
+                    </article>
+                  ))}
+                  {!data.children.length && (
+                    <Empty
+                      title="No linked child for this date"
+                      text="Ask the administrator to link your account to your child's enrolment. You cannot view other children's records."
+                    />
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="erp-portal-section-heading">
+                    <h3>
+                      <ClipboardList size={16} />
+                      {copy.work}
+                    </h3>
+                    {leader && (
+                      <button type="button" onClick={() => setForm(!form)}>
+                        <Plus size={14} />
+                        Assign work
+                      </button>
+                    )}
+                  </div>
+                  {leader && form && (
+                    <form
+                      className="erp-portal-form"
+                      onSubmit={(event) => void save(event, 'task')}
+                    >
+                      {schoolField}
+                      <label>
+                        Staff member
+                        <select name="assignedTo" required defaultValue="">
+                          <option value="" disabled>
+                            Choose staff
+                          </option>
+                          {data.staff
+                            .filter((staff) => staff.schoolId === schoolId)
+                            .map((staff) => (
+                              <option key={staff.id} value={staff.id}>
+                                {staff.name} · {roleLabels[staff.role]}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <TitleFields label="Task details" />
+                      <button
+                        className="erp-primary"
+                        disabled={busy || !schools.length}
+                      >
+                        Assign task
+                      </button>
+                    </form>
+                  )}
+                  <div className="erp-portal-records">
+                    {data.tasks.map((task) => (
+                      <article key={task.id} className="erp-portal-record">
+                        <header>
+                          <div>
+                            <span className="erp-eyebrow">
+                              {task.schoolName}
+                            </span>
+                            <h3>{task.title}</h3>
+                          </div>
+                          <span className={`erp-status erp-${task.status}`}>
+                            {task.status}
+                          </span>
+                        </header>
+                        <p>{task.body}</p>
+                        <small>Assigned to {task.assignee}</small>
+                        {task.note && <blockquote>{task.note}</blockquote>}
+                        {task.status === 'open' &&
+                          task.assignedTo === account.id && (
+                            <details>
+                              <summary>
+                                <CheckCheck size={14} />
+                                Complete this task
+                              </summary>
+                              <form
+                                onSubmit={(event) =>
+                                  void save(event, 'complete')
+                                }
+                              >
+                                <input
+                                  type="hidden"
+                                  name="id"
+                                  value={task.id}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="schoolId"
+                                  value={task.schoolId}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="version"
+                                  value={task.version}
+                                />
+                                <label>
+                                  Completion note
+                                  <textarea
+                                    name="note"
+                                    required
+                                    maxLength={1000}
+                                  />
+                                </label>
+                                <button className="erp-primary" disabled={busy}>
+                                  Save completion
+                                </button>
+                              </form>
+                            </details>
+                          )}
+                      </article>
+                    ))}
+                    {!data.tasks.length && (
+                      <Empty
+                        title="No assigned work yet"
+                        text="Your principal can assign work here. Completed work keeps its completion note."
+                      />
+                    )}
+                  </div>
+                </>
+              )}
+              <div className="erp-portal-next">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView('requests');
+                    setForm(true);
+                  }}
+                >
+                  <MessageSquare size={16} />
+                  {parent
+                    ? 'Send a request to school'
+                    : 'Raise a school request'}
+                </button>
+                <button type="button" onClick={() => setView('notices')}>
+                  <Bell size={16} />
+                  Read school notices
+                </button>
+              </div>
+            </>
+          )}
+          {view === 'requests' && (
+            <>
+              <div className="erp-portal-section-heading">
+                <h3>Requests & school replies</h3>
+                <button type="button" onClick={() => setForm(!form)}>
+                  <Plus size={14} />
+                  New request
+                </button>
+              </div>
+              {form && (
+                <form
+                  className="erp-portal-form"
+                  onSubmit={(event) => void save(event, 'request')}
+                >
+                  {schoolField}
+                  {parent && (
+                    <label>
+                      Linked child
+                      <select name="studentId" required defaultValue="">
+                        <option value="" disabled>
+                          Choose your child
+                        </option>
+                        {data.children
+                          .filter((child) => child.schoolId === schoolId)
+                          .map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.name}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                  )}
+                  <label>
+                    Category
+                    <select name="category" defaultValue={copy.category}>
+                      {[
+                        ...(parent ? [['leave', 'Leave / absence']] : []),
+                        ['general', 'School enquiry'],
+                        ['finance', 'Accounts / grants'],
+                        ['library', 'Library / learning resources'],
+                        ['maintenance', 'Maintenance / facilities'],
+                      ].map(([id, label]) => (
+                        <option key={id} value={id}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <TitleFields label="Request details (include dates where needed)" />
+                  <p className="erp-directory-help">
+                    Requests and school replies do not change the teacher’s
+                    attendance register.
+                  </p>
+                  <button
+                    className="erp-primary"
+                    disabled={busy || !schools.length}
+                  >
+                    Send request
+                  </button>
+                </form>
+              )}
+              <div className="erp-portal-records">
+                {data.requests.map((row) => (
+                  <article key={row.id} className="erp-portal-record">
+                    <header>
+                      <div>
+                        <span className="erp-eyebrow">
+                          {row.category} · {row.schoolName}
+                        </span>
+                        <h3>{row.title}</h3>
+                      </div>
+                      <span className={`erp-status erp-${row.status}`}>
+                        {row.status}
+                      </span>
+                    </header>
+                    <p>{row.body}</p>
+                    <small>
+                      From {row.author}
+                      {row.studentName ? ` · ${row.studentName}` : ''} ·{' '}
+                      {new Date(row.at).toLocaleDateString('en-IN', {
+                        timeZone: 'Asia/Kolkata',
+                      })}
+                    </small>
+                    {row.response && (
+                      <blockquote>
+                        <strong>School reply</strong>
+                        {row.response}
+                      </blockquote>
+                    )}
+                    {row.status === 'open' &&
+                      row.accountId !== account.id &&
+                      (leader ||
+                        account.role === 'clerk' ||
+                        (
+                          {
+                            accountant: 'finance',
+                            librarian: 'library',
+                            support: 'maintenance',
+                          } as Record<string, string>
+                        )[account.role] === row.category) && (
+                        <details>
+                          <summary>Respond to request</summary>
+                          <form
+                            onSubmit={(event) => void save(event, 'respond')}
+                          >
+                            <input type="hidden" name="id" value={row.id} />
+                            <input
+                              type="hidden"
+                              name="schoolId"
+                              value={row.schoolId}
+                            />
+                            <input
+                              type="hidden"
+                              name="version"
+                              value={row.version}
+                            />
+                            <label>
+                              School response
+                              <textarea
+                                name="response"
+                                required
+                                maxLength={1000}
+                              />
+                            </label>
+                            <label>
+                              Outcome
+                              <select name="status">
+                                <option value="resolved">Resolved</option>
+                                <option value="declined">Declined</option>
+                              </select>
+                            </label>
+                            <button className="erp-primary" disabled={busy}>
+                              Save response
+                            </button>
+                          </form>
+                        </details>
+                      )}
+                  </article>
+                ))}
+                {!data.requests.length && (
+                  <Empty
+                    title="No requests yet"
+                    text="Send an enquiry or request and follow the school's reply here."
+                  />
+                )}
+              </div>
+            </>
+          )}
+          {view === 'notices' && (
+            <>
+              <div className="erp-portal-section-heading">
+                <h3>From your school</h3>
+                {leader && (
+                  <button type="button" onClick={() => setForm(!form)}>
+                    <Plus size={14} />
+                    Publish notice
+                  </button>
+                )}
+              </div>
+              {leader && form && (
+                <form
+                  className="erp-portal-form"
+                  onSubmit={(event) => void save(event, 'notice')}
+                >
+                  {schoolField}
+                  <label>
+                    Audience
+                    <select name="audience">
+                      <option value="all">Parents & staff</option>
+                      <option value="parents">Parents only</option>
+                      <option value="staff">Staff only</option>
+                    </select>
+                  </label>
+                  <TitleFields label="Notice" />
+                  <button
+                    className="erp-primary"
+                    disabled={busy || !schools.length}
+                  >
+                    Publish notice
+                  </button>
+                </form>
+              )}
+              <div className="erp-portal-records">
+                {data.notices.map((notice) => (
+                  <article className="erp-portal-record" key={notice.id}>
+                    <span className="erp-eyebrow">
+                      {notice.schoolName} ·{' '}
+                      {notice.audience === 'all'
+                        ? 'Parents & staff'
+                        : notice.audience}
+                    </span>
+                    <h3>
+                      <Bell size={16} />
+                      {notice.title}
+                    </h3>
+                    <p>{notice.body}</p>
+                    <small>
+                      {notice.author} ·{' '}
+                      {new Date(notice.at).toLocaleDateString('en-IN', {
+                        timeZone: 'Asia/Kolkata',
+                      })}
+                    </small>
+                  </article>
+                ))}
+                {!data.notices.length && (
+                  <Empty
+                    title="No notices yet"
+                    text="School leadership can publish announcements for parents, staff, or both."
+                  />
+                )}
+              </div>
+            </>
+          )}
+          {view === 'directory' && directory && (
+            <>
+              <p className="erp-directory-help">
+                Learners enrolled on the selected date. Showing up to 200
+                records from your assigned schools.
+              </p>
+              <div className="erp-scroll">
+                <table className="erp-table">
+                  <thead>
+                    <tr>
+                      <th>Learner</th>
+                      <th>Roll</th>
+                      <th>Class</th>
+                      <th>School</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.directory.map((student) => (
+                      <tr key={student.id}>
+                        <td>{student.name}</td>
+                        <td>{student.roll}</td>
+                        <td>{student.classLabel}</td>
+                        <td>{student.schoolName}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!data.directory.length && (
+                <Empty
+                  title="No learner records"
+                  text="No enrolments are effective on the selected date in your assigned schools."
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+function TitleFields({ label }: { label: string }) {
+  return (
+    <>
+      <label>
+        Subject
+        <input name="title" required maxLength={120} />
+      </label>
+      <label>
+        {label}
+        <textarea name="body" required maxLength={2000} />
+      </label>
+    </>
+  );
+}
+function Empty({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="erp-empty-state">
+      <Users size={24} />
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
+}

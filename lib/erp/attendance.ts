@@ -37,20 +37,26 @@ export async function workspace(
           db,
           'SELECT id, code, name FROM school ORDER BY code',
         )
-      : account.role === 'teacher'
+      : account.role === 'parent'
         ? await many<School>(
             db,
-            `SELECT DISTINCT s.id, s.code, s.name FROM school s
-          JOIN class_section c ON c.school_id = s.id JOIN class_assignment a ON a.class_id = c.id
-          WHERE a.account_id = ? ORDER BY s.code`,
+            `SELECT DISTINCT s.id, s.code, s.name FROM school s JOIN class_section c ON c.school_id = s.id JOIN enrolment e ON e.class_id = c.id JOIN guardian_link g ON g.enrolment_id = e.id WHERE g.account_id = ? ORDER BY s.code`,
             account.id,
           )
-        : await many<School>(
-            db,
-            `SELECT s.id, s.code, s.name FROM school s
+        : account.role === 'teacher'
+          ? await many<School>(
+              db,
+              `SELECT DISTINCT s.id, s.code, s.name FROM school s
+          JOIN class_section c ON c.school_id = s.id JOIN class_assignment a ON a.class_id = c.id
+          WHERE a.account_id = ? ORDER BY s.code`,
+              account.id,
+            )
+          : await many<School>(
+              db,
+              `SELECT s.id, s.code, s.name FROM school s
           JOIN school_assignment a ON a.school_id = s.id WHERE a.account_id = ? ORDER BY s.code`,
-            account.id,
-          );
+              account.id,
+            );
   const classes =
     account.role === 'teacher'
       ? await many<ClassSection>(

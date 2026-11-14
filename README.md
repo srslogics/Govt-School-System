@@ -17,7 +17,7 @@ npm run build:erp
 npm run start:erp -- --hostname 127.0.0.1 --port 3000
 ```
 
-Open `http://127.0.0.1:3000/erp`. Seed only once per empty database. The seed creates separate random passwords for the seven accounts and writes them to `.erp-data/pilot.sqlite.accounts.json` with owner-only permissions. Keep the file private and give each participant only their assigned account. For development, use `npm run dev:erp -- --host 127.0.0.1 --port 3000` with the same environment.
+Open `http://127.0.0.1:3000/erp`. Seed only once per empty database. The seed creates separate random passwords for the thirteen accounts and writes them to `.erp-data/pilot.sqlite.accounts.json` with owner-only permissions. Keep the file private and give each participant only their assigned account. For development, use `npm run dev:erp -- --host 127.0.0.1 --port 3000` with the same environment.
 
 | Account        | Assignment                                                                                              |
 | -------------- | ------------------------------------------------------------------------------------------------------- |
@@ -159,3 +159,19 @@ All authorized district registers remain under **More tools & registers**. All s
 Login offers six concise demo-role choices. The original eight profiles, including Commissioner and Parseoni Field Officer, remain under **Specific office/profile**. Manual ID/password entry remains under **Demo sign-in details**. Saved accounts, request records and workflow permissions have not changed. This is presentation convenience, not a production auto-login design.
 
 The expanded 12-test suite verifies the role homes for all eight profiles, every authorized advanced-register entry, direct attention-to-review interaction, live queue updates and parent grievance defaults, in addition to the original persistence and approval tests. Real browser/mobile visual verification remains outstanding under the user's no-browser instruction.
+
+## Parent and school staff workspaces
+
+The shared Node ERP now includes Parent / guardian, School office / clerk, Accounts staff, Librarian and Support staff alongside the existing roles. The sign-in screen lists all ten workspaces; selecting a workspace only fills its sample username and still requires its assigned password.
+
+New empty-database seeds create `parent.a`, `parent.b`, `office.a`, `accounts.a`, `library.a`, and `support.a` in addition to the original accounts. Passwords remain individually random and are saved in the private accounts file. Never reseed an existing database to add users: use administrator account creation instead.
+
+- Parents see only the attendance of explicitly linked enrolments, school notices addressed to parents, and their own requests/replies. Missing and returned registers show no attendance mark. A school request never changes attendance.
+- The school office can view its assigned-school learner directory, its own work, and handle school requests.
+- Accounts staff, librarians and support staff see their assigned tasks and their department's requests. Their workspaces do not implement payments, accounting ledgers, payroll, book circulation or personnel leave management.
+- Principals assign work within their schools, publish notices for parents/staff/both, and handle school requests. Staff complete only their own assigned tasks with a note.
+- Administrators create accounts and school assignments, and grant/revoke parent links in **Parent links**. Each child is linked separately. Revocation is checked on subsequent reads and writes.
+
+Requests, responses, task completion, and notices are stored in the shared database. Mutations write an activity record; requests/tasks use version checks. The portal returns at most 100 requests/tasks, 50 notices and 200 directory learners per view. Pagination and larger district-scale workflows remain later work.
+
+On Node startup, schema initialization atomically expands the original account-role constraint while preserving account IDs, password hashes, sessions and foreign-key references, then creates the portal tables. Take and verify a database backup before any production upgrade. Migration and permission tests cover local libSQL; a hosted Turso upgrade has not been exercised in this change. No live data is seeded or migrated by local testing.

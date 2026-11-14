@@ -5,7 +5,7 @@ import {
   useState,
   type SubmitEvent as ReactSubmitEvent,
 } from 'react';
-import type { Setup } from '@/lib/erp/model';
+import { roleLabels, schoolStaffRoles, type Setup } from '@/lib/erp/model';
 import { errorMessage, request } from './client';
 
 export function SetupPanel({
@@ -42,7 +42,8 @@ export function SetupPanel({
     const data = Object.fromEntries(new FormData(form));
     const submitter = event.nativeEvent.submitter;
     const actualAction =
-      action === 'assign' && submitter instanceof HTMLButtonElement
+      (action === 'assign' || action === 'guardian') &&
+      submitter instanceof HTMLButtonElement
         ? submitter.value
         : action;
     setBusy(true);
@@ -52,7 +53,7 @@ export function SetupPanel({
       setSetup(
         await request<Setup>('setup', { ...data, action: actualAction }),
       );
-      if (action !== 'assign') form.reset();
+      if (action !== 'assign' && action !== 'guardian') form.reset();
       setMessage('Configuration saved.');
       onSaved();
     } catch (failure) {
@@ -110,8 +111,9 @@ export function SetupPanel({
           ['school', 'Schools'],
           ['class', 'Classes'],
           ['student', 'Students'],
-          ['staff', 'Staff accounts'],
+          ['staff', 'People & accounts'],
           ['assign', 'Access assignments'],
+          ['guardian', 'Parent links'],
         ].map(([id, label]) => (
           <button
             key={id}
@@ -228,9 +230,9 @@ export function SetupPanel({
 
         {section === 'staff' && (
           <form onSubmit={(event) => void submit(event, 'staff')}>
-            <h3>Create staff account</h3>
+            <h3>Create staff or parent account</h3>
             <label>
-              Staff name
+              Full name
               <input name="name" required maxLength={120} />
             </label>
             <label>
@@ -260,6 +262,11 @@ export function SetupPanel({
                 <option value="teacher">Teacher</option>
                 <option value="principal">Principal</option>
                 <option value="officer">Education officer</option>
+                <option value="parent">Parent / guardian</option>
+                <option value="clerk">School office / clerk</option>
+                <option value="accountant">Accounts staff</option>
+                <option value="librarian">Librarian</option>
+                <option value="support">Support staff</option>
               </select>
             </label>
             <button className="erp-primary" disabled={busy}>
@@ -284,7 +291,7 @@ export function SetupPanel({
                 </option>
                 {setup.staff
                   .filter((account) =>
-                    ['teacher', 'principal', 'officer'].includes(account.role),
+                    [...schoolStaffRoles, 'officer'].includes(account.role),
                   )
                   .map((account) => (
                     <option key={account.id} value={account.id}>
@@ -327,6 +334,51 @@ export function SetupPanel({
           </form>
         )}
 
+        {section === 'guardian' && (
+          <form onSubmit={(event) => void submit(event, 'guardian')}>
+            <h3>Link a parent to a child</h3>
+            <label>
+              Parent account
+              <select name="accountId" required defaultValue="">
+                <option value="" disabled>
+                  Choose parent
+                </option>
+                {setup.staff
+                  .filter((row) => row.role === 'parent')
+                  .map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.name} · {row.username}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label>
+              Learner
+              <select name="studentId" required defaultValue="">
+                <option value="" disabled>
+                  Choose learner
+                </option>
+                {setup.enrolments.map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {row.name} · {classLabel(row.classId)} · Roll {row.roll}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="erp-actions">
+              <button className="erp-primary" value="guardian" disabled={busy}>
+                Link parent
+              </button>
+              <button value="unguardian" disabled={busy}>
+                Remove link
+              </button>
+            </div>
+            <p className="erp-directory-help">
+              This grants the parent access only to the selected learner’s
+              attendance. Each child must be linked separately.
+            </p>
+          </form>
+        )}
         <section className="erp-config-summary">
           <header className="erp-directory-head">
             <h3>
@@ -337,8 +389,10 @@ export function SetupPanel({
                   : section === 'student'
                     ? 'Enrolled learners'
                     : section === 'staff'
-                      ? 'Staff directory'
-                      : 'Current assignments'}
+                      ? 'Accounts directory'
+                      : section === 'guardian'
+                        ? 'Linked families'
+                        : 'Current assignments'}
             </h3>
             <label>
               <span className="erp-sr-only">Search saved records</span>
@@ -379,19 +433,32 @@ export function SetupPanel({
                         id: row.id,
                         title: row.name,
                         detail: row.username,
-                        badge: row.role,
+                        badge: roleLabels[row.role],
                       }))
-                    : setup.assignments.map((row) => ({
-                        id: `${row.accountId}:${row.targetId}`,
-                        title:
-                          setup.staff.find((a) => a.id === row.accountId)
-                            ?.name ?? '',
-                        detail:
-                          setup.schools.find(
-                            (school) => school.id === row.targetId,
-                          )?.name ?? classLabel(row.targetId),
-                        badge: 'Assigned',
-                      }))
+                    : section === 'guardian'
+                      ? setup.guardians.map((row) => ({
+                          id: `${row.accountId}:${row.studentId}`,
+                          title:
+                            setup.staff.find(
+                              (account) => account.id === row.accountId,
+                            )?.name ?? '',
+                          detail:
+                            setup.enrolments.find(
+                              (student) => student.id === row.studentId,
+                            )?.name ?? '',
+                          badge: 'Linked child',
+                        }))
+                      : setup.assignments.map((row) => ({
+                          id: `${row.accountId}:${row.targetId}`,
+                          title:
+                            setup.staff.find((a) => a.id === row.accountId)
+                              ?.name ?? '',
+                          detail:
+                            setup.schools.find(
+                              (school) => school.id === row.targetId,
+                            )?.name ?? classLabel(row.targetId),
+                          badge: 'Assigned',
+                        }))
             )
               .filter((row) =>
                 `${row.title} ${row.detail} ${row.badge}`

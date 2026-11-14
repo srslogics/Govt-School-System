@@ -19,21 +19,17 @@ import {
   useState,
   type SubmitEvent as ReactSubmitEvent,
 } from 'react';
-import type { Workspace } from '@/lib/erp/model';
+import { roleLabels, schoolStaffRoles, type Workspace } from '@/lib/erp/model';
+import { PortalPanel } from './portal';
 import { RegisterPanel, ReportPanel } from './attendance';
 import { SetupPanel } from './setup';
 import { errorMessage, request, RequestError } from './client';
 
 type Initial = { classId?: string; date?: string };
-const roleLabel = {
-  administrator: 'Administrator',
-  teacher: 'Teacher',
-  principal: 'Principal',
-  officer: 'Education officer',
-  commissioner: 'Commissioner',
-};
+const roleLabel = roleLabels;
 
 export function ErpWorkspace({ initial }: { initial: Initial }) {
+  const [loginName, setLoginName] = useState('');
   const [workspace, setWorkspace] = useState<Workspace>();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -164,7 +160,37 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
                 <span /> SHARED ATTENDANCE PILOT
               </span>
               <h2>Welcome to Shiksha-Setu</h2>
-              <p>Sign in with your assigned account.</p>
+              <p>
+                Choose a pilot workspace, then use its assigned credentials.
+              </p>
+              {!unavailable && (
+                <div className="erp-role-picker">
+                  <p>WORKSPACES FOR THE WHOLE SCHOOL</p>
+                  <div className="erp-role-options">
+                    {[
+                      ['parent.a', 'Parent / guardian'],
+                      ['teacher.a', 'Teacher'],
+                      ['principal.a', 'Principal'],
+                      ['office.a', 'School office'],
+                      ['accounts.a', 'Accounts staff'],
+                      ['library.a', 'Librarian'],
+                      ['support.a', 'Support staff'],
+                      ['officer.a', 'Education officer'],
+                      ['commissioner', 'Commissioner'],
+                      ['admin', 'Administrator'],
+                    ].map(([username, label]) => (
+                      <button
+                        key={username}
+                        type="button"
+                        aria-pressed={loginName === username}
+                        onClick={() => setLoginName(username)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {error && (
                 <p className="erp-error" role="alert">
                   {error}
@@ -176,6 +202,8 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
                     Username
                     <input
                       name="username"
+                      value={loginName}
+                      onChange={(event) => setLoginName(event.target.value)}
                       required
                       autoComplete="username"
                       maxLength={64}
@@ -261,7 +289,12 @@ function SignedWorkspace({
       ? 'setup'
       : account.role === 'teacher' || allowedInitial
         ? 'register'
-        : 'report',
+        : account.role === 'parent' ||
+            ['clerk', 'accountant', 'librarian', 'support'].includes(
+              account.role,
+            )
+          ? 'portal'
+          : 'report',
   );
   const scopedClasses = classes.filter((row) => row.schoolId === schoolId);
   const selectedClass =
@@ -284,17 +317,27 @@ function SignedWorkspace({
   const title =
     tab === 'setup'
       ? 'School administration'
-      : tab === 'register'
-        ? 'Class attendance'
-        : account.role === 'principal'
-          ? 'School overview'
-          : 'Attendance overview';
+      : tab === 'portal'
+        ? account.role === 'parent'
+          ? 'Family workspace'
+          : account.role === 'principal'
+            ? 'School team & families'
+            : `${roleLabels[account.role]} workspace`
+        : tab === 'register'
+          ? 'Class attendance'
+          : account.role === 'principal'
+            ? 'School overview'
+            : 'Attendance overview';
   const description =
     tab === 'setup'
       ? 'Manage your schools, people and access, one step at a time.'
-      : tab === 'register'
-        ? 'Mark the register, submit for review and keep every correction on record.'
-        : 'See attendance, spot missing submissions and follow up where it matters.';
+      : tab === 'portal'
+        ? account.role === 'parent'
+          ? 'A closer connection to your child’s school.'
+          : 'One place for your school work, requests and announcements.'
+        : tab === 'register'
+          ? 'Mark the register, submit for review and keep every correction on record.'
+          : 'See attendance, spot missing submissions and follow up where it matters.';
   return (
     <div className="erp-layout">
       <aside className="erp-sidebar">
@@ -302,7 +345,14 @@ function SignedWorkspace({
         <div className="erp-workspace-label">YOUR WORKSPACE</div>
         <nav className="erp-nav" aria-label="School workspace">
           {account.role === 'administrator' && (
-            <button aria-current="page" type="button">
+            <button
+              aria-current={tab === 'setup' ? 'page' : undefined}
+              type="button"
+              onClick={() => {
+                setBadLink(false);
+                setTab('setup');
+              }}
+            >
               <Settings2 size={18} />
               School administration
             </button>
@@ -331,6 +381,26 @@ function SignedWorkspace({
             >
               <BookOpen size={18} />
               Attendance register
+            </button>
+          )}
+          {(account.role === 'parent' ||
+            schoolStaffRoles.includes(account.role) ||
+            account.role === 'administrator') && (
+            <button
+              type="button"
+              aria-current={tab === 'portal' ? 'page' : undefined}
+              onClick={() => {
+                setBadLink(false);
+                setTab('portal');
+              }}
+            >
+              <GraduationCap size={18} />
+              {account.role === 'parent'
+                ? 'My family'
+                : account.role === 'principal' ||
+                    account.role === 'administrator'
+                  ? 'Team & families'
+                  : 'My school workspace'}
             </button>
           )}
         </nav>
@@ -409,30 +479,32 @@ function SignedWorkspace({
           )}
           {tab !== 'setup' && (
             <div className="erp-filters">
-              <label>
-                School
-                <select
-                  value={schoolId}
-                  onChange={(event) => {
-                    setSchoolId(event.target.value);
-                    setClassId('');
-                    setBadLink(false);
-                  }}
-                >
-                  {(account.role === 'officer' ||
-                    account.role === 'commissioner') && (
-                    <option value="">All schools in scope</option>
-                  )}
-                  {!schools.length && canRegister && (
-                    <option value="">No school assigned</option>
-                  )}
-                  {schools.map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {row.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {tab !== 'portal' && (
+                <label>
+                  School
+                  <select
+                    value={schoolId}
+                    onChange={(event) => {
+                      setSchoolId(event.target.value);
+                      setClassId('');
+                      setBadLink(false);
+                    }}
+                  >
+                    {(account.role === 'officer' ||
+                      account.role === 'commissioner') && (
+                      <option value="">All schools in scope</option>
+                    )}
+                    {!schools.length && canRegister && (
+                      <option value="">No school assigned</option>
+                    )}
+                    {schools.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label>
                 Date
                 <input
@@ -472,6 +544,8 @@ function SignedWorkspace({
             <p role="alert" className="erp-error">
               Record not found in your workspace.
             </p>
+          ) : tab === 'portal' ? (
+            <PortalPanel key={date} workspace={workspace} date={date} />
           ) : tab === 'setup' ? (
             <SetupPanel date={workspace.date} onSaved={refresh} />
           ) : tab === 'report' ? (
