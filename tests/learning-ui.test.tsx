@@ -367,3 +367,103 @@ void test('teacher My Day opens attendance, timetable, student profiles and save
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+void test('principal dashboard keeps attendance brief and opens school leadership workflows', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'principal-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'PrincipalUI-Test-1234');
+    await seedLearningDemo(db);
+    await seedTeacherDemo(db);
+    const handler = createHandler(db, origin),
+      login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'principal.a',
+            password: 'PrincipalUI-Test-1234',
+          }),
+        }),
+      );
+    const cookie = login.headers.get('set-cookie')!.split(';')[0];
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const teacher = await one<Account>(
+      db,
+      "SELECT id,username,name,role FROM account WHERE id='principal.a'",
+    );
+    assert(teacher);
+    let opened = '';
+    let reportOpened = false;
+    render(
+      <PortalPanel
+        workspace={await workspace(db, teacher)}
+        date={todayInNagpur()}
+        onOpenRegister={(id) => {
+          opened = id;
+        }}
+        onOpenReport={() => {
+          reportOpened = true;
+        }}
+      />,
+    );
+    await screen.findByRole('region', { name: 'Brief attendance summary' });
+    assert(screen.getByText(/0 present · 0 absent/));
+    assert(!screen.queryByText('Demo Teacher B'));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Full attendance report' }),
+    );
+    assert.equal(reportOpened, true);
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Open class register' })[0],
+    );
+    assert.equal(opened, 'class-a');
+    fireEvent.click(screen.getByRole('button', { name: 'Staff' }));
+    await screen.findByRole('heading', { name: 'Staff & responsibilities' });
+    await screen.findByText('Demo Teacher A');
+    assert(!screen.queryByText('Demo Teacher B'));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Performance' }),
+    );
+    await screen.findByRole('heading', { name: 'School academic performance' });
+    assert(screen.getByRole('columnheader', { name: 'Draft results' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Student profiles' }),
+    );
+    await screen.findByRole('heading', { name: 'Student profiles' });
+    await screen.findByRole('button', {
+      name: 'Sample learner A-1 Class 5 · Section A · Roll 1',
+    });
+    assert(!screen.queryByText('Sample learner B-1'));
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});

@@ -15,6 +15,7 @@ import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
 import { LearningPanel } from './learning';
 import { TeacherPanel } from './teacher';
+import { PrincipalPanel } from './principal';
 
 const roleCopy = {
   parent: {
@@ -22,6 +23,12 @@ const roleCopy = {
     text: 'Follow attendance, read school notices and send a request to the school team.',
     work: 'My children',
     category: 'leave',
+  },
+  principal: {
+    title: 'Lead your school, with the whole picture',
+    text: 'Review attendance briefly, follow up decisions and coordinate learning, staff and families.',
+    work: 'Staff tasks',
+    category: 'general',
   },
   clerk: {
     title: 'The school office, organised',
@@ -53,10 +60,12 @@ export function PortalPanel({
   workspace,
   date,
   onOpenRegister,
+  onOpenReport,
 }: {
   workspace: Workspace;
   date: string;
   onOpenRegister?: (classId: string) => void;
+  onOpenReport?: () => void;
 }) {
   const { account, schools } = workspace;
   const parent = account.role === 'parent';
@@ -75,7 +84,9 @@ export function PortalPanel({
       ? 'learning-home'
       : account.role === 'teacher'
         ? 'teacher-day'
-        : 'home',
+        : account.role === 'principal'
+          ? 'principal-overview'
+          : 'home',
   );
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
@@ -185,7 +196,15 @@ export function PortalPanel({
                   ['teacher-marks', 'Marks Entry'],
                   ['home', 'School tasks'],
                 ]
-              : [['home', copy.work]]),
+              : account.role === 'principal'
+                ? [
+                    ['principal-overview', 'School dashboard'],
+                    ['principal-performance', 'Performance'],
+                    ['principal-staff', 'Staff'],
+                    ['teacher-students', 'Student profiles'],
+                    ['home', 'Staff tasks'],
+                  ]
+                : [['home', copy.work]]),
           ...(['teacher', 'principal'].includes(account.role)
             ? [['learning', 'Academics & homework']]
             : []),
@@ -241,6 +260,18 @@ export function PortalPanel({
         <output>Loading your school workspace…</output>
       ) : (
         <>
+          {view.startsWith('principal-') && account.role === 'principal' && (
+            <PrincipalPanel
+              key={`${date}:${view}:${reload}`}
+              workspace={workspace}
+              date={date}
+              portal={data}
+              view={view.replace('principal-', '')}
+              onNavigate={setView}
+              onOpenRegister={onOpenRegister}
+              onOpenReport={onOpenReport}
+            />
+          )}
           {view === 'home' && (
             <>
               <div className="erp-portal-metrics">
