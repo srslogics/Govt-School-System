@@ -3,6 +3,7 @@
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { attendanceRate, type Workspace } from '@/lib/erp/model';
 import type { EducationRecord, OversightView } from '@/lib/erp/oversight';
+import { MunicipalDashboard, MunicipalPriorities } from './municipal';
 import { request, errorMessage } from './client';
 
 const currency = (amount: number) =>
@@ -26,7 +27,9 @@ export function OversightPanel({
   const principal = workspace.account.role === 'principal',
     commissioner = workspace.account.role === 'commissioner';
   const [data, setData] = useState<OversightView>(),
-    [view, setView] = useState(principal ? 'request' : 'overview'),
+    [view, setView] = useState(
+      principal ? 'request' : commissioner ? 'municipal' : 'overview',
+    ),
     [school, setSchool] = useState(''),
     [search, setSearch] = useState(''),
     [status, setStatus] = useState('all'),
@@ -104,7 +107,8 @@ export function OversightPanel({
     records = data?.records.filter((row) => ids.has(row.schoolId)) ?? [];
   const visible = records.filter(
     (row) =>
-      row.kind === view &&
+      row.kind === (view === 'escalations' ? 'request' : view) &&
+      (view !== 'escalations' || row.status === 'escalated') &&
       (status === 'all' ||
         (status === 'open'
           ? !['closed', 'resolved', 'declined'].includes(row.status)
@@ -154,7 +158,7 @@ export function OversightPanel({
             {principal
               ? 'Officer coordination'
               : commissioner
-                ? 'School oversight & escalations'
+                ? 'Commissioner workspace'
                 : 'Education Officer workspace'}
           </h2>
           <p>
@@ -171,12 +175,21 @@ export function OversightPanel({
         aria-label="Education oversight sections"
       >
         {[
-          ...(!principal
+          ...(commissioner
             ? [
-                ['overview', 'Overview'],
+                ['municipal', 'Municipal overview'],
+                ['comparison', 'School comparison'],
+                ['priorities', 'Municipal priorities'],
+                ['escalations', 'Escalated decisions'],
                 ['schools', 'School profiles'],
               ]
-            : []),
+            : !principal
+              ? [
+                  ['overview', 'Overview'],
+                  ['schools', 'School profiles'],
+                ]
+              : []),
+          ...(!commissioner ? [['priorities', 'Municipal priorities']] : []),
           ...Object.entries(names),
           ...(!principal ? [['resources', 'Grants & infrastructure']] : []),
         ].map(([id, label]) => (
@@ -224,6 +237,30 @@ export function OversightPanel({
         <output>Loading assigned school oversight…</output>
       ) : (
         <>
+          {commissioner && ['municipal', 'comparison'].includes(view) && (
+            <MunicipalDashboard
+              data={data}
+              schools={schools}
+              view={view}
+              today={workspace.date}
+              onNavigate={navigate}
+              onSchool={setSchool}
+              onReports={onOpenReports}
+            />
+          )}
+          {view === 'priorities' && (
+            <MunicipalPriorities
+              key={school}
+              workspace={workspace}
+              data={data}
+              schoolId={school}
+              onSaved={(municipal) =>
+                setData((current) =>
+                  current ? { ...current, municipal } : current,
+                )
+              }
+            />
+          )}
           {view === 'overview' && (
             <>
               <h3>Schools needing attention</h3>
@@ -526,15 +563,23 @@ export function OversightPanel({
               </p>
             </>
           )}
-          {['inspection', 'request', 'circular'].includes(view) && (
+          {['inspection', 'request', 'circular', 'escalations'].includes(
+            view,
+          ) && (
             <>
-              <h3>{names[view as keyof typeof names]}</h3>
+              <h3>
+                {view === 'escalations'
+                  ? 'Escalated decisions'
+                  : names[view as keyof typeof names]}
+              </h3>
               <p>
                 These records show current progress across the school and
                 supervising office. Every response or decision requires remarks.
               </p>
               {((view === 'request' && principal) ||
-                (view !== 'request' && !principal)) && (
+                (view !== 'request' &&
+                  view !== 'escalations' &&
+                  !principal)) && (
                 <details
                   className="erp-operations-create"
                   key={`${view}:${school}`}
@@ -630,35 +675,37 @@ export function OversightPanel({
                   </form>
                 </details>
               )}
-              <label>
-                Record filter
-                <select
-                  value={status}
-                  onChange={(event) => setStatus(event.target.value)}
-                >
-                  <option value="all">All records</option>
-                  <option value="open">Open records</option>
-                  {[
-                    'planned',
-                    'visited',
-                    'responded',
-                    'submitted',
-                    'under-review',
-                    'returned',
-                    'escalated',
-                    'issued',
-                    'acknowledged',
-                    'reported',
-                    'closed',
-                    'resolved',
-                    'declined',
-                  ].map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {view !== 'escalations' && (
+                <label>
+                  Record filter
+                  <select
+                    value={status}
+                    onChange={(event) => setStatus(event.target.value)}
+                  >
+                    <option value="all">All records</option>
+                    <option value="open">Open records</option>
+                    {[
+                      'planned',
+                      'visited',
+                      'responded',
+                      'submitted',
+                      'under-review',
+                      'returned',
+                      'escalated',
+                      'issued',
+                      'acknowledged',
+                      'reported',
+                      'closed',
+                      'resolved',
+                      'declined',
+                    ].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <div className="erp-portal-records">
                 {visible.map((row) => (
                   <article

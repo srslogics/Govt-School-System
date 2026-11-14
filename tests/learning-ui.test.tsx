@@ -666,8 +666,7 @@ void test('officer screens exchange inspection, escalation and circular response
     click('Save oversight decision');
     await screen.findByText('escalated');
     await as('commissioner');
-    click('School requests');
-    change('Record filter', 'escalated');
+    click('Escalated decisions');
     await screen.findByRole('heading', { name: 'UI infrastructure support' });
     change('Decision', 'resolved');
     change('Decision remarks', 'Technical team coordinated');
@@ -708,6 +707,167 @@ void test('officer screens exchange inspection, escalation and circular response
     assert(
       screen.getAllByText('All classroom checks completed', { exact: false })
         .length > 0,
+    );
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+void test('Commissioner municipal dashboard compares schools and verifies assigned officer priorities', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'commissioner-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'OfficerUI-Test-1234');
+    const handler = createHandler(db, origin);
+    let cookie = '';
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const as = async (username: string) => {
+      cleanup();
+      const login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password: 'OfficerUI-Test-1234' }),
+        }),
+      );
+      cookie = login.headers.get('set-cookie')!.split(';')[0];
+      const account = await one<Account>(
+        db,
+        'SELECT id,name,username,role FROM account WHERE username=?',
+        username,
+      );
+      assert(account);
+      render(
+        <OversightPanel
+          workspace={await workspace(db, account)}
+          date={todayInNagpur()}
+        />,
+      );
+      await screen.findByLabelText('Assigned school');
+      await waitFor(() =>
+        assert(!screen.queryByText('Loading assigned school oversight…')),
+      );
+    };
+    const change = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    const click = (name: string) =>
+      fireEvent.click(screen.getByRole('button', { name }));
+    await as('commissioner');
+    assert(
+      screen.getByRole('heading', { name: 'Municipal education overview' }),
+    );
+    const exportLink = screen.getByRole('link', {
+      name: 'Export all schools summary CSV',
+    });
+    assert(exportLink.getAttribute('href')?.includes('format=csv'));
+    click('School comparison');
+    assert(screen.getByRole('heading', { name: 'School comparison' }));
+    assert.equal(screen.getAllByRole('row').length, 3);
+    change('Order schools by', 'coverage');
+    click('Municipal priorities');
+    change('Responsible education officer', 'officer.a');
+    change('Priority title', 'UI municipal classroom action');
+    change('Priority category', 'infrastructure');
+    change('Urgency', 'high');
+    change(
+      'Commissioner instructions',
+      'Coordinate classroom repairs and verify school readiness',
+    );
+    click('Save municipal assignment');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    await as('officer.a');
+    click('Municipal priorities');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    change('Progress status', 'reported');
+    change(
+      'Officer progress report',
+      'Repair work complete; school readiness checked',
+    );
+    click('Save officer progress');
+    await screen.findByText('reported');
+    await as('commissioner');
+    click('Municipal priorities');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    change('Verification outcome', 'in-progress');
+    change('Verification remarks', 'Confirm final safety check');
+    click('Save municipal verification');
+    await screen.findByText('in-progress');
+    await as('officer.a');
+    click('Municipal priorities');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    change('Progress status', 'reported');
+    change('Officer progress report', 'Final safety check confirmed');
+    click('Save officer progress');
+    await screen.findByText('reported');
+    await as('commissioner');
+    click('Municipal priorities');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    change('Verification remarks', 'Completion verified');
+    click('Save municipal verification');
+    await waitFor(async () =>
+      assert.equal(
+        (
+          await one<{ status: string }>(
+            db,
+            "SELECT status FROM municipal_priority WHERE title='UI municipal classroom action'",
+          )
+        )?.status,
+        'closed',
+      ),
+    );
+    change('Priority filter', 'closed');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    assert(screen.getByText('closed'));
+    assert(!screen.queryByText('Verify officer report'));
+    await as('principal.a');
+    click('Municipal priorities');
+    change('Priority filter', 'closed');
+    await screen.findByRole('heading', {
+      name: 'UI municipal classroom action',
+    });
+    assert(!screen.queryByText('Update assigned priority'));
+    assert(
+      !screen.queryByRole('button', { name: 'Save municipal assignment' }),
     );
   } finally {
     cleanup();

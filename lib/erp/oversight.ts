@@ -1,6 +1,7 @@
 import type { InStatement } from '@libsql/client';
 import { randomUUID } from 'node:crypto';
 import { many, one, run, write, type Database, type Query } from './database';
+import { readMunicipal, type MunicipalView } from './municipal';
 import { workspace } from './attendance';
 import { type Account, type Counts, type School, todayInNagpur } from './model';
 import { ErpError, missing, requiredText } from './validation';
@@ -31,6 +32,7 @@ export type SchoolSummary = School & {
   zeroStock: number;
 };
 export type OversightView = {
+  municipal: MunicipalView;
   date: string;
   schools: SchoolSummary[];
   classes: {
@@ -87,6 +89,7 @@ export async function readOversight(
   allow(account);
   const schools = (await workspace(db, account)).schools;
   const result: OversightView = {
+    municipal: await readMunicipal(db, account, schools),
     date: day,
     schools: [],
     classes: [],

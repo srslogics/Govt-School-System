@@ -7,6 +7,7 @@ import {
   updateRegister,
   workspace,
 } from './attendance';
+import { readMunicipal, updateMunicipal, municipalCsv } from './municipal';
 import { readOversight, updateOversight } from './oversight';
 import { readOperations, updateOperations } from './operations';
 import { readTeacher, updateTeacher } from './teacher';
@@ -112,16 +113,39 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
-        if (endpoint === 'oversight')
+        if (endpoint === 'municipal')
           return json(
             method === 'GET'
-              ? await readOversight(
-                  db,
-                  account,
-                  dateValue(url.searchParams.get('date')),
-                )
-              : await updateOversight(db, account, body),
+              ? await readMunicipal(db, account)
+              : await updateMunicipal(db, account, body),
           );
+        if (endpoint === 'oversight') {
+          if (method === 'GET') {
+            if (
+              url.searchParams.get('format') === 'csv' &&
+              account.role !== 'commissioner'
+            )
+              throw new ErpError(
+                403,
+                'Municipal summary exports are available to the Commissioner.',
+              );
+            const view = await readOversight(
+              db,
+              account,
+              dateValue(url.searchParams.get('date')),
+            );
+            if (url.searchParams.get('format') === 'csv')
+              return new Response(municipalCsv(view), {
+                headers: {
+                  ...privateHeaders,
+                  'Content-Type': 'text/csv; charset=utf-8',
+                  'Content-Disposition': `attachment; filename="municipal-summary-${view.date}.csv"`,
+                },
+              });
+            return json(view);
+          }
+          return json(await updateOversight(db, account, body));
+        }
         if (endpoint === 'operations')
           return json(
             method === 'GET'

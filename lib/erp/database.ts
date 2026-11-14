@@ -109,6 +109,16 @@ CREATE TABLE IF NOT EXISTS school (
       UNIQUE(school_id,kind,record_key)
     );
     CREATE INDEX IF NOT EXISTS operation_school ON school_operation(school_id,kind,happened_at);
+    CREATE TABLE IF NOT EXISTS municipal_priority (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
+      officer_id TEXT NOT NULL REFERENCES account(id), title TEXT NOT NULL, category TEXT NOT NULL,
+      priority TEXT NOT NULL CHECK(priority IN ('normal','high')), due TEXT NOT NULL,
+      status TEXT NOT NULL CHECK(status IN ('assigned','in-progress','reported','closed')),
+      instructions TEXT NOT NULL, progress TEXT NOT NULL, verification TEXT NOT NULL,
+      author_id TEXT NOT NULL REFERENCES account(id), happened_at TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0)
+    );
+    CREATE INDEX IF NOT EXISTS municipal_school ON municipal_priority(school_id,status,due);
+    CREATE INDEX IF NOT EXISTS municipal_officer ON municipal_priority(officer_id,status);
     CREATE TABLE IF NOT EXISTS education_record (
       id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
       kind TEXT NOT NULL CHECK(kind IN ('inspection','request','circular')), status TEXT NOT NULL,
