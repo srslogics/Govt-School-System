@@ -1541,3 +1541,277 @@ progress.erp-coverage-track::-moz-progress-bar {
     font-size: 11px;
   }
 }
+.erp-learning {
+  box-shadow: none;
+  margin: 16px 0;
+  border-color: #dce8f0;
+}
+.erp-learning-child {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  padding: 17px 20px;
+  background: #f4f8fc;
+  border-radius: 8px;
+  margin-bottom: 23px;
+}
+.erp-learning-child .erp-child-icon {
+  margin: 0;
+  flex: none;
+}
+.erp-learning-child h3 {
+  font-size: 16px;
+}
+.erp-learning-child p,
+.erp-learning-child small {
+  font-size: 11px;
+  color: #7a8fa1;
+}
+.erp-learning-child label {
+  margin-left: auto;
+}
+.erp-learning-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.erp-learning-kpis > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 19px;
+  background: #fafcfe;
+  border-color: #e2eaf1;
+  font-weight: 400;
+  gap: 10px;
+}
+.erp-learning-kpis svg {
+  color: #6d94ad;
+}
+.erp-learning-kpis span {
+  font-size: 11px;
+  color: #6c8294;
+}
+.erp-learning-kpis strong {
+  font-size: 30px;
+  color: #23445f;
+  font-weight: 600;
+}
+.erp-learning-kpis small {
+  font-size: 10px;
+  color: #92a0ad;
+}
+.erp-learning-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.erp-learning-box {
+  padding: 20px;
+  border: 1px solid var(--erp-line);
+  border-radius: 8px;
+}
+.erp-learning-box > p {
+  font-size: 12px;
+  color: #8395a4;
+  margin-top: 15px;
+}
+.erp-learning-link {
+  display: flex !important;
+  width: 100%;
+  text-align: left;
+  justify-content: space-between !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--erp-line) !important;
+  border-radius: 0 !important;
+  padding: 16px 0 !important;
+}
+.erp-learning-link strong {
+  display: block;
+  font-size: 12px;
+}
+.erp-learning-link small {
+  display: block;
+  font-size: 10px;
+  color: #8499aa;
+  font-weight: 400;
+  margin-top: 5px;
+}
+.erp-feedback-row {
+  border-top: 1px solid var(--erp-line);
+  padding: 15px 0;
+  margin-top: 10px;
+}
+.erp-feedback-row strong {
+  font-size: 11px;
+  color: #4b718a;
+}
+.erp-feedback-row p {
+  font-size: 12px;
+  color: #7c90a0;
+  margin-top: 6px;
+}
+.erp-feedback-row form {
+  display: grid;
+  gap: 10px;
+}
+.erp-attendance-counts {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  font-size: 11px;
+  color: #788da0;
+}
+.erp-attendance-counts span {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.erp-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 7px;
+}
+.erp-calendar > strong {
+  text-align: center;
+  font-size: 10px;
+  color: #7b90a3;
+  padding: 10px;
+}
+.erp-calendar-day {
+  min-height: 85px;
+  border: 1px solid #e5ecf2;
+  border-radius: 7px;
+  padding: 10px;
+  background: #fafcfe;
+}
+.erp-calendar-day strong {
+  font-size: 13px;
+  display: block;
+}
+.erp-calendar-day span {
+  font-size: 9px;
+  color: #8c9ba9;
+  display: block;
+  margin-top: 10px;
+}
+.erp-day-present {
+  background: #edf8f2;
+  border-color: #d1e8db;
+}
+.erp-day-present span {
+  color: #3d8a67;
+}
+.erp-day-absent {
+  background: #fbefed;
+  border-color: #efd6d0;
+}
+.erp-day-absent span {
+  color: #b06e63;
+}
+.erp-day-leave {
+  background: #fbf6e9;
+  border-color: #ede2c4;
+}
+.erp-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 15px;
+}
+.erp-subject-grid article {
+  padding: 20px;
+  border: 1px solid var(--erp-line);
+  border-radius: 8px;
+  background: #fafcfe;
+}
+.erp-subject-grid article > strong {
+  display: block;
+  font-size: 26px;
+  color: #355a75;
+  margin: 12px 0;
+}
+.erp-subject-grid progress {
+  width: 100%;
+  height: 6px;
+  accent-color: #5b8d9f;
+  display: block;
+  margin-bottom: 10px;
+}
+.erp-subject-grid small {
+  font-size: 10px;
+  color: #8799a7;
+}
+.erp-subject-grid p {
+  font-size: 11px;
+  color: #6d889b;
+  margin-top: 10px;
+}
+.erp-learning-editor {
+  padding: 15px;
+  background: #f4f8fb;
+  border: 1px solid var(--erp-line);
+  border-radius: 8px;
+  margin: 0 0 20px;
+}
+.erp-learning-editor > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #426b88;
+}
+.erp-learning-editor form {
+  margin-top: 20px;
+}
+.erp-learning .erp-portal-records {
+  margin-top: 18px;
+}
+@media (max-width: 760px) {
+  .erp-learning {
+    padding: 14px;
+    margin: 10px -5px;
+  }
+  .erp-learning-kpis {
+    grid-template-columns: 1fr;
+  }
+  .erp-learning-kpis > button {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+  .erp-learning-kpis strong {
+    grid-column: 2;
+    grid-row: 1/4;
+  }
+  .erp-learning-kpis small {
+    grid-column: 1;
+  }
+  .erp-learning-columns {
+    grid-template-columns: 1fr;
+  }
+  .erp-learning-child {
+    padding: 14px;
+    flex-wrap: wrap;
+  }
+  .erp-learning-child label {
+    margin-left: 0;
+  }
+  .erp-calendar {
+    gap: 3px;
+  }
+  .erp-calendar-day {
+    padding: 6px 3px;
+    min-height: 65px;
+  }
+  .erp-calendar-day span {
+    font-size: 8px;
+    overflow-wrap: anywhere;
+  }
+  .erp-calendar-day strong {
+    font-size: 11px;
+  }
+  .erp-attendance-counts {
+    gap: 13px;
+  }
+}

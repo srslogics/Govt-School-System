@@ -57,6 +57,24 @@ CREATE TABLE IF NOT EXISTS school (
       happened_at TEXT NOT NULL, note TEXT NOT NULL, changed_marks INTEGER NOT NULL,
       entries TEXT NOT NULL CHECK(json_valid(entries)), PRIMARY KEY(register_id, version)
     );
+    CREATE TABLE IF NOT EXISTS assessment (
+      id TEXT PRIMARY KEY, student_id TEXT NOT NULL REFERENCES enrolment(id), subject TEXT NOT NULL,
+      exam TEXT NOT NULL, day TEXT NOT NULL, score REAL NOT NULL CHECK(score>=0),
+      maximum REAL NOT NULL CHECK(maximum>0 AND score<=maximum), feedback TEXT NOT NULL,
+      published INTEGER NOT NULL CHECK(published IN (0,1)), author_id TEXT NOT NULL REFERENCES account(id), version INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS assessment_student ON assessment(student_id,day);
+    CREATE TABLE IF NOT EXISTS homework (
+      id TEXT PRIMARY KEY, class_id TEXT NOT NULL REFERENCES class_section(id), subject TEXT NOT NULL,
+      title TEXT NOT NULL, body TEXT NOT NULL, due TEXT NOT NULL, happened_at TEXT NOT NULL,
+      author_id TEXT NOT NULL REFERENCES account(id), version INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS homework_class ON homework(class_id,due);
+    CREATE TABLE IF NOT EXISTS homework_submission (
+      homework_id TEXT NOT NULL REFERENCES homework(id), student_id TEXT NOT NULL REFERENCES enrolment(id),
+      note TEXT NOT NULL, feedback TEXT NOT NULL, happened_at TEXT NOT NULL, version INTEGER NOT NULL,
+      PRIMARY KEY(homework_id,student_id)
+    );
     CREATE TABLE IF NOT EXISTS guardian_link (
       account_id TEXT NOT NULL REFERENCES account(id), enrolment_id TEXT NOT NULL REFERENCES enrolment(id),
       PRIMARY KEY(account_id, enrolment_id)

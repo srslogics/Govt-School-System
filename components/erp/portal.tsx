@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
+import { LearningPanel } from './learning';
 
 const roleCopy = {
   parent: {
@@ -66,7 +67,7 @@ export function PortalPanel({
     category: 'general',
   };
   const [data, setData] = useState<SchoolPortal>();
-  const [view, setView] = useState('home');
+  const [view, setView] = useState(parent ? 'learning-home' : 'home');
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
   const [error, setError] = useState('');
@@ -160,7 +161,17 @@ export function PortalPanel({
       </header>
       <nav className="erp-section-tabs" aria-label="School community sections">
         {[
-          ['home', copy.work],
+          ...(parent
+            ? [
+                ['learning-home', 'Home'],
+                ['learning-attendance', 'Attendance'],
+                ['learning-academics', 'Academics'],
+                ['learning-homework', 'Homework'],
+              ]
+            : [['home', copy.work]]),
+          ...(['teacher', 'principal'].includes(account.role)
+            ? [['learning', 'Academics & homework']]
+            : []),
           ['requests', 'Requests & replies'],
           ['notices', 'School notices'],
           ...(directory ? [['directory', 'Learner directory']] : []),
@@ -179,6 +190,17 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view.startsWith('learning') && (
+        <LearningPanel
+          key={`${date}:${view}`}
+          workspace={workspace}
+          date={date}
+          initialView={parent ? view.replace('learning-', '') : 'academics'}
+          hideNavigation={parent}
+          onNavigate={parent ? (id) => setView(`learning-${id}`) : undefined}
+          notices={data?.notices}
+        />
+      )}
       {error && (
         <p role="alert" className="erp-error">
           {error}
