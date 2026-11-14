@@ -1,7 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { passwordHash, usernameValue } from './auth';
 import { many, one, write, run, type Query, type Database } from './database';
-import { todayInNagpur, type Account, type Setup } from './model';
+import {
+  todayInNagpur,
+  schoolStaffRoles,
+  type Account,
+  type Setup,
+} from './model';
 import { dateValue, ErpError, missing, requiredText } from './validation';
 
 export async function readSetup(db: Query, account: Account): Promise<Setup> {
@@ -21,6 +26,10 @@ export async function readSetup(db: Query, account: Account): Promise<Setup> {
       db,
       `SELECT account_id AS accountId, class_id AS targetId FROM class_assignment
       UNION ALL SELECT account_id, school_id FROM school_assignment`,
+    ),
+    guardians: await many(
+      db,
+      'SELECT account_id AS accountId, enrolment_id AS studentId FROM guardian_link',
     ),
     enrolments: await many(
       db,
@@ -92,11 +101,11 @@ export async function updateSetup(
         }
         case 'staff': {
           const { role, password } = body;
-          if (role !== 'teacher' && role !== 'principal' && role !== 'officer')
-            throw new ErpError(
-              400,
-              'Choose teacher, principal or education officer.',
-            );
+          if (
+            typeof role !== 'string' ||
+            ![...schoolStaffRoles, 'officer', 'parent'].includes(role)
+          )
+            throw new ErpError(400, 'Choose a supported staff or parent role.');
           if (typeof password !== 'string')
             throw new ErpError(400, 'A password is required.');
           await run(
@@ -108,6 +117,36 @@ export async function updateSetup(
             role,
             passwordHash(password),
           );
+          break;
+        }
+        case 'guardian':
+        case 'unguardian': {
+          const parentId = requiredText(body.accountId, 'Parent account');
+          const studentId = requiredText(body.studentId, 'Learner');
+          const parent = await one<Account>(
+            tx,
+            'SELECT id, role FROM account WHERE id = ?',
+            parentId,
+          );
+          if (
+            parent?.role !== 'parent' ||
+            !(await one(tx, 'SELECT id FROM enrolment WHERE id = ?', studentId))
+          )
+            missing();
+          if (body.action === 'guardian')
+            await run(
+              tx,
+              'INSERT INTO guardian_link VALUES (?, ?) ON CONFLICT DO NOTHING',
+              parentId,
+              studentId,
+            );
+          else
+            await run(
+              tx,
+              'DELETE FROM guardian_link WHERE account_id = ? AND enrolment_id = ?',
+              parentId,
+              studentId,
+            );
           break;
         }
         case 'assign':
@@ -123,7 +162,8 @@ export async function updateSetup(
           if (
             !teacher &&
             staff.role !== 'principal' &&
-            staff.role !== 'officer'
+            staff.role !== 'officer' &&
+            !schoolStaffRoles.includes(staff.role)
           )
             throw new ErpError(400, 'Choose a teacher, principal or officer.');
           const target = requiredText(

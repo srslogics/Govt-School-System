@@ -14,6 +14,12 @@ import {
   type Report,
   type Role,
 } from '@/lib/erp/model';
+import {
+  ArrowDownToLine,
+  ArrowUpRight,
+  CheckCheck,
+  RefreshCw,
+} from 'lucide-react';
 import { errorMessage, request } from './client';
 
 const statusLabel = { present: 'Present', absent: 'Absent', leave: 'On leave' };
@@ -75,6 +81,7 @@ export function RegisterPanel({
     view.roster.length > 0 &&
     (!view.register || status === 'returned');
   const reviewable = role === 'principal' && status === 'submitted';
+  const marked = view.roster.filter((student) => values[student.id]).length;
   async function save(event: ReactSubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!view || busy) return;
@@ -134,6 +141,52 @@ export function RegisterPanel({
       {status === 'returned' && (
         <p className="erp-callout">
           Returned for correction. The reason is in the history below.
+        </p>
+      )}
+      <div className="erp-register-summary">
+        <span>
+          <strong>{view.roster.length}</strong> learners
+        </span>
+        <span>
+          <i className="erp-dot erp-dot-present" />
+          {
+            Object.values(values).filter((mark) => mark === 'present').length
+          }{' '}
+          present
+        </span>
+        <span>
+          <i className="erp-dot erp-dot-absent" />
+          {
+            Object.values(values).filter((mark) => mark === 'absent').length
+          }{' '}
+          absent
+        </span>
+        <span>
+          <i className="erp-dot erp-dot-leave" />
+          {Object.values(values).filter((mark) => mark === 'leave').length} on
+          leave
+        </span>
+        {editable && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() =>
+              setValues(
+                Object.fromEntries(
+                  view.roster.map((student) => [student.id, 'present' as Mark]),
+                ),
+              )
+            }
+          >
+            <CheckCheck size={15} />
+            Mark all present
+          </button>
+        )}
+      </div>
+      {editable && (
+        <p className="erp-mark-progress">
+          {marked} of {view.roster.length} marked. Check each learner before
+          submitting.
         </p>
       )}
       <form onSubmit={(event) => void save(event)}>
@@ -273,11 +326,13 @@ export function ReportPanel({
   schoolId,
   canReview,
   onOpen,
+  onSchool,
 }: {
   date: string;
   schoolId: string;
   canReview: boolean;
   onOpen: (classId: string) => void;
+  onSchool: (schoolId: string) => void;
 }) {
   const [report, setReport] = useState<Report>();
   const [error, setError] = useState('');
@@ -317,20 +372,20 @@ export function ReportPanel({
     <section className="erp-card">
       <header className="erp-card-title">
         <div>
-          <h2>Attendance and submission coverage</h2>
+          <h2>Daily attendance</h2>
           <p>
             {report.date} · {report.schools.length} schools in this view
           </p>
         </div>
         <div className="erp-report-actions">
           <button type="button" onClick={() => setReload(reload + 1)}>
-            Refresh
+            <RefreshCw size={14} /> Refresh
           </button>
           <a
             className="erp-button"
             href={`/api/erp/report?${query}&format=csv`}
           >
-            Export summary CSV
+            <ArrowDownToLine size={14} /> Export CSV
           </a>
         </div>
       </header>
@@ -357,27 +412,74 @@ export function ReportPanel({
           <small>{totals.returned} returned for correction</small>
         </div>
       </dl>
-      <p className="erp-callout">
-        The rate is total present divided by total marks in submitted and
-        reviewed registers. On-leave marks are included in the denominator.
-        Missing and returned registers are excluded from the rate. Coverage
-        counts classes with enrolment for the selected date. An empty class does
-        not count as missing.
-      </p>
+      <div className="erp-report-insight">
+        <span className="erp-insight-icon">!</span>
+        <p>
+          <strong>
+            {totals.missing + totals.returned
+              ? `${totals.missing + totals.returned} ${totals.missing + totals.returned === 1 ? 'register needs' : 'registers need'} follow-up`
+              : totals.expected
+                ? 'All expected registers are included'
+                : 'No registers expected for this date'}
+          </strong>
+          <span>
+            {totals.missing ? `${totals.missing} not yet submitted. ` : ''}
+            {totals.returned
+              ? `${totals.returned} returned for correction. `
+              : ''}
+            {totals.submitted
+              ? `${totals.submitted} awaiting principal review.`
+              : 'Review submission coverage alongside the attendance rate.'}
+          </span>
+        </p>
+      </div>
+      <div className="erp-school-list-heading">
+        <h3>{schoolId ? 'School detail' : 'Schools in your workspace'}</h3>
+        <span>
+          {report.schools.length}{' '}
+          {report.schools.length === 1 ? 'school' : 'schools'}
+        </span>
+      </div>
       {report.schools.length === 0 && (
         <p>No schools are assigned to this account.</p>
       )}
       {report.schools.map(({ school, totals: counts, classes }) => (
         <section className="erp-report-school" key={school.id}>
-          <h3>{school.name}</h3>
-          <p>
-            {counts.submitted + counts.reviewed} of {counts.expected} registers
-            included · {counts.missing} not submitted · {counts.returned}{' '}
-            returned
-          </p>
-          <p>
-            <CountsLine counts={counts} /> · Rate {attendanceRate(counts)}
-          </p>
+          <div className="erp-school-heading">
+            <div>
+              <span className="erp-eyebrow">{school.code}</span>
+              <h3>{school.name}</h3>
+            </div>
+            <div className="erp-school-rate">
+              <strong>{attendanceRate(counts)}</strong>
+              <small>attendance</small>
+            </div>
+          </div>
+          <div className="erp-school-coverage">
+            <span>
+              {counts.submitted + counts.reviewed} / {counts.expected} registers
+              included
+            </span>
+            <span>
+              {counts.missing} missing · {counts.returned} returned
+            </span>
+          </div>
+          <progress
+            className="erp-coverage-track"
+            aria-label={`${school.name} register coverage`}
+            max={Math.max(counts.expected, 1)}
+            value={counts.submitted + counts.reviewed}
+          />
+          <div className="erp-school-meta">
+            <span>
+              <CountsLine counts={counts} />
+            </span>
+            {!schoolId && (
+              <button type="button" onClick={() => onSchool(school.id)}>
+                View school <ArrowUpRight size={14} />
+              </button>
+            )}
+          </div>
           {classes?.length ? (
             <div className="erp-scroll">
               <table className="erp-table">
@@ -396,7 +498,13 @@ export function ReportPanel({
                       <td>
                         {row.classSection.grade} · {row.classSection.section}
                       </td>
-                      <td>{row.status}</td>
+                      <td>
+                        <span
+                          className={`erp-status erp-${row.status.replaceAll(' ', '-')}`}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
                       <td>{row.enrolled}</td>
                       <td>
                         {row.counts.total ? (
@@ -411,7 +519,9 @@ export function ReportPanel({
                             type="button"
                             onClick={() => onOpen(row.classSection.id)}
                           >
-                            Open
+                            {row.status === 'submitted'
+                              ? 'Review register'
+                              : 'Open register'}
                           </button>
                         </td>
                       )}
@@ -425,6 +535,16 @@ export function ReportPanel({
           )}
         </section>
       ))}
+      <details className="erp-methodology">
+        <summary>How these figures are calculated</summary>
+        <p>
+          Attendance is present marks divided by all marks in submitted and
+          reviewed registers. On-leave marks are included. Missing and returned
+          registers are excluded from the rate. Coverage counts classes with
+          enrolment effective on the selected date; empty classes do not count
+          as missing.
+        </p>
+      </details>
     </section>
   );
 }

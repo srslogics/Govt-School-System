@@ -4,6 +4,11 @@ export const roles = [
   'principal',
   'officer',
   'commissioner',
+  'parent',
+  'clerk',
+  'accountant',
+  'librarian',
+  'support',
 ] as const;
 export type Role = (typeof roles)[number];
 export const marks = ['present', 'absent', 'leave'] as const;
@@ -78,6 +83,7 @@ export type Setup = {
   classes: ClassSection[];
   staff: Account[];
   assignments: { accountId: string; targetId: string }[];
+  guardians: { accountId: string; studentId: string }[];
   enrolments: (Student & { classId: string; effectiveOn: string })[];
 };
 
@@ -98,3 +104,76 @@ export function attendanceRate(counts: Counts) {
     ? `${((100 * counts.present) / counts.total).toFixed(1)}%`
     : '—';
 }
+
+export const roleLabels: Record<Role, string> = {
+  administrator: 'Administrator',
+  teacher: 'Teacher',
+  principal: 'Principal',
+  officer: 'Education officer',
+  commissioner: 'Commissioner',
+  parent: 'Parent / guardian',
+  clerk: 'School office',
+  accountant: 'Accounts staff',
+  librarian: 'Librarian',
+  support: 'Support staff',
+};
+export const schoolStaffRoles: Role[] = [
+  'teacher',
+  'principal',
+  'clerk',
+  'accountant',
+  'librarian',
+  'support',
+];
+export type FamilyChild = Student & {
+  schoolId: string;
+  schoolName: string;
+  classLabel: string;
+  mark: Mark | null;
+  status: CoverageStatus;
+};
+export type Notice = {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  title: string;
+  body: string;
+  audience: string;
+  author: string;
+  at: string;
+};
+export type SchoolRequest = {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  accountId: string;
+  author: string;
+  studentName: string | null;
+  category: string;
+  title: string;
+  body: string;
+  status: 'open' | 'resolved' | 'declined';
+  response: string;
+  at: string;
+  version: number;
+};
+export type StaffTask = {
+  id: string;
+  schoolId: string;
+  schoolName: string;
+  assignedTo: string;
+  assignee: string;
+  title: string;
+  body: string;
+  status: 'open' | 'completed';
+  note: string;
+  version: number;
+};
+export type SchoolPortal = {
+  children: FamilyChild[];
+  notices: Notice[];
+  requests: SchoolRequest[];
+  tasks: StaffTask[];
+  staff: (Account & { schoolId: string })[];
+  directory: (Student & { schoolName: string; classLabel: string })[];
+};

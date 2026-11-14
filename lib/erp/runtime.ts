@@ -1,7 +1,7 @@
-import { configuredDatabase } from './database';
+import { configuredDatabase, initializeDatabase } from './database';
 import { createHandler } from './http';
 
-let handler: ReturnType<typeof createHandler> | undefined;
+let handler: Promise<ReturnType<typeof createHandler>> | undefined;
 
 export const sharedErpAvailable = true;
 
@@ -27,9 +27,21 @@ export async function handleErp(request: Request) {
       throw new Error(
         'Use a persistent database and an HTTPS origin outside loopback.',
       );
-    handler ??= createHandler(configuredDatabase(), url.origin);
-    return await handler(request);
+    handler ??= (async () => {
+      const db = configuredDatabase();
+      try {
+        await initializeDatabase(db);
+        return createHandler(db, url.origin);
+      } catch (error) {
+        db.close();
+        throw error;
+      }
+    })();
+    return await (
+      await handler
+    )(request);
   } catch (error) {
+    handler = undefined;
     console.error(
       'ERP database startup failed:',
       error instanceof Error ? error.name : 'Unknown error',

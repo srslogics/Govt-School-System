@@ -8,6 +8,7 @@ import {
   workspace,
 } from './attendance';
 import { readSetup, updateSetup } from './setup';
+import { readPortal, updatePortal } from './portal';
 import {
   dateValue,
   ErpError,
@@ -107,6 +108,16 @@ export function createHandler(db: Database, publicOrigin?: string) {
         }
         if (method === 'GET' && endpoint === 'session')
           return json(await workspace(db, account));
+        if (endpoint === 'portal')
+          return json(
+            method === 'GET'
+              ? await readPortal(
+                  db,
+                  account,
+                  dateValue(url.searchParams.get('date')),
+                )
+              : await updatePortal(db, account, body),
+          );
         if (endpoint === 'setup')
           return json(
             method === 'GET'

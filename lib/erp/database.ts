@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS school (
     );
     CREATE TABLE IF NOT EXISTS account (
       id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE COLLATE NOCASE, name TEXT NOT NULL,
-      role TEXT NOT NULL CHECK(role IN ('administrator','teacher','principal','officer','commissioner')),
+      role TEXT NOT NULL CHECK(role IN ('administrator','teacher','principal','officer','commissioner','parent','clerk','accountant','librarian','support')),
       password_hash TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS school_assignment (
@@ -57,10 +57,65 @@ CREATE TABLE IF NOT EXISTS school (
       happened_at TEXT NOT NULL, note TEXT NOT NULL, changed_marks INTEGER NOT NULL,
       entries TEXT NOT NULL CHECK(json_valid(entries)), PRIMARY KEY(register_id, version)
     );
+    CREATE TABLE IF NOT EXISTS guardian_link (
+      account_id TEXT NOT NULL REFERENCES account(id), enrolment_id TEXT NOT NULL REFERENCES enrolment(id),
+      PRIMARY KEY(account_id, enrolment_id)
+    );
+    CREATE TABLE IF NOT EXISTS school_notice (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), title TEXT NOT NULL, body TEXT NOT NULL,
+      audience TEXT NOT NULL CHECK(audience IN ('all','parents','staff')), author_id TEXT NOT NULL REFERENCES account(id), happened_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS school_request (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), account_id TEXT NOT NULL REFERENCES account(id),
+      enrolment_id TEXT REFERENCES enrolment(id), category TEXT NOT NULL CHECK(category IN ('leave','general','finance','library','maintenance')),
+      title TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('open','resolved','declined')),
+      response TEXT NOT NULL, happened_at TEXT NOT NULL, version INTEGER NOT NULL CHECK(version > 0)
+    );
+    CREATE TABLE IF NOT EXISTS staff_task (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), assigned_to TEXT NOT NULL REFERENCES account(id),
+      title TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('open','completed')),
+      note TEXT NOT NULL, version INTEGER NOT NULL CHECK(version > 0)
+    );
+    CREATE TABLE IF NOT EXISTS school_activity (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), actor_id TEXT NOT NULL REFERENCES account(id),
+      target_id TEXT NOT NULL, action TEXT NOT NULL, note TEXT NOT NULL, happened_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS request_school ON school_request(school_id, account_id);
+    CREATE INDEX IF NOT EXISTS task_assignee ON staff_task(assigned_to, school_id);
+    CREATE INDEX IF NOT EXISTS notice_school ON school_notice(school_id, happened_at);
     CREATE INDEX IF NOT EXISTS register_day ON register(day, class_id);
 `;
 
 export async function initializeDatabase(db: Database) {
+  // Rebuild the original role CHECK atomically; existing IDs, credentials, sessions,
+  // assignments and attendance-event references remain unchanged.
+  await write(db, async (tx) => {
+    const previous = await one<{ sql: string }>(
+      tx,
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'account'",
+    );
+    if (previous && !previous.sql.includes("'parent'")) {
+      await tx.execute('PRAGMA defer_foreign_keys = ON');
+      await tx.execute(`CREATE TABLE account_expanded (
+        id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE COLLATE NOCASE, name TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN ('administrator','teacher','principal','officer','commissioner','parent','clerk','accountant','librarian','support')),
+        password_hash TEXT NOT NULL
+      )`);
+      await tx.execute(
+        'INSERT INTO account_expanded SELECT id, username, name, role, password_hash FROM account',
+      );
+      await tx.execute('DROP TABLE account');
+      await tx.execute('ALTER TABLE account_expanded RENAME TO account');
+      const integrity = await tx.execute('PRAGMA foreign_key_check');
+      if (integrity.rows.length)
+        throw new Error(
+          'Account migration failed referential integrity checks.',
+        );
+      // DROP records deferred violations against the removed table. After checking
+      // the replacement, clear that deferred counter before the atomic commit.
+      await tx.execute('PRAGMA defer_foreign_keys = OFF');
+    }
+  });
   await db.batch(
     schema
       .split(';')

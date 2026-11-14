@@ -11,6 +11,12 @@ export const fictionalAccounts: [string, string, Role][] = [
   ['principal.b', 'Demo Principal B', 'principal'],
   ['officer.a', 'Demo Education Officer A', 'officer'],
   ['commissioner', 'Demo Commissioner', 'commissioner'],
+  ['parent.a', 'Demo Guardian A', 'parent'],
+  ['parent.b', 'Demo Guardian B', 'parent'],
+  ['office.a', 'Demo School Office A', 'clerk'],
+  ['accounts.a', 'Demo Accounts Officer A', 'accountant'],
+  ['library.a', 'Demo Librarian A', 'librarian'],
+  ['support.a', 'Demo Support Staff A', 'support'],
 ];
 
 export async function seedFictionalSchools(
@@ -57,6 +63,10 @@ export async function seedFictionalSchools(
     ['principal.a', 'school-a'],
     ['principal.b', 'school-b'],
     ['officer.a', 'school-a'],
+    ['office.a', 'school-a'],
+    ['accounts.a', 'school-a'],
+    ['library.a', 'school-a'],
+    ['support.a', 'school-a'],
   ])
     statements.push({
       sql: 'INSERT INTO school_assignment VALUES (?, ?)',
@@ -69,6 +79,56 @@ export async function seedFictionalSchools(
     statements.push({
       sql: 'INSERT INTO class_assignment VALUES (?, ?)',
       args: [id, section],
+    });
+  for (const [parent, student] of [
+    ['parent.a', 'class-a-student-1'],
+    ['parent.b', 'class-b-student-1'],
+  ])
+    statements.push({
+      sql: 'INSERT INTO guardian_link VALUES (?, ?)',
+      args: [parent, student],
+    });
+  statements.push({
+    sql: 'INSERT INTO school_notice VALUES (?, ?, ?, ?, ?, ?, ?)',
+    args: [
+      'welcome-a',
+      'school-a',
+      'Welcome to your connected school',
+      'Check attendance, send requests to the school office, and follow school announcements here. All records in this pilot are fictional.',
+      'all',
+      'principal.a',
+      new Date().toISOString(),
+    ],
+  });
+  for (const [id, staff, title, body] of [
+    [
+      'office-task',
+      'office.a',
+      'Check class enrolment records',
+      'Review the fictional class lists and report any missing roll numbers.',
+    ],
+    [
+      'accounts-task',
+      'accounts.a',
+      'Prepare the monthly grant checklist',
+      'Gather supporting documents for principal review. No payment is processed here.',
+    ],
+    [
+      'library-task',
+      'library.a',
+      'Review classroom reading materials',
+      'Check availability of reading materials for Class 5 and send a library request for shortages.',
+    ],
+    [
+      'support-task',
+      'support.a',
+      'Check classroom readiness',
+      'Inspect classroom seating and cleanliness; report maintenance needs to the principal.',
+    ],
+  ])
+    statements.push({
+      sql: "INSERT INTO staff_task VALUES (?, 'school-a', ?, ?, ?, 'open', '', 1)",
+      args: [id, staff, title, body],
     });
   await write(db, async (tx) => {
     if (await one(tx, 'SELECT id FROM account LIMIT 1'))

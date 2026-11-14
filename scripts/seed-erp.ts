@@ -46,7 +46,7 @@ try {
     throw error;
   }
   console.log(
-    'Two fictional schools and seven individually credentialed pilot accounts are ready.',
+    'Two fictional schools and individually credentialed staff and parent accounts are ready.',
   );
   console.log('Private account file:', credentialsPath);
 } finally {
