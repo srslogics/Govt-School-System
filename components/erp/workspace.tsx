@@ -286,7 +286,7 @@ function SignedWorkspace({
   const [classId, setClassId] = useState(allowedInitial?.id ?? '');
   const [date, setDate] = useState(initial.date ?? workspace.date);
   const [tab, setTab] = useState(
-    account.role === 'officer'
+    account.role === 'officer' || account.role === 'commissioner'
       ? 'oversight'
       : account.role === 'administrator'
         ? 'setup'
@@ -321,7 +321,9 @@ function SignedWorkspace({
 
   const title =
     tab === 'oversight'
-      ? 'School oversight'
+      ? account.role === 'commissioner'
+        ? 'Municipal education'
+        : 'School oversight'
       : tab === 'setup'
         ? 'School administration'
         : tab === 'portal'
@@ -365,7 +367,7 @@ function SignedWorkspace({
               <Building2 size={18} />
               {account.role === 'officer'
                 ? 'School oversight'
-                : 'School oversight & escalations'}
+                : 'Municipal dashboard'}
             </button>
           )}
           {account.role === 'administrator' && (

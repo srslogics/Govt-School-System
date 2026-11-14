@@ -2097,3 +2097,17 @@ progress.erp-coverage-track::-moz-progress-bar {
     grid-template-columns: 1fr;
   }
 }
+
+.erp-municipal {
+  display: grid;
+  gap: 22px;
+}
+.erp-municipal .erp-principal-box button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  margin: 10px 0;
+}
