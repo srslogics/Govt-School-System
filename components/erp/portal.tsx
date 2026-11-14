@@ -15,6 +15,7 @@ import { roleLabels, type SchoolPortal, type Workspace } from '@/lib/erp/model';
 import { request, errorMessage } from './client';
 import { LearningPanel } from './learning';
 import { TeacherPanel } from './teacher';
+import { OperationsPanel } from './operations';
 import { PrincipalPanel } from './principal';
 
 const roleCopy = {
@@ -211,6 +212,18 @@ export function PortalPanel({
           ...(account.role === 'principal'
             ? [['teacher-timetable', 'Teaching timetable']]
             : []),
+          ...(account.role !== 'administrator'
+            ? [
+                [
+                  'operations',
+                  account.role === 'principal'
+                    ? 'School administration'
+                    : account.role === 'parent'
+                      ? 'School calendar'
+                      : 'Staff services',
+                ],
+              ]
+            : []),
           ['requests', 'Requests & replies'],
           ['notices', 'School notices'],
           ...(directory ? [['directory', 'Learner directory']] : []),
@@ -218,7 +231,12 @@ export function PortalPanel({
           <button
             key={id}
             type="button"
-            aria-current={view === id ? 'page' : undefined}
+            aria-current={
+              view === id ||
+              (id === 'operations' && view.startsWith('operations-'))
+                ? 'page'
+                : undefined
+            }
             onClick={() => {
               setView(id);
               setForm(false);
@@ -229,6 +247,13 @@ export function PortalPanel({
           </button>
         ))}
       </nav>
+      {view.startsWith('operations') && (
+        <OperationsPanel
+          key={view}
+          workspace={workspace}
+          initialView={view.replace('operations-', '')}
+        />
+      )}
       {view.startsWith('teacher-') && (
         <TeacherPanel
           key={`${date}:${view}`}

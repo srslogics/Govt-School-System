@@ -100,6 +100,15 @@ CREATE TABLE IF NOT EXISTS school (
       title TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('open','completed')),
       note TEXT NOT NULL, version INTEGER NOT NULL CHECK(version > 0)
     );
+    CREATE TABLE IF NOT EXISTS school_operation (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
+      kind TEXT NOT NULL CHECK(kind IN ('staff-attendance','leave','admission','payroll','grant','expense','inventory','movement','calendar')),
+      record_key TEXT NOT NULL, status TEXT NOT NULL,
+      data TEXT NOT NULL CHECK(json_valid(data)), author_id TEXT NOT NULL REFERENCES account(id),
+      happened_at TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0),
+      UNIQUE(school_id,kind,record_key)
+    );
+    CREATE INDEX IF NOT EXISTS operation_school ON school_operation(school_id,kind,happened_at);
     CREATE TABLE IF NOT EXISTS school_activity (
       id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), actor_id TEXT NOT NULL REFERENCES account(id),
       target_id TEXT NOT NULL, action TEXT NOT NULL, note TEXT NOT NULL, happened_at TEXT NOT NULL
