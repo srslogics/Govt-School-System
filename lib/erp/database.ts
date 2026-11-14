@@ -109,10 +109,21 @@ CREATE TABLE IF NOT EXISTS school (
       UNIQUE(school_id,kind,record_key)
     );
     CREATE INDEX IF NOT EXISTS operation_school ON school_operation(school_id,kind,happened_at);
+    CREATE TABLE IF NOT EXISTS education_record (
+      id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id),
+      kind TEXT NOT NULL CHECK(kind IN ('inspection','request','circular')), status TEXT NOT NULL,
+      data TEXT NOT NULL CHECK(json_valid(data)), author_id TEXT NOT NULL REFERENCES account(id),
+      happened_at TEXT NOT NULL, version INTEGER NOT NULL CHECK(version>0)
+    );
+    CREATE INDEX IF NOT EXISTS operation_item ON school_operation(school_id,kind,json_extract(data,'$.itemId'));
+    CREATE INDEX IF NOT EXISTS assignment_school ON school_assignment(school_id,account_id);
+    CREATE INDEX IF NOT EXISTS assignment_class ON class_assignment(class_id,account_id);
+    CREATE INDEX IF NOT EXISTS education_school ON education_record(school_id,kind,status);
     CREATE TABLE IF NOT EXISTS school_activity (
       id TEXT PRIMARY KEY, school_id TEXT NOT NULL REFERENCES school(id), actor_id TEXT NOT NULL REFERENCES account(id),
       target_id TEXT NOT NULL, action TEXT NOT NULL, note TEXT NOT NULL, happened_at TEXT NOT NULL
     );
+    CREATE INDEX IF NOT EXISTS activity_target ON school_activity(target_id,happened_at);
     CREATE INDEX IF NOT EXISTS request_school ON school_request(school_id, account_id);
     CREATE INDEX IF NOT EXISTS task_assignee ON staff_task(assigned_to, school_id);
     CREATE INDEX IF NOT EXISTS notice_school ON school_notice(school_id, happened_at);

@@ -555,3 +555,164 @@ void test('principal dashboard keeps attendance brief and opens school leadershi
     rmSync(directory, { recursive: true, force: true });
   }
 });
+
+const { OversightPanel } = await import('../components/erp/oversight');
+void test('officer screens exchange inspection, escalation and circular responses with school and Commissioner', async () => {
+  const directory = mkdtempSync(path.join(tmpdir(), 'officer-ui-')),
+    db = openFileDatabase(path.join(directory, 'test.sqlite')),
+    originalFetch = globalThis.fetch;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => 'OfficerUI-Test-1234');
+    const handler = createHandler(db, origin);
+    let cookie = '';
+    globalThis.fetch = async (
+      input: string | URL | Request,
+      init?: RequestInit,
+    ) =>
+      handler(
+        new Request(
+          new URL(
+            typeof input === 'string'
+              ? input
+              : input instanceof URL
+                ? input.href
+                : input.url,
+            origin,
+          ),
+          {
+            ...init,
+            headers: {
+              ...Object.fromEntries(new Headers(init?.headers)),
+              cookie,
+              ...(init?.method === 'POST' ? { origin } : {}),
+            },
+          },
+        ),
+      );
+    const as = async (username: string) => {
+      cleanup();
+      const login = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password: 'OfficerUI-Test-1234' }),
+        }),
+      );
+      cookie = login.headers.get('set-cookie')!.split(';')[0];
+      const account = await one<Account>(
+        db,
+        'SELECT id,name,username,role FROM account WHERE username=?',
+        username,
+      );
+      assert(account);
+      render(
+        <OversightPanel
+          workspace={await workspace(db, account)}
+          date={todayInNagpur()}
+        />,
+      );
+      await screen.findByLabelText('Assigned school');
+      await waitFor(() =>
+        assert(!screen.queryByText('Loading assigned school oversight…')),
+      );
+    };
+    const change = (label: string, value: string) =>
+      fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    const click = (name: string) =>
+      fireEvent.click(screen.getByRole('button', { name }));
+    await as('officer.a');
+    assert(screen.getByRole('heading', { name: 'Schools needing attention' }));
+    assert(!screen.queryByText('NMC Demo School B · Fictional'));
+    click('School profiles');
+    await screen.findByRole('heading', { name: 'School profiles' });
+    assert(!screen.queryByText('Sample learner A-1'));
+    click('Inspections');
+    change('Visit purpose', 'UI quality visit');
+    change('Inspection plan', 'Review classroom safety');
+    click('Save planned inspection');
+    await screen.findByRole('heading', { name: 'UI quality visit' });
+    change('Inspection findings', 'Two desks need repair');
+    change('Corrective action', 'Repair desks and report');
+    click('Save inspection findings');
+    await screen.findByText('visited');
+    await as('principal.a');
+    click('Inspections');
+    await screen.findByRole('heading', { name: 'UI quality visit' });
+    change('School corrective-action report', 'Desks repaired and checked');
+    click('Report corrective action');
+    await screen.findByText('responded');
+    await as('officer.a');
+    click('Inspections');
+    await screen.findByRole('heading', { name: 'UI quality visit' });
+    change('Decision remarks', 'Verified school correction');
+    click('Save oversight decision');
+    await screen.findByText('closed');
+    await as('principal.a');
+    change('Request title', 'UI infrastructure support');
+    change('Request category', 'maintenance');
+    change('Priority', 'high');
+    change('School request details', 'Technical repair visit needed');
+    click('Send school request');
+    await screen.findByRole('heading', { name: 'UI infrastructure support' });
+    await as('officer.a');
+    click('School requests');
+    await screen.findByRole('heading', { name: 'UI infrastructure support' });
+    change('Officer review', 'Reviewed school requirement');
+    click('Record officer review');
+    await screen.findByText('under-review');
+    change('Decision', 'escalated');
+    change('Decision remarks', 'Needs Commissioner coordination');
+    click('Save oversight decision');
+    await screen.findByText('escalated');
+    await as('commissioner');
+    click('School requests');
+    change('Record filter', 'escalated');
+    await screen.findByRole('heading', { name: 'UI infrastructure support' });
+    change('Decision', 'resolved');
+    change('Decision remarks', 'Technical team coordinated');
+    click('Save oversight decision');
+    await waitFor(async () =>
+      assert.equal(
+        (
+          await one<{ status: string }>(
+            db,
+            "SELECT status FROM education_record WHERE kind='request' AND json_extract(data,'$.title')='UI infrastructure support'",
+          )
+        )?.status,
+        'resolved',
+      ),
+    );
+    await as('officer.a');
+    click('Circulars & compliance');
+    change('Circular title', 'UI safety circular');
+    change('Circular instructions', 'Complete classroom safety checklist');
+    change('Recipients', 'all');
+    click('Publish circular');
+    await screen.findByRole('heading', { name: 'UI safety circular' });
+    await as('principal.a');
+    click('Circulars & compliance');
+    await screen.findByRole('heading', { name: 'UI safety circular' });
+    change('Acknowledgement note', 'Received by school');
+    click('Acknowledge circular');
+    await screen.findByText('acknowledged');
+    change('Compliance report', 'All classroom checks completed');
+    click('Submit compliance report');
+    await screen.findByText('reported');
+    await as('officer.a');
+    click('Circulars & compliance');
+    await screen.findByRole('heading', { name: 'UI safety circular' });
+    change('Decision remarks', 'Compliance verified');
+    click('Save oversight decision');
+    await screen.findByText('closed');
+    assert(
+      screen.getAllByText('All classroom checks completed', { exact: false })
+        .length > 0,
+    );
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
