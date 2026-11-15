@@ -46,7 +46,7 @@ export async function handleErp(request: Request) {
           // Optional meeting content must not take sign-in or existing records offline.
           console.error(
             'Sample content setup failed:',
-            error instanceof Error ? error.name : 'Unknown error',
+            error instanceof Error ? error.message : 'Unknown error',
           );
         }
         return createHandler(db, url.origin);
