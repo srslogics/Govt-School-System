@@ -1,3 +1,4 @@
+import { seedExpandedDemo } from './expanded-demo';
 import { write, type Database } from './database';
 import { authenticate, clearSession, login, sessionCookie } from './auth';
 import {
@@ -107,6 +108,50 @@ export function createHandler(db: Database, publicOrigin?: string) {
           : {};
       const account = await authenticate(db, request);
       if (path.length === 1) {
+        if (endpoint === 'sample-data' && method === 'POST') {
+          if (account.role !== 'administrator')
+            throw new ErpError(
+              403,
+              'Only the setup administrator can load fictional sample content.',
+            );
+          if (body.action !== 'expand')
+            throw new ErpError(400, 'Choose the sample expansion action.');
+          try {
+            return json({ result: await seedExpandedDemo(db, origin) });
+          } catch (error) {
+            // Only the authenticated setup administrator receives bounded loader
+            // diagnostics; the normal school UI keeps its existing error text.
+            const clean = (message: string) => {
+              let safe = message;
+              for (const secret of [
+                process.env.TURSO_AUTH_TOKEN,
+                process.env.TURSO_DATABASE_URL,
+              ])
+                if (secret) safe = safe.split(secret).join('[redacted]');
+              return safe
+                .replace(/https?:\/\/[^\s]+/g, '[database endpoint]')
+                .slice(0, 300);
+            };
+            return json(
+              {
+                error: 'Fictional sample content could not be loaded.',
+                diagnostic:
+                  error instanceof Error
+                    ? {
+                        name: error.name,
+                        message: clean(error.message),
+                        cause:
+                          error.cause instanceof Error
+                            ? clean(error.cause.message)
+                            : undefined,
+                      }
+                    : { name: 'Unknown error' },
+              },
+              500,
+            );
+          }
+        }
+
         if (method === 'POST' && endpoint === 'logout') {
           await write(db, (tx) => clearSession(tx, request));
           return json({ ok: true }, 200, {

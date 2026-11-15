@@ -419,7 +419,7 @@ void test('sample expansion requires an opted-in loopback or exact hosted fixtur
   }
 });
 
-void test('hosted sample preparation uses one atomic batch and rejects concurrent roster edits', async () => {
+void test('hosted sample preparation uses bounded uploads and one atomic commit, rejecting concurrent edits', async () => {
   const { db, close } = fixture();
   try {
     await initializeDatabase(db);
@@ -440,17 +440,25 @@ void test('hosted sample preparation uses one atomic batch and rejects concurren
             statements: Parameters<typeof db.batch>[0],
             mode: Parameters<typeof db.batch>[1],
           ) => {
-            batches++;
+            const committing = statements.some(
+              (statement) =>
+                typeof statement !== 'string' &&
+                !Array.isArray(statement) &&
+                statement.sql.includes(
+                  'sample fixture changed during preparation',
+                ),
+            );
+            if (committing) batches++;
             assert.equal(mode, 'write');
             assert.ok(
               Array.isArray(statements) && statements.length < 50,
               'compact dependency-ordered bulk inserts',
             );
             assert.ok(
-              Buffer.byteLength(JSON.stringify(statements)) < 8 * 1024 * 1024,
+              Buffer.byteLength(JSON.stringify(statements)) < 256 * 1024,
               'bounded hosted request payload',
             );
-            if (race)
+            if (race && committing)
               await run(
                 db,
                 "UPDATE enrolment SET name='Edited during preparation' WHERE id='class-a-student-1'",
@@ -462,6 +470,13 @@ void test('hosted sample preparation uses one atomic batch and rejects concurren
     });
     await assert.rejects(seedExpandedDemo(hosted, origin, enabled));
     assert.equal(batches, 1);
+    assert.equal(
+      (await one<{ n: number }>(
+        db,
+        'SELECT COUNT(*) AS n FROM erp_sample_import',
+      ))!.n,
+      0,
+    );
     assert.equal(
       (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM school'))!.n,
       2,
@@ -485,10 +500,131 @@ void test('hosted sample preparation uses one atomic batch and rejects concurren
     assert.equal(await seedExpandedDemo(hosted, origin, enabled), 'expanded');
     assert.equal(batches, 2);
     assert.equal(
+      (await one<{ n: number }>(
+        db,
+        'SELECT COUNT(*) AS n FROM erp_sample_import',
+      ))!.n,
+      0,
+    );
+    assert.equal(
       (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM enrolment'))!.n,
       522,
     );
   } finally {
+    close();
+  }
+});
+
+void test('sample retry API requires administrator and same-origin access, redacts transport errors and permits a safe retry', async () => {
+  const { db, close } = fixture();
+  const oldEnabled = process.env.ERP_EXPANDED_DEMO,
+    oldToken = process.env.TURSO_AUTH_TOKEN;
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => password);
+    process.env.ERP_EXPANDED_DEMO = 'true';
+    process.env.TURSO_AUTH_TOKEN = 'fictional-secret-redaction-check';
+    let fail = true;
+    const transport = new Proxy(db, {
+      get(target, property, receiver) {
+        if (property === 'execute') return target.execute.bind(target);
+        if (property === 'transaction')
+          return (mode: 'write' | 'read' | 'deferred' = 'write') =>
+            target.transaction(mode);
+        if (property === 'batch')
+          return async (
+            statements: Parameters<typeof db.batch>[0],
+            mode: Parameters<typeof db.batch>[1],
+          ) => {
+            if (
+              fail &&
+              statements.some(
+                (s) =>
+                  typeof s !== 'string' &&
+                  !Array.isArray(s) &&
+                  s.sql.startsWith('INSERT INTO erp_sample_import'),
+              )
+            )
+              throw new TypeError('fetch failed', {
+                cause: new Error(
+                  'Upload rejected: fictional-secret-redaction-check https://database.example/private',
+                ),
+              });
+            return target.batch(statements, mode);
+          };
+        return Reflect.get(target, property, receiver) as unknown;
+      },
+    });
+    const handler = createHandler(transport, origin);
+    const call = (
+      cookie: string,
+      body: Record<string, unknown>,
+      requestOrigin = origin,
+    ) =>
+      handler(
+        new Request(origin + '/api/erp/sample-data', {
+          method: 'POST',
+          headers: {
+            cookie,
+            origin: requestOrigin,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }),
+      );
+    const login = async (username: string) => {
+      const res = await handler(
+        new Request(origin + '/api/erp/login', {
+          method: 'POST',
+          headers: { origin, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        }),
+      );
+      assert.equal(res.status, 200);
+      return res.headers.get('set-cookie')!.split(';')[0];
+    };
+    assert.equal((await call('', { action: 'expand' })).status, 401);
+    const parent = await login('parent.a');
+    assert.equal((await call(parent, { action: 'expand' })).status, 403);
+    const admin = await login('admin');
+    assert.equal(
+      (await call(admin, { action: 'expand' }, 'https://unrelated.example'))
+        .status,
+      403,
+    );
+    assert.equal((await call(admin, { action: 'reset' })).status, 400);
+    const failure = await call(admin, { action: 'expand' });
+    assert.equal(failure.status, 500);
+    const details = await failure.text();
+    assert.match(details, /fetch failed/);
+    assert.match(details, /redacted/);
+    assert.ok(!details.includes('fictional-secret-redaction-check'));
+    assert.ok(!details.includes('database.example'));
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM school'))!.n,
+      2,
+    );
+    assert.equal(
+      (await one<{ n: number }>(
+        db,
+        'SELECT COUNT(*) AS n FROM erp_sample_import',
+      ))!.n,
+      0,
+    );
+    fail = false;
+    assert.equal((await call(admin, { action: 'expand' })).status, 200);
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM enrolment'))!.n,
+      522,
+    );
+    const rerun = await call(admin, { action: 'expand' });
+    assert.equal(rerun.status, 200);
+    assert.deepEqual(await rerun.json(), { result: 'already expanded' });
+  } finally {
+    if (oldEnabled === undefined) delete process.env.ERP_EXPANDED_DEMO;
+    else process.env.ERP_EXPANDED_DEMO = oldEnabled;
+    if (oldToken === undefined) delete process.env.TURSO_AUTH_TOKEN;
+    else process.env.TURSO_AUTH_TOKEN = oldToken;
     close();
   }
 });

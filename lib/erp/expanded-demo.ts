@@ -1,7 +1,8 @@
+import { commitSampleGroups, type SampleGroup } from './sample-batch';
 import type { InStatement } from '@libsql/client';
 import { randomBytes } from 'node:crypto';
 import { passwordHash } from './auth';
-import { atomicBatch, many, one, type Database } from './database';
+import { many, one, type Database } from './database';
 import { fictionalAccounts } from './seed';
 import { todayInNagpur } from './model';
 
@@ -98,7 +99,7 @@ function enabled(origin: string, env: Record<string, string | undefined>) {
   if (
     origin === meetingOrigin &&
     env.RENDER === 'true' &&
-    env.RENDER_EXTERNAL_URL === meetingOrigin
+    env.RENDER_EXTERNAL_URL?.replace(/\/$/, '') === meetingOrigin
   )
     return true;
   try {
@@ -1387,7 +1388,7 @@ export async function seedExpandedDemo(
           });
       }
     }
-    const statements: InStatement[] = [];
+    const groups: SampleGroup[] = [];
     // Bulk insert rows by dependency order. JSON-bound rows keep the hosted
     // request compact and avoid thousands of individual protocol batch steps.
     for (const table of [
@@ -1418,13 +1419,9 @@ export async function seedExpandedDemo(
     ]) {
       const rows = staged.get(table);
       if (!rows?.length) continue;
-      const columns = Object.keys(rows[0]);
-      statements.push({
-        sql: `INSERT INTO ${table} (${columns.join(',')}) SELECT ${columns.map((c) => `json_extract(value,'$.${c}')`).join(',')} FROM json_each(?)`,
-        args: [JSON.stringify(rows)],
-      });
+      groups.push({ table, rows });
     }
-    if (statements.length) {
+    if (groups.length) {
       // Revalidate fixture identities and roster snapshots inside the same
       // server-side batch as the inserts, so preparation cannot race with edits.
       const guard = (
@@ -1435,7 +1432,7 @@ export async function seedExpandedDemo(
         sql: `SELECT CASE WHEN (SELECT COUNT(*) FROM ${table})=? AND NOT EXISTS (SELECT 1 FROM json_each(?) j WHERE NOT EXISTS (SELECT 1 FROM ${table} r WHERE ${columns.map((c) => `r.${c}=json_extract(j.value,'$.${c}')`).join(' AND ')})) THEN 1 ELSE json('sample fixture changed during preparation') END`,
         args: [rows.length, JSON.stringify(rows)],
       });
-      await atomicBatch(db, [
+      await commitSampleGroups(db, groups, [
         guard('school', schools, ['id', 'code', 'name']),
         guard('account', accounts, ['id', 'username', 'name', 'role']),
         guard('class_section', initialClasses, [
@@ -1450,7 +1447,6 @@ export async function seedExpandedDemo(
           'roll',
           'effective_on',
         ]),
-        ...statements,
       ]);
     }
     return done ? 'already expanded' : 'expanded';
