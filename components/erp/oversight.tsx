@@ -5,6 +5,7 @@ import { attendanceRate, type Workspace } from '@/lib/erp/model';
 import type { EducationRecord, OversightView } from '@/lib/erp/oversight';
 import { MunicipalDashboard, MunicipalPriorities } from './municipal';
 import { request, errorMessage } from './client';
+import { oversightLinks } from './navigation';
 
 const currency = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(
@@ -19,15 +20,21 @@ export function OversightPanel({
   workspace,
   date,
   onOpenReports,
+  activeView,
+  onViewChange,
+  hideNavigation = false,
 }: {
   workspace: Workspace;
   date: string;
   onOpenReports?: () => void;
+  activeView?: string;
+  onViewChange?: (view: string) => void;
+  hideNavigation?: boolean;
 }) {
   const principal = workspace.account.role === 'principal',
     commissioner = workspace.account.role === 'commissioner';
   const [data, setData] = useState<OversightView>(),
-    [view, setView] = useState(
+    [localView, setLocalView] = useState(
       principal ? 'request' : commissioner ? 'municipal' : 'overview',
     ),
     [school, setSchool] = useState(''),
@@ -37,6 +44,7 @@ export function OversightPanel({
     [message, setMessage] = useState(''),
     [busy, setBusy] = useState(false),
     [reload, setReload] = useState(0);
+  const view = activeView ?? localView;
   useEffect(() => {
     const controller = new AbortController();
     request<OversightView>(
@@ -55,6 +63,12 @@ export function OversightPanel({
       });
     return () => controller.abort();
   }, [date, reload]);
+  const [previousView, setPreviousView] = useState(view);
+  if (previousView !== view) {
+    setPreviousView(view);
+    setStatus('all');
+    setMessage('');
+  }
   async function save(
     event: SubmitEvent<HTMLFormElement>,
     action: string,
@@ -93,7 +107,8 @@ export function OversightPanel({
     }
   }
   const navigate = (id: string) => {
-    setView(id);
+    setLocalView(id);
+    onViewChange?.(id);
     setStatus('all');
     setMessage('');
   };
@@ -170,39 +185,23 @@ export function OversightPanel({
           Refresh oversight
         </button>
       </header>
-      <nav
-        className="erp-section-tabs"
-        aria-label="Education oversight sections"
-      >
-        {[
-          ...(commissioner
-            ? [
-                ['municipal', 'Municipal overview'],
-                ['comparison', 'School comparison'],
-                ['priorities', 'Municipal priorities'],
-                ['escalations', 'Escalated decisions'],
-                ['schools', 'School profiles'],
-              ]
-            : !principal
-              ? [
-                  ['overview', 'Overview'],
-                  ['schools', 'School profiles'],
-                ]
-              : []),
-          ...(!commissioner ? [['priorities', 'Municipal priorities']] : []),
-          ...Object.entries(names),
-          ...(!principal ? [['resources', 'Grants & infrastructure']] : []),
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            aria-current={view === id ? 'page' : undefined}
-            onClick={() => navigate(id)}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      {!hideNavigation && (
+        <nav
+          className="erp-section-tabs"
+          aria-label="Education oversight sections"
+        >
+          {oversightLinks(workspace.account.role).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={view === id ? 'page' : undefined}
+              onClick={() => navigate(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
       <div className="erp-oversight-filters">
         <label>
           Assigned school
