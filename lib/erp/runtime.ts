@@ -1,5 +1,6 @@
 import { configuredDatabase, initializeDatabase } from './database';
 import { createHandler } from './http';
+import { seedExpandedDemo } from './expanded-demo';
 import { seedTeacherDemo } from './teacher-demo';
 import { seedLearningDemo } from './learning-demo';
 import { prepareHostedMeetingDemo } from './hosted-demo';
@@ -39,6 +40,7 @@ export async function handleErp(request: Request) {
           console.info('Meeting demo sign-in setup:', demoSetup);
         await seedLearningDemo(db);
         await seedTeacherDemo(db);
+        await seedExpandedDemo(db, url.origin);
         return createHandler(db, url.origin);
       } catch (error) {
         db.close();
