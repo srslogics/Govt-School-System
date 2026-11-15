@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import {
   ArrowRight,
   BookOpen,
@@ -13,14 +12,31 @@ import {
   LogOut,
   Settings2,
   ShieldCheck,
+  Menu,
+  X,
+  Search,
+  CalendarDays,
+  Users,
+  FileText,
+  Wrench,
+  MessageSquare,
+  Bell,
+  Circle,
 } from 'lucide-react';
 import {
   useEffect,
   useState,
+  useRef,
   type SubmitEvent as ReactSubmitEvent,
 } from 'react';
 import { roleLabels, schoolStaffRoles, type Workspace } from '@/lib/erp/model';
 import { OversightPanel } from './oversight';
+import {
+  initialPortalView,
+  portalLinks,
+  portalLinkActive,
+  oversightLinks,
+} from './navigation';
 import { PortalPanel } from './portal';
 import { RegisterPanel, ReportPanel } from './attendance';
 import { SetupPanel } from './setup';
@@ -119,34 +135,36 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
             <div className="erp-login-story">
               <span className="erp-eyebrow">SCHOOL OPERATIONS, CONNECTED</span>
               <h1>
-                Every school.
+                A better school day.
                 <br />
-                One clear picture.
+                For everyone.
               </h1>
               <p>
-                From the classroom register to the education office. A simpler
-                way to record, review and understand school attendance.
+                Learning, people and daily school operations, connected in one
+                thoughtful workspace.
               </p>
               <div className="erp-login-steps">
                 <div>
                   <ClipboardCheck size={20} />
                   <span>
                     <strong>Record with confidence</strong>
-                    <small>Class attendance, saved in one place.</small>
+                    <small>Attendance, learning and daily school work.</small>
                   </span>
                 </div>
                 <div>
                   <ShieldCheck size={20} />
                   <span>
                     <strong>Review with context</strong>
-                    <small>Corrections and an accountable history.</small>
+                    <small>
+                      Clear responsibilities and recorded decisions.
+                    </small>
                   </span>
                 </div>
                 <div>
                   <LayoutDashboard size={20} />
                   <span>
                     <strong>See the whole picture</strong>
-                    <small>School summaries and submission coverage.</small>
+                    <small>Useful insights for every school and office.</small>
                   </span>
                 </div>
               </div>
@@ -158,16 +176,21 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
           <section className="erp-login-side">
             <div className="erp-login">
               <span className="erp-pilot-badge">
-                <span /> SHARED ATTENDANCE PILOT
+                <span /> SHIKSHA-SETU BY SS49
               </span>
               <h2>Welcome to Shiksha-Setu</h2>
               <p>
-                Choose a pilot workspace, then use its assigned credentials.
+                Choose your workspace and sign in to continue your school day.
               </p>
               {!unavailable && (
                 <div className="erp-role-picker">
-                  <p>WORKSPACES FOR THE WHOLE SCHOOL</p>
-                  <div className="erp-role-options">
+                  <label htmlFor="workspace-role">Your workspace</label>
+                  <select
+                    id="workspace-role"
+                    value={loginName}
+                    onChange={(event) => setLoginName(event.target.value)}
+                  >
+                    <option value="">Choose your role</option>
                     {[
                       ['parent.a', 'Parent / guardian'],
                       ['teacher.a', 'Teacher'],
@@ -180,16 +203,11 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
                       ['commissioner', 'Commissioner'],
                       ['admin', 'Administrator'],
                     ].map(([username, label]) => (
-                      <button
-                        key={username}
-                        type="button"
-                        aria-pressed={loginName === username}
-                        onClick={() => setLoginName(username)}
-                      >
+                      <option key={username} value={username}>
                         {label}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
               )}
               {error && (
@@ -251,7 +269,7 @@ function Brand() {
       </span>
       <span>
         <strong>Shiksha-Setu</strong>
-        <small>School operations</small>
+        <small>School ERP by SS49</small>
       </span>
     </div>
   );
@@ -301,6 +319,73 @@ function SignedWorkspace({
             ? 'portal'
             : 'report',
   );
+  const [portalView, setPortalView] = useState(initialPortalView(account.role));
+  const [oversightView, setOversightView] = useState(
+    account.role === 'commissioner' ? 'municipal' : 'overview',
+  );
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [navigationSearch, setNavigationSearch] = useState('');
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const sidebar = useRef<HTMLElement>(null);
+  const showPortal =
+    account.role === 'parent' ||
+    schoolStaffRoles.includes(account.role) ||
+    account.role === 'administrator';
+  const communityLinks = showPortal ? portalLinks(account.role) : [];
+  const educationLinks = ['officer', 'commissioner'].includes(account.role)
+    ? oversightLinks(account.role)
+    : [];
+  const matches = (label: string) =>
+    label.toLowerCase().includes(navigationSearch.trim().toLowerCase());
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const trigger = menuButton.current;
+    const before = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    sidebar.current?.querySelector<HTMLButtonElement>('button')?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = sidebar.current?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input, a, summary',
+      );
+      if (!items?.length) return;
+      const first = items[0],
+        last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = before;
+      document.removeEventListener('keydown', onKeyDown);
+      trigger?.focus();
+    };
+  }, [mobileOpen]);
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 1025px)');
+    const close = () => {
+      if (media.matches) setMobileOpen(false);
+    };
+    media.addEventListener('change', close);
+    return () => media.removeEventListener('change', close);
+  }, []);
+  function navigate(target: string, view?: string) {
+    setBadLink(false);
+    setTab(target);
+    if (target === 'portal' && view) setPortalView(view);
+    if (target === 'oversight' && view) setOversightView(view);
+    setMobileOpen(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
   const scopedClasses = classes.filter((row) => row.schoolId === schoolId);
   const selectedClass =
     scopedClasses.find((row) => row.id === classId) ?? scopedClasses[0];
@@ -319,8 +404,17 @@ function SignedWorkspace({
     setBadLink(false);
   }
 
+  const sectionLabel =
+    tab === 'portal'
+      ? communityLinks.find(([id]) =>
+          portalLinkActive(portalView, id, account.role),
+        )?.[1]
+      : tab === 'oversight'
+        ? educationLinks.find(([id]) => id === oversightView)?.[1]
+        : undefined;
   const title =
-    tab === 'oversight'
+    sectionLabel ??
+    (tab === 'oversight'
       ? account.role === 'commissioner'
         ? 'Municipal education'
         : 'School oversight'
@@ -336,7 +430,7 @@ function SignedWorkspace({
             ? 'Class attendance'
             : account.role === 'principal'
               ? 'School overview'
-              : 'Attendance overview';
+              : 'Attendance overview');
   const description =
     tab === 'oversight'
       ? 'Monitor assigned schools, coordinate inspections and follow up decisions and compliance.'
@@ -351,95 +445,144 @@ function SignedWorkspace({
             : 'See attendance, spot missing submissions and follow up where it matters.';
   return (
     <div className="erp-layout">
-      <aside className="erp-sidebar">
-        <Brand />
-        <div className="erp-workspace-label">YOUR WORKSPACE</div>
-        <nav className="erp-nav" aria-label="School workspace">
-          {['officer', 'commissioner'].includes(account.role) && (
-            <button
-              type="button"
-              aria-current={tab === 'oversight' ? 'page' : undefined}
-              onClick={() => {
-                setBadLink(false);
-                setTab('oversight');
-              }}
-            >
-              <Building2 size={18} />
-              {account.role === 'officer'
-                ? 'School oversight'
-                : 'Municipal dashboard'}
-            </button>
-          )}
-          {account.role === 'administrator' && (
-            <button
-              aria-current={tab === 'setup' ? 'page' : undefined}
-              type="button"
-              onClick={() => {
-                setBadLink(false);
-                setTab('setup');
-              }}
-            >
-              <Settings2 size={18} />
-              School administration
-            </button>
-          )}
-          {canReport && (
-            <button
-              type="button"
-              aria-current={tab === 'report' ? 'page' : undefined}
-              onClick={() => {
-                setBadLink(false);
-                setTab('report');
-              }}
-            >
-              <LayoutDashboard size={18} />
-              {account.role === 'principal' || account.role === 'officer'
-                ? 'Attendance reports'
-                : 'Overview & reports'}
-            </button>
-          )}
-          {canRegister && (
-            <button
-              type="button"
-              aria-current={tab === 'register' ? 'page' : undefined}
-              onClick={() => {
-                setBadLink(false);
-                setTab('register');
-              }}
-            >
-              <BookOpen size={18} />
-              Attendance register
-            </button>
-          )}
-          {(account.role === 'parent' ||
-            schoolStaffRoles.includes(account.role) ||
-            account.role === 'administrator') && (
-            <button
-              type="button"
-              aria-current={tab === 'portal' ? 'page' : undefined}
-              onClick={() => {
-                setBadLink(false);
-                setTab('portal');
-              }}
-            >
-              <GraduationCap size={18} />
-              {account.role === 'parent'
-                ? 'My family'
-                : account.role === 'principal'
-                  ? 'School dashboard'
-                  : account.role === 'administrator'
-                    ? 'Team & families'
-                    : 'My school workspace'}
-            </button>
-          )}
-        </nav>
-        <div className="erp-sidebar-context">
-          <Building2 size={20} />
-          <strong>
-            {schools.length} {schools.length === 1 ? 'school' : 'schools'} in
-            your workspace
-          </strong>
-          <p>Access follows your assigned role and school scope.</p>
+      <a className="erp-skip-link" href="#erp-workspace-content">
+        Skip to workspace
+      </a>
+      {mobileOpen && (
+        <button
+          type="button"
+          className="erp-nav-scrim"
+          aria-label="Close navigation"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+      <aside
+        id="erp-navigation"
+        ref={sidebar}
+        className={`erp-sidebar${mobileOpen ? ' is-open' : ''}`}
+        aria-label="Workspace navigation"
+      >
+        <div className="erp-sidebar-brand">
+          <Brand />
+          <button
+            className="erp-mobile-close"
+            type="button"
+            aria-label="Close navigation"
+            onClick={() => setMobileOpen(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="erp-sidebar-scroll">
+          <label className="erp-nav-search">
+            <Search size={16} />
+            <input
+              aria-label="Find a tool"
+              placeholder="Find a tool…"
+              value={navigationSearch}
+              onChange={(event) => setNavigationSearch(event.target.value)}
+            />
+            {navigationSearch && (
+              <button
+                type="button"
+                aria-label="Clear tool search"
+                onClick={() => setNavigationSearch('')}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </label>
+          <div className="erp-workspace-label">{roleLabel[account.role]}</div>
+          <nav className="erp-nav" aria-label="School workspace">
+            {educationLinks
+              .filter(([, label]) => matches(label))
+              .map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-current={
+                    tab === 'oversight' && oversightView === id
+                      ? 'page'
+                      : undefined
+                  }
+                  onClick={() => navigate('oversight', id)}
+                >
+                  <NavigationIcon id={id} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            {communityLinks
+              .filter(([, label]) => matches(label))
+              .map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-current={
+                    tab === 'portal' &&
+                    portalLinkActive(portalView, id, account.role)
+                      ? 'page'
+                      : undefined
+                  }
+                  onClick={() => navigate('portal', id)}
+                >
+                  <NavigationIcon id={id} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            {account.role === 'administrator' &&
+              matches('School administration') && (
+                <button
+                  type="button"
+                  aria-current={tab === 'setup' ? 'page' : undefined}
+                  onClick={() => navigate('setup')}
+                >
+                  <Settings2 size={18} />
+                  <span>School administration</span>
+                </button>
+              )}
+            {canReport && matches('Attendance reports') && (
+              <button
+                type="button"
+                aria-current={tab === 'report' ? 'page' : undefined}
+                onClick={() => navigate('report')}
+              >
+                <LayoutDashboard size={18} />
+                <span>Attendance reports</span>
+              </button>
+            )}
+            {canRegister && matches('Attendance register') && (
+              <button
+                type="button"
+                aria-current={tab === 'register' ? 'page' : undefined}
+                onClick={() => navigate('register')}
+              >
+                <BookOpen size={18} />
+                <span>Attendance register</span>
+              </button>
+            )}
+            {navigationSearch &&
+              ![
+                ...educationLinks,
+                ...communityLinks,
+                ...(canReport ? [['report', 'Attendance reports']] : []),
+                ...(canRegister ? [['register', 'Attendance register']] : []),
+                ...(account.role === 'administrator'
+                  ? [['setup', 'School administration']]
+                  : []),
+              ].some(([, label]) => matches(label)) && (
+                <output className="erp-nav-empty">
+                  No tools match this search.
+                </output>
+              )}
+          </nav>
+          <div className="erp-sidebar-context">
+            <Building2 size={20} />
+            <strong>
+              {schools.length} {schools.length === 1 ? 'school' : 'schools'} in
+              your workspace
+            </strong>
+            <p>Access follows your assigned role and school scope.</p>
+          </div>
         </div>
         <div className="erp-sidebar-bottom">
           <details className="erp-preview-menu">
@@ -450,7 +593,8 @@ function SignedWorkspace({
               Reference previews use fictional records saved in this browser and
               a separate sign-in.
             </p>
-            <Link href="/preview">Open reference previews</Link>
+            {/* oxlint-disable-next-line next/no-html-link-for-pages -- Reference previews use a separate runtime and sign-in, requiring a full navigation. */}
+            <a href="/preview">Open reference previews</a>
           </details>
           <div className="erp-profile">
             <span className="erp-avatar">
@@ -476,16 +620,41 @@ function SignedWorkspace({
           </div>
         </div>
       </aside>
-      <div className="erp-content">
+      <div className="erp-content" inert={mobileOpen}>
         <header className="erp-topbar">
-          <span>
-            <Landmark size={15} /> Nagpur · School operations
-          </span>
-          <span className="erp-pilot-badge">
-            <span /> FICTIONAL DATA PILOT
+          <div className="erp-topbar-location">
+            <button
+              ref={menuButton}
+              type="button"
+              className="erp-menu-toggle"
+              aria-label="Open navigation"
+              aria-expanded={mobileOpen}
+              aria-controls="erp-navigation"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu size={21} />
+            </button>
+            <span>
+              <Landmark size={16} /> School operations{' '}
+              <ChevronRight size={14} />
+              <strong>{roleLabel[account.role]}</strong>
+            </span>
+          </div>
+          <span className="erp-topbar-identity">
+            <span className="erp-pilot-badge">
+              <span /> Meeting demo
+            </span>
+            <span className="erp-avatar" aria-hidden="true">
+              {account.name
+                .split(' ')
+                .filter(Boolean)
+                .slice(-2)
+                .map((word) => word[0])
+                .join('')}
+            </span>
           </span>
         </header>
-        <div className="erp-main">
+        <div className="erp-main" id="erp-workspace-content" tabIndex={-1}>
           <header className="erp-page-title">
             <div>
               <p>{roleLabel[account.role]} workspace</p>
@@ -493,6 +662,7 @@ function SignedWorkspace({
               <span>{description}</span>
             </div>
             <div className="erp-date-stamp">
+              <CalendarDays size={16} />
               {new Intl.DateTimeFormat('en-IN', {
                 day: 'numeric',
                 month: 'short',
@@ -577,11 +747,17 @@ function SignedWorkspace({
             <OversightPanel
               workspace={workspace}
               date={date}
+              activeView={oversightView}
+              onViewChange={setOversightView}
+              hideNavigation
               onOpenReports={() => setTab('report')}
             />
           ) : tab === 'portal' ? (
             <PortalPanel
               key={date}
+              activeView={portalView}
+              onViewChange={setPortalView}
+              hideNavigation
               workspace={workspace}
               date={date}
               onOpenRegister={openRegister}
@@ -619,7 +795,7 @@ function SignedWorkspace({
             </p>
           )}
           <footer className="erp-footer">
-            <span>Shiksha-Setu · Shared school operations</span>
+            <span>Shiksha-Setu by SS49</span>
             <span>
               Independent pilot · No government connection or endorsement
             </span>
@@ -628,4 +804,27 @@ function SignedWorkspace({
       </div>
     </div>
   );
+}
+
+function NavigationIcon({ id }: { id: string }) {
+  const Icon = /timetable|day|calendar/.test(id)
+    ? CalendarDays
+    : /student|staff|directory/.test(id)
+      ? Users
+      : /request|escalation/.test(id)
+        ? MessageSquare
+        : /notice|circular/.test(id)
+          ? Bell
+          : /maintenance|inventory|resources/.test(id)
+            ? Wrench
+            : /marks|academics|performance|learning/.test(id)
+              ? BookOpen
+              : /home|overview|municipal|comparison/.test(id)
+                ? LayoutDashboard
+                : /library/.test(id)
+                  ? BookOpen
+                  : /inspection|priorities|history/.test(id)
+                    ? FileText
+                    : Circle;
+  return <Icon size={18} aria-hidden="true" />;
 }

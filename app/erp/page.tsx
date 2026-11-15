@@ -1,5 +1,6 @@
 import { ErpWorkspace } from '@/components/erp/workspace';
 import './erp.css';
+import './interface.css';
 
 export const dynamic = 'force-dynamic';
 

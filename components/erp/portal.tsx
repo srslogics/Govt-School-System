@@ -20,6 +20,7 @@ import { TeacherPanel } from './teacher';
 import { OversightPanel } from './oversight';
 import { OperationsPanel } from './operations';
 import { PrincipalPanel } from './principal';
+import { initialPortalView, portalLinks, portalLinkActive } from './navigation';
 
 const roleCopy = {
   parent: {
@@ -65,11 +66,17 @@ export function PortalPanel({
   date,
   onOpenRegister,
   onOpenReport,
+  activeView,
+  onViewChange,
+  hideNavigation = false,
 }: {
   workspace: Workspace;
   date: string;
   onOpenRegister?: (classId: string) => void;
   onOpenReport?: () => void;
+  activeView?: string;
+  onViewChange?: (view: string) => void;
+  hideNavigation?: boolean;
 }) {
   const { account, schools } = workspace;
   const parent = account.role === 'parent';
@@ -83,19 +90,14 @@ export function PortalPanel({
     category: 'general',
   };
   const [data, setData] = useState<SchoolPortal>();
-  const [view, setView] = useState(
-    parent
-      ? 'learning-home'
-      : account.role === 'teacher'
-        ? 'teacher-day'
-        : account.role === 'principal'
-          ? 'principal-overview'
-          : account.role === 'librarian'
-            ? 'library-home'
-            : account.role === 'support'
-              ? 'maintenance-home'
-              : 'home',
-  );
+  const [localView, setLocalView] = useState(initialPortalView(account.role));
+  const view = activeView ?? localView;
+  function setView(id: string) {
+    setLocalView(id);
+    onViewChange?.(id);
+    setForm(false);
+    setMessage('');
+  }
   const [form, setForm] = useState(false);
   const [schoolId, setSchoolId] = useState(schools[0]?.id ?? '');
   const [error, setError] = useState('');
@@ -120,6 +122,12 @@ export function PortalPanel({
       });
     return () => controller.abort();
   }, [date, reload]);
+  const [previousView, setPreviousView] = useState(view);
+  if (previousView !== view) {
+    setPreviousView(view);
+    setForm(false);
+    setMessage('');
+  }
   async function save(event: SubmitEvent<HTMLFormElement>, action: string) {
     event.preventDefault();
     if (busy) return;
@@ -187,119 +195,25 @@ export function PortalPanel({
           Refresh
         </button>
       </header>
-      <nav className="erp-section-tabs" aria-label="School community sections">
-        {[
-          ...(parent
-            ? [
-                ['learning-home', 'Home'],
-                ['learning-attendance', 'Attendance'],
-                ['learning-academics', 'Academics'],
-                ['learning-homework', 'Homework'],
-              ]
-            : account.role === 'teacher'
-              ? [
-                  ['teacher-day', 'My Day'],
-                  ['teacher-timetable', 'Timetable'],
-                  ['teacher-students', 'Students'],
-                  ['teacher-marks', 'Marks Entry'],
-                  ['home', 'School tasks'],
-                ]
-              : account.role === 'principal'
-                ? [
-                    ['principal-overview', 'School dashboard'],
-                    ['principal-performance', 'Performance'],
-                    ['principal-staff', 'Staff'],
-                    ['teacher-students', 'Student profiles'],
-                    ['home', 'Staff tasks'],
-                  ]
-                : account.role === 'librarian'
-                  ? [
-                      ['library-home', 'Library home'],
-                      ['library-catalogue', 'Catalogue'],
-                      ['library-loans', 'Issue & returns'],
-                      ['library-overdue', 'Overdue'],
-                      ['library-history', 'Borrowing history'],
-                      ['home', 'Library tasks'],
-                    ]
-                  : account.role === 'support'
-                    ? [
-                        ['maintenance-home', 'School care'],
-                        ['maintenance-work', 'My maintenance work'],
-                        ['maintenance-reported', 'Reported issues'],
-                        ['maintenance-history', 'Work history'],
-                        ['operations-inventory', 'Inventory'],
-                        ['home', 'General staff tasks'],
-                      ]
-                    : [['home', copy.work]]),
-          ...(account.role !== 'support' &&
-          account.role !== 'parent' &&
-          account.role !== 'administrator'
-            ? [
-                [
-                  'maintenance-home',
-                  account.role === 'principal'
-                    ? 'Facilities & maintenance'
-                    : 'Report facility issue',
-                ],
-              ]
-            : []),
-          ...(['principal', 'parent'].includes(account.role)
-            ? [['library-home', parent ? 'Library' : 'School library']]
-            : []),
-          ...(['teacher', 'principal'].includes(account.role)
-            ? [['learning', 'Academics & homework']]
-            : []),
-          ...(account.role === 'principal'
-            ? [['teacher-timetable', 'Teaching timetable']]
-            : []),
-          ...(account.role !== 'administrator'
-            ? [
-                [
-                  'operations',
-                  account.role === 'principal'
-                    ? 'School administration'
-                    : account.role === 'parent'
-                      ? 'School calendar'
-                      : 'Staff services',
-                ],
-              ]
-            : []),
-          ...(account.role === 'principal'
-            ? [['oversight', 'Officer coordination']]
-            : []),
-          ['requests', 'Requests & replies'],
-          ['notices', 'School notices'],
-          ...(directory ? [['directory', 'Learner directory']] : []),
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            aria-current={
-              view === id ||
-              (id === 'library-home' &&
-                account.role !== 'librarian' &&
-                view.startsWith('library-')) ||
-              (id === 'maintenance-home' &&
-                account.role !== 'support' &&
-                view.startsWith('maintenance-')) ||
-              (id === 'operations' &&
-                view.startsWith('operations-') &&
-                !(
-                  account.role === 'support' && view === 'operations-inventory'
-                ))
-                ? 'page'
-                : undefined
-            }
-            onClick={() => {
-              setView(id);
-              setForm(false);
-              setMessage('');
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+      {!hideNavigation && (
+        <nav
+          className="erp-section-tabs"
+          aria-label="School community sections"
+        >
+          {portalLinks(account.role).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-current={
+                portalLinkActive(view, id, account.role) ? 'page' : undefined
+              }
+              onClick={() => setView(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
       {view.startsWith('maintenance-') && (
         <MaintenancePanel
           workspace={workspace}
