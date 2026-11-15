@@ -1,7 +1,7 @@
-import type { InStatement, InValue } from '@libsql/client';
+import type { InStatement } from '@libsql/client';
 import { randomBytes } from 'node:crypto';
 import { passwordHash } from './auth';
-import { many, one, write, type Database } from './database';
+import { atomicBatch, many, one, type Database } from './database';
 import { fictionalAccounts } from './seed';
 import { todayInNagpur } from './model';
 
@@ -124,7 +124,8 @@ export async function seedExpandedDemo(
   today = todayInNagpur(),
 ) {
   if (!enabled(origin, env)) return 'not enabled';
-  return write(db, async (tx) => {
+  const tx = db;
+  {
     const done = await one(
       tx,
       'SELECT id FROM school_activity WHERE id=?',
@@ -188,10 +189,11 @@ export async function seedExpandedDemo(
       )
     )
       return 'not sample fixture';
-    const initialClasses = await many<{ id: string; effective_on: string }>(
-      tx,
-      'SELECT id,effective_on FROM class_section',
-    );
+    const initialClasses = await many<{
+      id: string;
+      school_id: string;
+      effective_on: string;
+    }>(tx, 'SELECT id,school_id,effective_on FROM class_section');
     const later = (a: string, b: string) => (a > b ? a : b);
     const existingOperations = new Map(
       (
@@ -203,13 +205,14 @@ export async function seedExpandedDemo(
         }>(tx, 'SELECT id,school_id,kind,record_key FROM school_operation')
       ).map((o) => [`${o.school_id}:${o.kind}:${o.record_key}`, o.id]),
     );
-    const statements: InStatement[] = [];
-    const add = (table: string, values: Record<string, InValue>) => {
-      const columns = Object.keys(values);
-      statements.push({
-        sql: `INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`,
-        args: Object.values(values),
-      });
+    const staged = new Map<string, Record<string, string | number | null>[]>();
+    const add = (
+      table: string,
+      values: Record<string, string | number | null>,
+    ) => {
+      const rows = staged.get(table) ?? [];
+      rows.push(values);
+      staged.set(table, rows);
     };
     const at = (offset = 0) => `${sampleDay(today, offset)}T09:30:00.000Z`;
     const activity = (
@@ -1226,17 +1229,18 @@ export async function seedExpandedDemo(
         'sample content added',
         'Fictional school-network scenarios added without changing existing records or credentials.',
       );
-      for (let i = 0; i < statements.length; i += 250)
-        await tx.batch(statements.slice(i, i + 250));
-      statements.length = 0;
     }
     // Keep a dated walkthrough snapshot on startup. A register already entered by
     // a user always wins; historical data is seeded only once. Weekend snapshots
     // are explicitly labelled as meeting scenarios, not normal school sessions.
-    const classes = await many<{ id: string; school_id: string }>(
-      tx,
-      'SELECT id,school_id FROM class_section',
-    );
+    const classes = [
+      ...initialClasses,
+      ...(staged.get('class_section') ?? []).map((c) => ({
+        id: String(c.id),
+        school_id: String(c.school_id),
+        effective_on: String(c.effective_on),
+      })),
+    ];
     const days = done
       ? [today]
       : Array.from({ length: 28 }, (_, i) => sampleDay(today, i - 28))
@@ -1244,15 +1248,17 @@ export async function seedExpandedDemo(
             (d) => ![0, 6].includes(new Date(d + 'T12:00:00Z').getUTCDay()),
           )
           .concat(today);
-    const allStudents = await many<{
-      id: string;
-      name: string;
-      roll: string;
-      class_id: string;
-      effective_on: string;
-    }>(
-      tx,
-      'SELECT id,name,roll,class_id,effective_on FROM enrolment ORDER BY CAST(roll AS INTEGER),id',
+    const allStudents = [
+      ...initialStudents,
+      ...(staged.get('enrolment') ?? []).map((s) => ({
+        id: String(s.id),
+        name: String(s.name),
+        roll: String(s.roll),
+        class_id: String(s.class_id),
+        effective_on: String(s.effective_on),
+      })),
+    ].sort(
+      (a, b) => Number(a.roll) - Number(b.roll) || a.id.localeCompare(b.id),
     );
     const classTeachers = await many<{
       id: string;
@@ -1270,6 +1276,24 @@ export async function seedExpandedDemo(
       tx,
       "SELECT a.id,a.name,s.school_id FROM account a JOIN school_assignment s ON s.account_id=a.id WHERE a.role='principal' ORDER BY a.id",
     );
+    for (const assignment of staged.get('class_assignment') ?? [])
+      classTeachers.push({
+        id: String(assignment.account_id),
+        name: accountNames.get(String(assignment.account_id))!,
+        class_id: String(assignment.class_id),
+      });
+    const addedPrincipals = new Set(
+      (staged.get('account') ?? [])
+        .filter((a) => a.role === 'principal')
+        .map((a) => String(a.id)),
+    );
+    for (const assignment of staged.get('school_assignment') ?? [])
+      if (addedPrincipals.has(String(assignment.account_id)))
+        principals.push({
+          id: String(assignment.account_id),
+          name: accountNames.get(String(assignment.account_id))!,
+          school_id: String(assignment.school_id),
+        });
     const existingRegisters = new Set(
       (
         await many<{ class_id: string; day: string }>(
@@ -1363,8 +1387,72 @@ export async function seedExpandedDemo(
           });
       }
     }
-    for (let i = 0; i < statements.length; i += 250)
-      await tx.batch(statements.slice(i, i + 250));
+    const statements: InStatement[] = [];
+    // Bulk insert rows by dependency order. JSON-bound rows keep the hosted
+    // request compact and avoid thousands of individual protocol batch steps.
+    for (const table of [
+      'school',
+      'account',
+      'school_assignment',
+      'class_section',
+      'class_assignment',
+      'enrolment',
+      'guardian_link',
+      'teaching_period',
+      'assessment',
+      'homework',
+      'homework_submission',
+      'school_notice',
+      'school_request',
+      'staff_task',
+      'school_operation',
+      'library_book',
+      'library_copy',
+      'library_loan',
+      'education_record',
+      'municipal_priority',
+      'maintenance_ticket',
+      'register',
+      'register_event',
+      'school_activity',
+    ]) {
+      const rows = staged.get(table);
+      if (!rows?.length) continue;
+      const columns = Object.keys(rows[0]);
+      statements.push({
+        sql: `INSERT INTO ${table} (${columns.join(',')}) SELECT ${columns.map((c) => `json_extract(value,'$.${c}')`).join(',')} FROM json_each(?)`,
+        args: [JSON.stringify(rows)],
+      });
+    }
+    if (statements.length) {
+      // Revalidate fixture identities and roster snapshots inside the same
+      // server-side batch as the inserts, so preparation cannot race with edits.
+      const guard = (
+        table: string,
+        rows: unknown[],
+        columns: string[],
+      ): InStatement => ({
+        sql: `SELECT CASE WHEN (SELECT COUNT(*) FROM ${table})=? AND NOT EXISTS (SELECT 1 FROM json_each(?) j WHERE NOT EXISTS (SELECT 1 FROM ${table} r WHERE ${columns.map((c) => `r.${c}=json_extract(j.value,'$.${c}')`).join(' AND ')})) THEN 1 ELSE json('sample fixture changed during preparation') END`,
+        args: [rows.length, JSON.stringify(rows)],
+      });
+      await atomicBatch(db, [
+        guard('school', schools, ['id', 'code', 'name']),
+        guard('account', accounts, ['id', 'username', 'name', 'role']),
+        guard('class_section', initialClasses, [
+          'id',
+          'school_id',
+          'effective_on',
+        ]),
+        guard('enrolment', initialStudents, [
+          'id',
+          'class_id',
+          'name',
+          'roll',
+          'effective_on',
+        ]),
+        ...statements,
+      ]);
+    }
     return done ? 'already expanded' : 'expanded';
-  });
+  }
 }

@@ -40,7 +40,15 @@ export async function handleErp(request: Request) {
           console.info('Meeting demo sign-in setup:', demoSetup);
         await seedLearningDemo(db);
         await seedTeacherDemo(db);
-        await seedExpandedDemo(db, url.origin);
+        try {
+          await seedExpandedDemo(db, url.origin);
+        } catch (error) {
+          // Optional meeting content must not take sign-in or existing records offline.
+          console.error(
+            'Sample content setup failed:',
+            error instanceof Error ? error.name : 'Unknown error',
+          );
+        }
         return createHandler(db, url.origin);
       } catch (error) {
         db.close();
