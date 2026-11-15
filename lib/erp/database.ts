@@ -1,6 +1,7 @@
 import {
   createClient,
   type Client,
+  type InStatement,
   type InValue,
   type Transaction,
 } from '@libsql/client';
@@ -268,22 +269,31 @@ export async function run(db: Query, sql: string, ...args: InValue[]) {
 // A single app process queues writes instead of competing with its own open write transactions.
 const pendingWrites = new WeakMap<Database, Promise<unknown>>();
 
+// Atomic server-side batches avoid holding a hosted interactive transaction open
+// while the app generates fixture content or makes network round trips.
+export function atomicBatch(db: Database, statements: InStatement[]) {
+  return queueWrite(db, () => db.batch(statements, 'write'));
+}
+
 export function write<T>(
   db: Database,
   action: (tx: Transaction) => Promise<T>,
 ): Promise<T> {
-  const previous = pendingWrites.get(db) ?? Promise.resolve();
-  const result = previous.then(async () => {
+  return queueWrite(db, async () => {
     const tx = await db.transaction('write');
     try {
       const value = await action(tx);
       await tx.commit();
       return value;
     } finally {
-      // Closing a transaction before committing rolls it back.
       tx.close();
     }
   });
+}
+
+function queueWrite<T>(db: Database, action: () => Promise<T>): Promise<T> {
+  const previous = pendingWrites.get(db) ?? Promise.resolve();
+  const result = previous.then(action);
   const settled = result.catch(() => undefined);
   pendingWrites.set(db, settled);
   void settled.then(() => {

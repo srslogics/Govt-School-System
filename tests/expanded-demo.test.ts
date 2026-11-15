@@ -418,3 +418,77 @@ void test('sample expansion requires an opted-in loopback or exact hosted fixtur
     close();
   }
 });
+
+void test('hosted sample preparation uses one atomic batch and rejects concurrent roster edits', async () => {
+  const { db, close } = fixture();
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => password);
+    let batches = 0;
+    let race = true;
+    const hosted = new Proxy(db, {
+      get(target, property, receiver) {
+        if (property === 'transaction')
+          return () => {
+            throw new Error(
+              'Interactive transactions are forbidden during sample preparation',
+            );
+          };
+        if (property === 'execute') return target.execute.bind(target);
+        if (property === 'batch')
+          return async (
+            statements: Parameters<typeof db.batch>[0],
+            mode: Parameters<typeof db.batch>[1],
+          ) => {
+            batches++;
+            assert.equal(mode, 'write');
+            assert.ok(
+              Array.isArray(statements) && statements.length < 50,
+              'compact dependency-ordered bulk inserts',
+            );
+            assert.ok(
+              Buffer.byteLength(JSON.stringify(statements)) < 8 * 1024 * 1024,
+              'bounded hosted request payload',
+            );
+            if (race)
+              await run(
+                db,
+                "UPDATE enrolment SET name='Edited during preparation' WHERE id='class-a-student-1'",
+              );
+            return target.batch(statements, mode);
+          };
+        return Reflect.get(target, property, receiver) as unknown;
+      },
+    });
+    await assert.rejects(seedExpandedDemo(hosted, origin, enabled));
+    assert.equal(batches, 1);
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM school'))!.n,
+      2,
+    );
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM account'))!.n,
+      13,
+    );
+    assert.equal(
+      (await one<{ name: string }>(
+        db,
+        "SELECT name FROM enrolment WHERE id='class-a-student-1'",
+      ))!.name,
+      'Edited during preparation',
+    );
+    await run(
+      db,
+      "UPDATE enrolment SET name='Sample learner A-1' WHERE id='class-a-student-1'",
+    );
+    race = false;
+    assert.equal(await seedExpandedDemo(hosted, origin, enabled), 'expanded');
+    assert.equal(batches, 2);
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM enrolment'))!.n,
+      522,
+    );
+  } finally {
+    close();
+  }
+});
