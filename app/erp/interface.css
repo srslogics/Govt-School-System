@@ -690,126 +690,6 @@
   width: 100%;
   height: 100%;
 }
-/* A deliberate sign-in composition with one clear form. */
-.erp-login-layout {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  min-height: 100dvh;
-}
-.erp-login-intro {
-  background: var(--erp-sidebar);
-  padding: 44px clamp(30px, 5vw, 84px);
-}
-.erp-login-intro:after {
-  display: none;
-}
-.erp-login-intro .erp-brand-mark {
-  background: #ffffff10;
-  color: #93c5fd;
-}
-.erp-login-intro .erp-brand small {
-  color: var(--erp-sidebar-muted);
-}
-.erp-login-story {
-  padding: 60px 0;
-}
-.erp-login-story > .erp-eyebrow {
-  color: #93c5fd;
-}
-.erp-login-story h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(40px, 4.8vw, 70px);
-  font-weight: 400;
-  letter-spacing: -2px;
-  line-height: 1.1;
-  margin: 24px 0;
-  max-width: 650px;
-}
-.erp-login-story > p {
-  color: var(--erp-on-sidebar);
-  font-size: 16px;
-  line-height: 1.8;
-  max-width: 410px;
-}
-.erp-login-steps {
-  gap: 23px;
-  margin-top: 38px;
-}
-.erp-login-steps > div {
-  color: #93c5fd;
-  align-items: flex-start;
-}
-.erp-login-steps > div > svg {
-  margin-top: 3px;
-}
-.erp-login-steps strong {
-  color: #f8fafc;
-  font-size: 14px;
-  font-weight: 600;
-}
-.erp-login-steps small {
-  color: var(--erp-sidebar-muted);
-  font-size: 12px;
-}
-.erp-login-disclaimer {
-  color: var(--erp-sidebar-muted);
-  font-size: 10px;
-  line-height: 1.7;
-}
-.erp-login-side {
-  background: #fff;
-  padding: 52px clamp(25px, 5vw, 80px);
-}
-.erp-login,
-.erp-login:has(.erp-role-picker) {
-  max-width: 420px;
-}
-.erp-login h2 {
-  font-size: 30px;
-  letter-spacing: -0.9px;
-  margin: 22px 0 12px;
-  line-height: 1.25;
-}
-.erp-login > p {
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--erp-muted);
-}
-.erp-login .erp-pilot-badge {
-  color: var(--erp-primary-hover);
-  letter-spacing: 0.12em;
-  font-size: 10px;
-}
-.erp-role-picker {
-  margin-top: 30px;
-}
-.erp-role-picker label {
-  margin-bottom: 8px;
-}
-.erp-role-picker select {
-  min-height: 50px;
-}
-.erp-login form,
-.erp-login:has(.erp-role-picker) form {
-  margin-top: 20px;
-  gap: 20px;
-}
-.erp-login form input {
-  height: 50px;
-}
-.erp-login form button {
-  min-height: 50px;
-  font-size: 14px;
-  margin-top: 4px;
-}
-.erp-login-note {
-  margin-top: 27px;
-  padding-top: 22px;
-  color: #475569;
-}
-.erp-login-note p {
-  font-size: 12px;
-  line-height: 1.7;
-}
 @media (min-width: 1600px) {
   .erp-main {
     padding-top: 45px;
@@ -901,9 +781,6 @@
   }
   .erp-date-stamp {
     display: none;
-  }
-  .erp-login-story h1 {
-    font-size: 48px;
   }
 }
 @media (max-width: 760px) {
@@ -1036,35 +913,6 @@
   .erp-report-actions a,
   .erp-report-actions button {
     font-size: 12px;
-  }
-  .erp-login-layout {
-    display: block;
-  }
-  .erp-login-intro {
-    padding: 25px;
-  }
-  .erp-login-story {
-    padding: 32px 0 12px;
-  }
-  .erp-login-story h1 {
-    font-size: 42px;
-    letter-spacing: -1.6px;
-  }
-  .erp-login-story > p {
-    font-size: 14px;
-  }
-  .erp-login-story > .erp-eyebrow,
-  .erp-login-steps {
-    display: none;
-  }
-  .erp-login-disclaimer {
-    margin-top: 18px !important;
-  }
-  .erp-login-side {
-    padding: 32px 25px;
-  }
-  .erp-login h2 {
-    font-size: 27px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

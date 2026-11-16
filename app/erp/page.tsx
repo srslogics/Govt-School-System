@@ -2,6 +2,7 @@ import { ErpWorkspace } from '@/components/erp/workspace';
 import './erp.css';
 import './interface.css';
 import './compact-preview.css';
+import './auth.css';
 
 export const dynamic = 'force-dynamic';
 
