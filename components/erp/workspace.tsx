@@ -1,11 +1,9 @@
 'use client';
 
 import {
-  ArrowRight,
   BookOpen,
   Building2,
   ChevronRight,
-  ClipboardCheck,
   GraduationCap,
   Landmark,
   LayoutDashboard,
@@ -143,73 +141,31 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
             }}
           />
         ) : (
-          <div className="erp-login-layout">
-            <section className="erp-login-intro">
-              <Brand />
-              <div className="erp-login-story">
-                <span className="erp-eyebrow">
-                  SCHOOL OPERATIONS, CONNECTED
-                </span>
-                <h1>
-                  A better school day.
-                  <br />
-                  For everyone.
-                </h1>
-                <p>
-                  Learning, people and daily school operations, connected in one
-                  thoughtful workspace.
-                </p>
-                <div className="erp-login-steps">
-                  <div>
-                    <ClipboardCheck size={20} />
-                    <span>
-                      <strong>Record with confidence</strong>
-                      <small>Attendance, learning and daily school work.</small>
-                    </span>
-                  </div>
-                  <div>
-                    <ShieldCheck size={20} />
-                    <span>
-                      <strong>Review with context</strong>
-                      <small>
-                        Clear responsibilities and recorded decisions.
-                      </small>
-                    </span>
-                  </div>
-                  <div>
-                    <LayoutDashboard size={20} />
-                    <span>
-                      <strong>See the whole picture</strong>
-                      <small>
-                        Useful insights for every school and office.
-                      </small>
-                    </span>
-                  </div>
-                </div>
+          <div className="erp-auth-page">
+            <header className="erp-auth-masthead">
+              <div className="erp-auth-masthead-inner">
+                <Brand caption="School management system" />
+                <span className="erp-auth-publisher">SS49</span>
               </div>
-              <p className="erp-login-disclaimer">
-                Independent demonstration · Fictional records · No NMC
-                endorsement
-              </p>
-            </section>
-            <section className="erp-login-side">
-              <div className="erp-login">
-                <span className="erp-pilot-badge">
-                  <span /> SHIKSHA-SETU BY SS49
-                </span>
-                <h2>Welcome to Shiksha-Setu</h2>
-                <p>
-                  Choose your workspace and sign in to continue your school day.
-                </p>
+            </header>
+            <div className="erp-auth-main">
+              <section
+                className="erp-auth-panel"
+                aria-labelledby="erp-sign-in-title"
+              >
+                <div className="erp-auth-heading">
+                  <h1 id="erp-sign-in-title">Sign in</h1>
+                  <p>Enter your account details to access the ERP.</p>
+                </div>
                 {!unavailable && (
-                  <div className="erp-role-picker">
-                    <label htmlFor="workspace-role">Your workspace</label>
+                  <div className="erp-auth-workspace">
+                    <label htmlFor="workspace-role">Workspace</label>
                     <select
                       id="workspace-role"
                       value={loginName}
                       onChange={(event) => setLoginName(event.target.value)}
                     >
-                      <option value="">Choose your role</option>
+                      <option value="">Select a workspace</option>
                       {[
                         ['parent.a', 'Parent / guardian'],
                         ['teacher.a', 'Teacher'],
@@ -260,20 +216,49 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
                       />
                     </label>
                     <button className="erp-primary" disabled={busy}>
-                      {busy ? 'Signing in…' : 'Open workspace'}
-                      <ArrowRight size={17} />
+                      {busy ? 'Signing in…' : 'Sign in'}
                     </button>
                   </form>
                 )}
-                <div className="erp-login-note">
-                  <ShieldCheck size={18} />
-                  <p>
-                    Your account opens only the schools and classes assigned to
-                    you.
-                  </p>
-                </div>
-              </div>
-            </section>
+
+                <p className="erp-auth-access">
+                  <ShieldCheck size={15} aria-hidden="true" />
+                  Access is limited to your assigned role and schools.
+                </p>
+              </section>
+              <aside
+                className="erp-auth-context"
+                aria-label="About Shiksha-Setu"
+              >
+                <span className="erp-auth-context-label">Shiksha-Setu ERP</span>
+                <h2>School operations</h2>
+                <p>
+                  Student records, daily administration and reporting for
+                  schools and education offices.
+                </p>
+                <dl>
+                  <div>
+                    <dt>Administration</dt>
+                    <dd>Attendance, admissions, staff and school resources.</dd>
+                  </div>
+                  <div>
+                    <dt>Academics</dt>
+                    <dd>Assignments, assessments and student progress.</dd>
+                  </div>
+                  <div>
+                    <dt>Department oversight</dt>
+                    <dd>School reports, inspections and follow-up.</dd>
+                  </div>
+                </dl>
+              </aside>
+            </div>
+            <footer className="erp-auth-footer">
+              <span>Shiksha-Setu · SS49</span>
+              <span>
+                Independent demonstration · Fictional records · No NMC
+                endorsement
+              </span>
+            </footer>
           </div>
         )}
       </main>
@@ -281,7 +266,7 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
   );
 }
 
-function Brand() {
+function Brand({ caption = 'School ERP by SS49' }: { caption?: string }) {
   return (
     <div className="erp-brand">
       <span className="erp-brand-mark">
@@ -289,7 +274,7 @@ function Brand() {
       </span>
       <span>
         <strong>Shiksha-Setu</strong>
-        <small>School ERP by SS49</small>
+        <small>{caption}</small>
       </span>
     </div>
   );

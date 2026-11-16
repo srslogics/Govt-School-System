@@ -852,145 +852,6 @@
   white-space: nowrap;
   border: 0;
 }
-.erp-login-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
-}
-.erp-login-intro {
-  display: flex;
-  flex-direction: column;
-  background: var(--erp-navy);
-  padding: 42px 60px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-.erp-login-intro:after {
-  content: '';
-  width: 500px;
-  height: 500px;
-  position: absolute;
-  bottom: -290px;
-  right: -250px;
-  border: 1px solid #ffffff10;
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 65px #ffffff03,
-    0 0 0 130px #ffffff02;
-  pointer-events: none;
-}
-.erp-login-intro .erp-brand strong {
-  color: white;
-}
-.erp-login-intro .erp-brand small {
-  color: #90a7bb;
-}
-.erp-login-intro .erp-brand-mark {
-  color: #c3d7e6;
-  background: #ffffff0e;
-}
-.erp-login-story {
-  margin: auto 0;
-  padding: 60px 0;
-}
-.erp-login-story > .erp-eyebrow {
-  color: #9eb8cd;
-}
-.erp-login-story h1 {
-  font-size: 48px;
-  line-height: 1.15;
-  letter-spacing: -1.8px;
-  font-weight: 500;
-  margin: 20px 0 22px;
-  color: white;
-}
-.erp-login-story > p {
-  max-width: 360px;
-  font-size: 13px;
-  line-height: 1.9;
-  color: #a4b8ca;
-}
-.erp-login-steps {
-  display: grid;
-  gap: 23px;
-  margin-top: 40px;
-}
-.erp-login-steps > div {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  color: #8eafc5;
-}
-.erp-login-steps strong {
-  display: block;
-  font-size: 13px;
-  color: #e7eff5;
-  font-weight: 500;
-}
-.erp-login-steps small {
-  display: block;
-  font-size: 11px;
-  color: #8da7bd;
-  margin-top: 3px;
-}
-.erp-login-disclaimer {
-  font-size: 10px;
-  color: #7893aa;
-  position: relative;
-  z-index: 1;
-}
-.erp-login-side {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  background: #fafcfe;
-}
-.erp-login {
-  width: 100%;
-  max-width: 350px;
-}
-.erp-login h2 {
-  font-size: 25px;
-  letter-spacing: -0.8px;
-  color: var(--erp-navy);
-  margin: 18px 0 8px;
-  font-weight: 600;
-}
-.erp-login > p {
-  font-size: 13px;
-  color: var(--erp-muted);
-}
-.erp-login form {
-  display: grid;
-  gap: 19px;
-  margin-top: 32px;
-}
-.erp-login form input {
-  height: 46px;
-}
-.erp-login form button {
-  height: 45px;
-  justify-content: space-between;
-  margin-top: 7px;
-  padding: 0 16px;
-}
-.erp-login-note {
-  display: flex;
-  gap: 11px;
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid var(--erp-line);
-  color: #8b9daf;
-}
-.erp-login-note svg {
-  flex: none;
-}
-.erp-login-note p {
-  font-size: 11px;
-  line-height: 1.8;
-}
 .erp-loading {
   padding: 60px;
   text-align: center;
@@ -1002,9 +863,6 @@
   }
   .erp-card {
     padding: 30px;
-  }
-  .erp-login-intro {
-    padding: 50px 90px;
   }
 }
 @media (max-width: 1050px) {
@@ -1022,12 +880,6 @@
   }
   .erp-setup-grid {
     grid-template-columns: 1fr;
-  }
-  .erp-login-intro {
-    padding: 35px;
-  }
-  .erp-login-story h1 {
-    font-size: 40px;
   }
   .erp-kpis {
     gap: 10px;
@@ -1112,33 +964,6 @@
   }
   .erp-register-summary button {
     margin-left: 0;
-  }
-  .erp-login-layout {
-    grid-template-columns: 1fr;
-  }
-  .erp-login-intro {
-    padding: 28px;
-  }
-  .erp-login-story {
-    padding: 40px 0 20px;
-  }
-  .erp-login-story h1 {
-    font-size: 38px;
-  }
-  .erp-login-steps {
-    display: none;
-  }
-  .erp-login-disclaimer {
-    margin-top: 15px !important;
-  }
-  .erp-login-side {
-    padding: 38px 28px;
-  }
-  .erp-login {
-    max-width: 440px;
-  }
-  .erp-login h2 {
-    font-size: 24px;
   }
   .erp-footer {
     line-height: 1.7;
@@ -1452,14 +1277,6 @@ progress.erp-coverage-track::-moz-progress-bar {
   max-width: 450px;
   margin: auto;
 }
-.erp-role-picker {
-  margin: 22px 0 0;
-}
-.erp-role-picker > p {
-  font-size: 10px;
-  color: var(--erp-muted);
-  margin-bottom: 9px;
-}
 .erp-role-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1476,13 +1293,6 @@ progress.erp-coverage-track::-moz-progress-bar {
   background: #e9f2f8;
   border-color: #a0bcd1;
   color: #234f72;
-}
-.erp-login:has(.erp-role-picker) {
-  max-width: 410px;
-}
-.erp-login:has(.erp-role-picker) form {
-  margin-top: 20px;
-  gap: 14px;
 }
 @media (max-width: 760px) {
   .erp-portal-form {

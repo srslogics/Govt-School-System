@@ -416,15 +416,6 @@
   .erp-compact-preview .erp-principal-box:has(> button) > h3 {
     grid-column: 1 / -1;
   }
-  .erp-compact-preview .erp-login-story {
-    padding: 40px;
-  }
-  .erp-compact-preview .erp-login-story h1 {
-    font-size: 44px;
-  }
-  .erp-compact-preview .erp-login-form-panel {
-    padding: 34px;
-  }
 }
 @media (max-width: 1024px) {
   .erp-compact-preview .erp-main {
