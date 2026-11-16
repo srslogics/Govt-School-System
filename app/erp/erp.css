@@ -222,21 +222,6 @@
 .erp-sidebar-bottom {
   margin-top: auto;
 }
-.erp-preview-menu {
-  padding: 16px 9px;
-  border-bottom: 1px solid var(--erp-line);
-  font-size: 11px;
-  color: var(--erp-muted);
-}
-.erp-preview-menu summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-.erp-preview-menu p {
-  margin: 10px 0;
-}
 .erp-profile {
   display: flex;
   align-items: center;
@@ -1067,8 +1052,7 @@
     padding: 0 0 14px;
   }
   .erp-workspace-label,
-  .erp-sidebar-context,
-  .erp-preview-menu {
+  .erp-sidebar-context {
     display: none;
   }
   .erp-nav {

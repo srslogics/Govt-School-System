@@ -246,14 +246,6 @@
   border-top: 1px solid #ffffff15;
   flex-shrink: 0;
 }
-.erp-preview-menu {
-  color: #bdd1c3;
-  padding: 13px 0;
-  border-color: #ffffff15;
-}
-.erp-preview-menu p {
-  line-height: 1.6;
-}
 .erp-sidebar a {
   color: #e5ecd5;
 }
