@@ -43,12 +43,17 @@ import { RegisterPanel, ReportPanel } from './attendance';
 import { SetupPanel } from './setup';
 import { errorMessage, request, RequestError } from './client';
 
-type Initial = { classId?: string; date?: string; compactPreview?: boolean };
+type Initial = {
+  classId?: string;
+  date?: string;
+  compactPreview?: boolean;
+  showLayoutComparison?: boolean;
+};
 const roleLabel = roleLabels;
 
 export function ErpWorkspace({ initial }: { initial: Initial }) {
   const [compactPreview, setCompactPreview] = useState(
-    Boolean(initial.compactPreview),
+    initial.compactPreview !== false,
   );
   const [loginName, setLoginName] = useState('');
   const [workspace, setWorkspace] = useState<Workspace>();
@@ -674,7 +679,7 @@ function SignedWorkspace({
           </span>
         </header>
         <div className="erp-main" id="erp-workspace-content" tabIndex={-1}>
-          {initial.compactPreview && (
+          {initial.showLayoutComparison && (
             <div className="erp-compact-preview-note">
               <span>
                 {compactPreview ? 'Compact layout preview' : 'Current layout'}

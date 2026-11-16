@@ -72,7 +72,7 @@ void test('unified workspace navigation retains role scope, route selection, sea
           },
         ),
       );
-    async function mount(username: string, compactPreview = false) {
+    async function mount(username: string, compactPreview?: boolean) {
       cleanup();
       const result = await handler(
         new Request(origin + '/api/erp/login', {
@@ -83,13 +83,22 @@ void test('unified workspace navigation retains role scope, route selection, sea
       );
       assert.equal(result.status, 200);
       cookie = result.headers.get('set-cookie')!.split(';')[0];
-      render(<ErpWorkspace initial={{ compactPreview }} />);
+      render(
+        <ErpWorkspace
+          initial={{
+            compactPreview,
+            showLayoutComparison: compactPreview === true,
+          }}
+        />,
+      );
       await screen.findByRole('navigation', { name: 'School workspace' });
       return within(
         screen.getByRole('navigation', { name: 'School workspace' }),
       );
     }
     const parent = await mount('parent.a');
+    assert.ok(document.querySelector('.erp-compact-preview'));
+    assert.equal(screen.queryByText('Compact layout preview'), null);
     await screen.findByRole('heading', { name: 'Sample learner A-1' });
     assert.equal(
       screen.queryByRole('navigation', { name: 'School community sections' }),

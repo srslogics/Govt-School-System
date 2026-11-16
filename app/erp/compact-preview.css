@@ -1,4 +1,4 @@
-/* Opt-in review at /erp?preview=compact. Current/live layout keeps its defaults. */
+/* Default compact ERP layout; /erp?preview=compact enables comparison controls. */
 .erp-compact-preview {
   font-size: 13px;
   line-height: 1.45;
