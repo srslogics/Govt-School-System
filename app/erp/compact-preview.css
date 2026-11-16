@@ -98,7 +98,7 @@
   gap: 14px;
   align-items: center;
   justify-content: flex-end;
-  color: #647669;
+  color: var(--erp-muted);
   font-size: 11px;
   margin-bottom: 7px;
 }
@@ -307,7 +307,7 @@
   font-size: 11px;
 }
 .erp-compact-preview .erp-record-preview-tools > span {
-  color: #61756a;
+  color: var(--erp-muted);
   white-space: nowrap;
 }
 .erp-compact-preview .erp-record-search {
@@ -319,7 +319,7 @@
   position: absolute;
   left: 10px;
   top: 10px;
-  color: #657c6c;
+  color: var(--erp-muted);
 }
 .erp-compact-preview .erp-record-search input {
   padding-left: 31px;
@@ -332,7 +332,7 @@
 }
 .erp-compact-preview .erp-record-pager > output:first-child {
   margin-right: auto;
-  color: #5a7064;
+  color: var(--erp-muted);
 }
 .erp-compact-preview .erp-record-pager label {
   display: flex;
@@ -359,7 +359,7 @@
 .erp-compact-preview .erp-preview-no-match {
   grid-column: 1 / -1;
   padding: 16px 0;
-  color: #607367;
+  color: var(--erp-muted);
 }
 .erp-visually-hidden {
   position: absolute;
@@ -502,7 +502,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #16664f;
+  color: var(--erp-primary);
   font-size: 11px;
   text-decoration: underline;
 }
