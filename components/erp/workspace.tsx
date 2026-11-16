@@ -609,17 +609,6 @@ function SignedWorkspace({
           </div>
         </div>
         <div className="erp-sidebar-bottom">
-          <details className="erp-preview-menu">
-            <summary>
-              Explore other modules <ChevronRight size={14} />
-            </summary>
-            <p>
-              Reference previews use fictional records saved in this browser and
-              a separate sign-in.
-            </p>
-            {/* oxlint-disable-next-line next/no-html-link-for-pages -- Reference previews use a separate runtime and sign-in, requiring a full navigation. */}
-            <a href="/preview">Open reference previews</a>
-          </details>
           <div className="erp-profile">
             <span className="erp-avatar">
               {account.name

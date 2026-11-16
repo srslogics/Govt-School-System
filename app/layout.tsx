@@ -24,12 +24,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'Shikshan Setu | Nagpur School Command Centre',
   description:
-    'Shiksha-Setu school operations pilot with fictional records and separate reference previews.',
+    'Shiksha-Setu connects school operations, families, staff and education officers.',
   alternates: { canonical: siteUrl },
   openGraph: {
     title: 'Shikshan Setu | Nagpur School Command Centre',
     description:
-      'School operations pilot with fictional records and reference previews.',
+      'Connected school operations for families, staff and education officers.',
     url: siteUrl,
     siteName: 'Shikshan Setu',
     type: 'website',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Shikshan Setu | Nagpur School Command Centre',
     description:
-      'School operations pilot with fictional records and reference previews.',
+      'Connected school operations for families, staff and education officers.',
     images: [previewImage],
   },
 };
