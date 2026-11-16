@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import {
   useEffect,
@@ -404,7 +405,12 @@ export function SetupPanel({
               />
             </label>
           </header>
-          <div className="erp-directory-list">
+          <RecordPreview
+            key={section}
+            className="erp-directory-list"
+            label="Directory records"
+            searchable={false}
+          >
             {(section === 'school'
               ? setup.schools.map((row) => ({
                   id: row.id,
@@ -474,7 +480,7 @@ export function SetupPanel({
                   <span className="erp-tag">{row.badge}</span>
                 </div>
               ))}
-          </div>
+          </RecordPreview>
           <p className="erp-directory-help">
             Use fictional records for this pilot. New assignments take effect
             when the staff member refreshes their workspace.

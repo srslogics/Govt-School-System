@@ -296,3 +296,7 @@ The hosted sample import uploads isolated JSON staging chunks with each request 
 Sample directory passwords are derived asynchronously so fixture generation does not block the server event loop. Sample reads, staging setup and run-scoped staging upserts retry a dropped `fetch` connection at most twice. Upload retries use the same run/slot key and cannot duplicate staged rows. The final business-data commit is never blindly retried; a later explicit retry observes the completion marker if the original commit succeeded but its acknowledgement was lost. Import errors include the failing phase in administrator diagnostics.
 
 Administrators can use `GET /api/erp/sample-data` for the deployed Render revision, school/learner counts and expansion-marker state; other roles receive 403. This does not expose database configuration or credentials.
+
+### Compact ERP layout
+
+The default `/erp` interface uses a denser layout with smaller headers and cards, compact dashboards, bounded tables and searchable record pages (four cards by default). Use `/erp?preview=compact` to show an in-place layout comparison control while retaining the active section. Record forms remain mounted across paging, search and layout comparison so unsaved values are retained. Use `/erp?layout=comfortable` for the previous density. The layout changes presentation only; role access and stored records use the same ERP APIs.

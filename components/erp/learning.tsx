@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 import { useEffect, useState, type SubmitEvent } from 'react';
 import {
   ArrowRight,
@@ -533,7 +534,11 @@ export function LearningPanel({
                 term report unless the school has entered and published every
                 subject.
               </p>
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:0`}
+                className="erp-portal-records"
+                label="Learning records"
+              >
                 {parent
                   ? [
                       ...new Set(
@@ -606,7 +611,7 @@ export function LearningPanel({
                     No {parent ? 'published ' : ''}assessment results yet.
                   </div>
                 )}
-              </div>
+              </RecordPreview>
             </>
           )}
           {view === 'homework' && (
@@ -655,7 +660,11 @@ export function LearningPanel({
                 file or automatically mark the work as checked. Assigned
                 teachers can add feedback.
               </p>
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:1`}
+                className="erp-portal-records"
+                label="Learning records"
+              >
                 {homework.map((row) => {
                   const submission = submissions.find(
                     (item) =>
@@ -801,7 +810,7 @@ export function LearningPanel({
                     No homework assigned to this class yet.
                   </div>
                 )}
-              </div>
+              </RecordPreview>
             </>
           )}
         </>

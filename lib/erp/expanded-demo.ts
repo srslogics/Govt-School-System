@@ -1055,11 +1055,14 @@ export async function seedExpandedDemo(
             r === 5 ? principal : support,
             `${prefix}repair-${si}-${r}`,
             'maintenance sample case',
-            r === 5
-              ? 'Principal verified the repair and accepted closure.'
-              : r === 3
-                ? 'Awaiting a replacement fitting from the supplier.'
-                : 'School inspection and repair progress recorded.',
+            JSON.stringify({
+              note:
+                r === 5
+                  ? 'Principal verified the repair and accepted closure.'
+                  : r === 3
+                    ? 'Awaiting a replacement fitting from the supplier.'
+                    : 'School inspection and repair progress recorded.',
+            }),
             -4,
           );
         for (let n = 0; n < 4; n++) {
@@ -1114,7 +1117,7 @@ export async function seedExpandedDemo(
             officer,
             id,
             'oversight inspection recorded',
-            'School visit and follow-up recorded.',
+            JSON.stringify({ note: 'School visit and follow-up recorded.' }),
             -4 + n,
           );
         }
@@ -1240,7 +1243,9 @@ export async function seedExpandedDemo(
             'commissioner',
             `${prefix}priority-${si}-${n}`,
             'municipal sample priority',
-            'School improvement priority and officer follow-up recorded.',
+            JSON.stringify({
+              note: 'School improvement priority and officer follow-up recorded.',
+            }),
             -7,
           );
       activity(

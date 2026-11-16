@@ -1,4 +1,6 @@
 'use client';
+import { readActivityNote } from '@/lib/erp/activity-note';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { attendanceRate, type Workspace } from '@/lib/erp/model';
@@ -705,7 +707,11 @@ export function OversightPanel({
                   </select>
                 </label>
               )}
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:0`}
+                className="erp-portal-records"
+                label="Officer records"
+              >
                 {visible.map((row) => (
                   <article
                     className="erp-portal-record"
@@ -918,11 +924,7 @@ export function OversightPanel({
                       {data.history
                         .filter((item) => item.targetId === row.id)
                         .map((item) => {
-                          const detail = JSON.parse(item.note) as {
-                            note: string;
-                            before: string;
-                            after: string;
-                          };
+                          const detail = readActivityNote(item.note);
                           return (
                             <p key={item.id}>
                               <strong>
@@ -932,8 +934,12 @@ export function OversightPanel({
                                 })}
                               </strong>
                               <br />
-                              {detail.before} → {detail.after}
-                              <br />
+                              {detail.after && (
+                                <>
+                                  {detail.before ?? 'new'} → {detail.after}
+                                  <br />
+                                </>
+                              )}
                               {detail.note}
                             </p>
                           );
@@ -941,7 +947,7 @@ export function OversightPanel({
                     </details>
                   </article>
                 ))}
-              </div>
+              </RecordPreview>
               {!visible.length && (
                 <p>No {view} records match this school and filter.</p>
               )}

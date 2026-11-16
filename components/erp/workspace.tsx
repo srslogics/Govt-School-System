@@ -30,6 +30,7 @@ import {
   type SubmitEvent as ReactSubmitEvent,
 } from 'react';
 import { roleLabels, schoolStaffRoles, type Workspace } from '@/lib/erp/model';
+import { CompactPreviewContext } from './record-preview';
 import { OversightPanel } from './oversight';
 import {
   initialPortalView,
@@ -42,10 +43,18 @@ import { RegisterPanel, ReportPanel } from './attendance';
 import { SetupPanel } from './setup';
 import { errorMessage, request, RequestError } from './client';
 
-type Initial = { classId?: string; date?: string };
+type Initial = {
+  classId?: string;
+  date?: string;
+  compactPreview?: boolean;
+  showLayoutComparison?: boolean;
+};
 const roleLabel = roleLabels;
 
 export function ErpWorkspace({ initial }: { initial: Initial }) {
+  const [compactPreview, setCompactPreview] = useState(
+    initial.compactPreview !== false,
+  );
   const [loginName, setLoginName] = useState('');
   const [workspace, setWorkspace] = useState<Workspace>();
   const [loading, setLoading] = useState(true);
@@ -107,157 +116,168 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
   }
 
   return (
-    <main className={`erp-shell${workspace ? '' : ' erp-signed-out'}`}>
-      {loading ? (
-        <output className="erp-loading">Opening your workspace…</output>
-      ) : workspace ? (
-        <SignedWorkspace
-          key={workspace.account.id}
-          workspace={workspace}
-          initial={initial}
-          busy={busy}
-          error={error}
-          onSignOut={() => void signOut()}
-          refresh={() => {
-            void request<Workspace>('session')
-              .then(setWorkspace)
-              .catch((failure: unknown) => {
-                if (failure instanceof RequestError && failure.status === 401)
-                  setWorkspace(undefined);
-                setError(errorMessage(failure));
-              });
-          }}
-        />
-      ) : (
-        <div className="erp-login-layout">
-          <section className="erp-login-intro">
-            <Brand />
-            <div className="erp-login-story">
-              <span className="erp-eyebrow">SCHOOL OPERATIONS, CONNECTED</span>
-              <h1>
-                A better school day.
-                <br />
-                For everyone.
-              </h1>
-              <p>
-                Learning, people and daily school operations, connected in one
-                thoughtful workspace.
-              </p>
-              <div className="erp-login-steps">
-                <div>
-                  <ClipboardCheck size={20} />
-                  <span>
-                    <strong>Record with confidence</strong>
-                    <small>Attendance, learning and daily school work.</small>
-                  </span>
-                </div>
-                <div>
-                  <ShieldCheck size={20} />
-                  <span>
-                    <strong>Review with context</strong>
-                    <small>
-                      Clear responsibilities and recorded decisions.
-                    </small>
-                  </span>
-                </div>
-                <div>
-                  <LayoutDashboard size={20} />
-                  <span>
-                    <strong>See the whole picture</strong>
-                    <small>Useful insights for every school and office.</small>
-                  </span>
+    <CompactPreviewContext value={compactPreview}>
+      <main
+        className={`erp-shell${workspace ? '' : ' erp-signed-out'}${compactPreview ? ' erp-compact-preview' : ''}`}
+      >
+        {loading ? (
+          <output className="erp-loading">Opening your workspace…</output>
+        ) : workspace ? (
+          <SignedWorkspace
+            key={workspace.account.id}
+            workspace={workspace}
+            initial={initial}
+            compactPreview={compactPreview}
+            onCompareLayout={() => setCompactPreview((value) => !value)}
+            busy={busy}
+            error={error}
+            onSignOut={() => void signOut()}
+            refresh={() => {
+              void request<Workspace>('session')
+                .then(setWorkspace)
+                .catch((failure: unknown) => {
+                  if (failure instanceof RequestError && failure.status === 401)
+                    setWorkspace(undefined);
+                  setError(errorMessage(failure));
+                });
+            }}
+          />
+        ) : (
+          <div className="erp-login-layout">
+            <section className="erp-login-intro">
+              <Brand />
+              <div className="erp-login-story">
+                <span className="erp-eyebrow">
+                  SCHOOL OPERATIONS, CONNECTED
+                </span>
+                <h1>
+                  A better school day.
+                  <br />
+                  For everyone.
+                </h1>
+                <p>
+                  Learning, people and daily school operations, connected in one
+                  thoughtful workspace.
+                </p>
+                <div className="erp-login-steps">
+                  <div>
+                    <ClipboardCheck size={20} />
+                    <span>
+                      <strong>Record with confidence</strong>
+                      <small>Attendance, learning and daily school work.</small>
+                    </span>
+                  </div>
+                  <div>
+                    <ShieldCheck size={20} />
+                    <span>
+                      <strong>Review with context</strong>
+                      <small>
+                        Clear responsibilities and recorded decisions.
+                      </small>
+                    </span>
+                  </div>
+                  <div>
+                    <LayoutDashboard size={20} />
+                    <span>
+                      <strong>See the whole picture</strong>
+                      <small>
+                        Useful insights for every school and office.
+                      </small>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <p className="erp-login-disclaimer">
-              Independent demonstration · Fictional records · No NMC endorsement
-            </p>
-          </section>
-          <section className="erp-login-side">
-            <div className="erp-login">
-              <span className="erp-pilot-badge">
-                <span /> SHIKSHA-SETU BY SS49
-              </span>
-              <h2>Welcome to Shiksha-Setu</h2>
-              <p>
-                Choose your workspace and sign in to continue your school day.
+              <p className="erp-login-disclaimer">
+                Independent demonstration · Fictional records · No NMC
+                endorsement
               </p>
-              {!unavailable && (
-                <div className="erp-role-picker">
-                  <label htmlFor="workspace-role">Your workspace</label>
-                  <select
-                    id="workspace-role"
-                    value={loginName}
-                    onChange={(event) => setLoginName(event.target.value)}
-                  >
-                    <option value="">Choose your role</option>
-                    {[
-                      ['parent.a', 'Parent / guardian'],
-                      ['teacher.a', 'Teacher'],
-                      ['principal.a', 'Principal'],
-                      ['office.a', 'School office'],
-                      ['accounts.a', 'Accounts staff'],
-                      ['library.a', 'Librarian'],
-                      ['support.a', 'Support staff'],
-                      ['officer.a', 'Education officer'],
-                      ['commissioner', 'Commissioner'],
-                      ['admin', 'Administrator'],
-                    ].map(([username, label]) => (
-                      <option key={username} value={username}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              {error && (
-                <p className="erp-error" role="alert">
-                  {error}
+            </section>
+            <section className="erp-login-side">
+              <div className="erp-login">
+                <span className="erp-pilot-badge">
+                  <span /> SHIKSHA-SETU BY SS49
+                </span>
+                <h2>Welcome to Shiksha-Setu</h2>
+                <p>
+                  Choose your workspace and sign in to continue your school day.
                 </p>
-              )}
-              {!unavailable && (
-                <form onSubmit={(event) => void signIn(event)}>
-                  <label>
-                    Username
-                    <input
-                      name="username"
+                {!unavailable && (
+                  <div className="erp-role-picker">
+                    <label htmlFor="workspace-role">Your workspace</label>
+                    <select
+                      id="workspace-role"
                       value={loginName}
                       onChange={(event) => setLoginName(event.target.value)}
-                      required
-                      autoComplete="username"
-                      maxLength={64}
-                      placeholder="Enter your username"
-                    />
-                  </label>
-                  <label>
-                    Password
-                    <input
-                      name="password"
-                      type="password"
-                      required
-                      autoComplete="current-password"
-                      maxLength={128}
-                      placeholder="Enter your password"
-                    />
-                  </label>
-                  <button className="erp-primary" disabled={busy}>
-                    {busy ? 'Signing in…' : 'Open workspace'}
-                    <ArrowRight size={17} />
-                  </button>
-                </form>
-              )}
-              <div className="erp-login-note">
-                <ShieldCheck size={18} />
-                <p>
-                  Your account opens only the schools and classes assigned to
-                  you.
-                </p>
+                    >
+                      <option value="">Choose your role</option>
+                      {[
+                        ['parent.a', 'Parent / guardian'],
+                        ['teacher.a', 'Teacher'],
+                        ['principal.a', 'Principal'],
+                        ['office.a', 'School office'],
+                        ['accounts.a', 'Accounts staff'],
+                        ['library.a', 'Librarian'],
+                        ['support.a', 'Support staff'],
+                        ['officer.a', 'Education officer'],
+                        ['commissioner', 'Commissioner'],
+                        ['admin', 'Administrator'],
+                      ].map(([username, label]) => (
+                        <option key={username} value={username}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {error && (
+                  <p className="erp-error" role="alert">
+                    {error}
+                  </p>
+                )}
+                {!unavailable && (
+                  <form onSubmit={(event) => void signIn(event)}>
+                    <label>
+                      Username
+                      <input
+                        name="username"
+                        value={loginName}
+                        onChange={(event) => setLoginName(event.target.value)}
+                        required
+                        autoComplete="username"
+                        maxLength={64}
+                        placeholder="Enter your username"
+                      />
+                    </label>
+                    <label>
+                      Password
+                      <input
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete="current-password"
+                        maxLength={128}
+                        placeholder="Enter your password"
+                      />
+                    </label>
+                    <button className="erp-primary" disabled={busy}>
+                      {busy ? 'Signing in…' : 'Open workspace'}
+                      <ArrowRight size={17} />
+                    </button>
+                  </form>
+                )}
+                <div className="erp-login-note">
+                  <ShieldCheck size={18} />
+                  <p>
+                    Your account opens only the schools and classes assigned to
+                    you.
+                  </p>
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
-      )}
-    </main>
+            </section>
+          </div>
+        )}
+      </main>
+    </CompactPreviewContext>
   );
 }
 
@@ -278,6 +298,8 @@ function Brand() {
 function SignedWorkspace({
   workspace,
   initial,
+  compactPreview,
+  onCompareLayout,
   refresh,
   busy,
   error,
@@ -285,6 +307,8 @@ function SignedWorkspace({
 }: {
   workspace: Workspace;
   initial: Initial;
+  compactPreview: boolean;
+  onCompareLayout: () => void;
   refresh: () => void;
   busy: boolean;
   error: string;
@@ -655,6 +679,18 @@ function SignedWorkspace({
           </span>
         </header>
         <div className="erp-main" id="erp-workspace-content" tabIndex={-1}>
+          {initial.showLayoutComparison && (
+            <div className="erp-compact-preview-note">
+              <span>
+                {compactPreview ? 'Compact layout preview' : 'Current layout'}
+              </span>
+              <button type="button" onClick={onCompareLayout}>
+                {compactPreview
+                  ? 'Compare current layout'
+                  : 'Back to compact preview'}
+              </button>
+            </div>
+          )}
           <header className="erp-page-title">
             <div>
               <p>{roleLabel[account.role]} workspace</p>

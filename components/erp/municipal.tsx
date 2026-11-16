@@ -1,4 +1,6 @@
 'use client';
+import { readActivityNote } from '@/lib/erp/activity-note';
+import { RecordPreview } from './record-preview';
 
 import { useState, type SubmitEvent } from 'react';
 import { attendanceRate, type Workspace } from '@/lib/erp/model';
@@ -510,7 +512,10 @@ export function MunicipalPriorities({
           <option value="closed">Closed priorities</option>
         </select>
       </label>
-      <div className="erp-portal-records">
+      <RecordPreview
+        className="erp-portal-records"
+        label="Municipal priorities"
+      >
         {priorities.map((row) => (
           <article
             className="erp-portal-record"
@@ -608,11 +613,7 @@ export function MunicipalPriorities({
               {local.history
                 .filter((item) => item.targetId === row.id)
                 .map((item) => {
-                  const detail = JSON.parse(item.note) as {
-                    note: string;
-                    before: { status: string } | null;
-                    after: { status: string };
-                  };
+                  const detail = readActivityNote(item.note);
                   return (
                     <p key={item.id}>
                       {item.actor} ·{' '}
@@ -620,8 +621,12 @@ export function MunicipalPriorities({
                         timeZone: 'Asia/Kolkata',
                       })}
                       <br />
-                      {detail.before?.status ?? 'new'} → {detail.after.status}
-                      <br />
+                      {detail.after && (
+                        <>
+                          {detail.before ?? 'new'} → {detail.after}
+                          <br />
+                        </>
+                      )}
                       {detail.note}
                     </p>
                   );
@@ -629,7 +634,7 @@ export function MunicipalPriorities({
             </details>
           </article>
         ))}
-      </div>
+      </RecordPreview>
       {!priorities.length && (
         <p>No municipal priorities match this school and filter.</p>
       )}
