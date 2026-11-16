@@ -145,7 +145,15 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
             <header className="erp-auth-masthead">
               <div className="erp-auth-masthead-inner">
                 <Brand caption="School management system" />
-                <span className="erp-auth-publisher">SS49</span>
+                <a
+                  className="erp-auth-publisher"
+                  href="https://ss49d1t1tech.in/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <strong>SS49</strong>
+                  <span>D1T1TECH (OPC) PRIVATE LIMITED</span>
+                </a>
               </div>
             </header>
             <div className="erp-auth-main">
@@ -253,7 +261,13 @@ export function ErpWorkspace({ initial }: { initial: Initial }) {
               </aside>
             </div>
             <footer className="erp-auth-footer">
-              <span>Shiksha-Setu · SS49</span>
+              <a
+                href="https://ss49d1t1tech.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                SS49 D1T1TECH (OPC) PRIVATE LIMITED
+              </a>
               <span>
                 Independent demonstration · Fictional records · No NMC
                 endorsement
@@ -817,7 +831,13 @@ function SignedWorkspace({
             </p>
           )}
           <footer className="erp-footer">
-            <span>Shiksha-Setu by SS49</span>
+            <a
+              href="https://ss49d1t1tech.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Shiksha-Setu by SS49 D1T1TECH (OPC) PRIVATE LIMITED
+            </a>
             <span>
               Independent pilot · No government connection or endorsement
             </span>
