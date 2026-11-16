@@ -25,26 +25,26 @@ import { initialPortalView, portalLinks, portalLinkActive } from './navigation';
 
 const roleCopy = {
   parent: {
-    title: 'Your child, connected to school',
-    text: 'Follow attendance, read school notices and send a request to the school team.',
+    title: 'Family overview',
+    text: 'Attendance, school notices and requests for linked students.',
     work: 'My children',
     category: 'leave',
   },
   principal: {
-    title: 'Lead your school, with the whole picture',
-    text: 'Review attendance briefly, follow up decisions and coordinate learning, staff and families.',
+    title: 'School leadership',
+    text: 'Attendance, staff assignments, approvals and academic reports.',
     work: 'Staff tasks',
     category: 'general',
   },
   clerk: {
-    title: 'The school office, organised',
-    text: 'Keep track of office work, find learner records and respond to school requests.',
+    title: 'School office',
+    text: 'Admissions, student records and office requests.',
     work: 'Office work',
     category: 'general',
   },
   accountant: {
     title: 'Accounts & administration',
-    text: 'Follow assigned accounts work and respond to finance-related requests. Payments and accounting ledgers are not part of this pilot.',
+    text: 'Grant allocations, expenditure, payroll records and finance requests.',
     work: 'Accounts work',
     category: 'finance',
   },
@@ -55,8 +55,8 @@ const roleCopy = {
     category: 'library',
   },
   support: {
-    title: 'A school ready for learning',
-    text: 'Follow assigned school care work, report progress and close the loop with principal verification.',
+    title: 'Facilities and maintenance',
+    text: 'Assigned repairs, progress reports and principal verification.',
     work: 'My assigned work',
     category: 'maintenance',
   },
@@ -85,14 +85,18 @@ export function PortalPanel({
     account.role === 'principal' || account.role === 'administrator';
   const directory = leader || account.role === 'clerk';
   const copy = roleCopy[account.role as keyof typeof roleCopy] ?? {
-    title: 'Your school community',
-    text: 'Coordinate school work, share notices and follow up on requests.',
+    title: 'School workspace',
+    text: 'Staff tasks, school notices and requests.',
     work: 'School team work',
     category: 'general',
   };
   const [data, setData] = useState<SchoolPortal>();
   const [localView, setLocalView] = useState(initialPortalView(account.role));
   const view = activeView ?? localView;
+  const delegated =
+    /^(principal-|teacher-|learning|operations|library-|maintenance-)|^oversight$/.test(
+      view,
+    );
   function setView(id: string) {
     setLocalView(id);
     onViewChange?.(id);
@@ -185,17 +189,27 @@ export function PortalPanel({
   );
   return (
     <section className="erp-card erp-portal">
-      <header className="erp-card-title">
-        <div>
-          <span className="erp-eyebrow">{roleLabels[account.role]}</span>
-          <h2>{copy.title}</h2>
-          <p>{copy.text}</p>
+      {!hideNavigation && (
+        <header className="erp-card-title">
+          <div>
+            <span className="erp-eyebrow">{roleLabels[account.role]}</span>
+            <h2>{copy.title}</h2>
+            <p>{copy.text}</p>
+          </div>
+          <button type="button" onClick={() => setReload(reload + 1)}>
+            <RefreshCw size={14} />
+            Refresh
+          </button>
+        </header>
+      )}
+      {hideNavigation && !delegated && (
+        <div className="erp-panel-toolbar">
+          <button type="button" onClick={() => setReload(reload + 1)}>
+            <RefreshCw size={14} />
+            Refresh
+          </button>
         </div>
-        <button type="button" onClick={() => setReload(reload + 1)}>
-          <RefreshCw size={14} />
-          Refresh
-        </button>
-      </header>
+      )}
       {!hideNavigation && (
         <nav
           className="erp-section-tabs"
@@ -247,6 +261,7 @@ export function PortalPanel({
           workspace={workspace}
           date={date}
           view={view.replace('teacher-', '')}
+          embedded={hideNavigation}
           onNavigate={setView}
           onOpenRegister={onOpenRegister}
         />
@@ -279,6 +294,7 @@ export function PortalPanel({
               date={date}
               portal={data}
               view={view.replace('principal-', '')}
+              onRefresh={() => setReload((value) => value + 1)}
               onNavigate={setView}
               onOpenRegister={onOpenRegister}
               onOpenReport={onOpenReport}
@@ -321,7 +337,7 @@ export function PortalPanel({
                         <GraduationCap size={24} />
                       </div>
                       <span className="erp-eyebrow">
-                        LINKED CHILD · ROLL {child.roll}
+                        Linked student · Roll {child.roll}
                       </span>
                       <h3>{child.name}</h3>
                       <p>{child.classLabel}</p>

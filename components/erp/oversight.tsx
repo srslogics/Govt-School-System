@@ -172,16 +172,25 @@ export function OversightPanel({
               : 'ASSIGNED SCHOOL OVERSIGHT'}
           </span>
           <h2>
-            {principal
-              ? 'Officer coordination'
-              : commissioner
-                ? 'Commissioner workspace'
-                : 'Education Officer workspace'}
+            {hideNavigation
+              ? ({
+                  municipal: 'Network summary',
+                  overview: 'School reporting summary',
+                  comparison: 'School comparison',
+                  resources: 'Resources and expenditure',
+                  inspection: 'Inspection register',
+                  request: 'School request register',
+                  circular: 'Circular register',
+                  priorities: 'Priority register',
+                  escalations: 'Escalated requests',
+                }[view] ?? 'School oversight')
+              : principal
+                ? 'Officer coordination'
+                : commissioner
+                  ? 'Commissioner workspace'
+                  : 'Education Officer workspace'}
           </h2>
-          <p>
-            Follow school progress, record visits and keep decisions and
-            responses together.
-          </p>
+          <p>School reporting, inspections, requests and compliance records.</p>
         </div>
         <button type="button" onClick={() => setReload(reload + 1)}>
           Refresh oversight
@@ -240,6 +249,7 @@ export function OversightPanel({
         <>
           {commissioner && ['municipal', 'comparison'].includes(view) && (
             <MunicipalDashboard
+              embedded={hideNavigation}
               data={data}
               schools={schools}
               view={view}

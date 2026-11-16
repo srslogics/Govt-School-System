@@ -26,12 +26,14 @@ export function TeacherPanel({
   view,
   onNavigate,
   onOpenRegister,
+  embedded = false,
 }: {
   workspace: Workspace;
   date: string;
   view: string;
   onNavigate: (view: string) => void;
   onOpenRegister?: (classId: string) => void;
+  embedded?: boolean;
 }) {
   const [data, setData] = useState<TeacherView>();
   const [error, setError] = useState('');
@@ -87,7 +89,9 @@ export function TeacherPanel({
           </span>
           <h2>
             {view === 'day'
-              ? 'My Day'
+              ? embedded
+                ? 'Teaching summary'
+                : 'My Day'
               : view === 'timetable'
                 ? 'Weekly timetable'
                 : view === 'students'

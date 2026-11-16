@@ -243,6 +243,12 @@ export function OperationsPanel({
         <output>Loading school operations…</output>
       ) : (
         <>
+          <div className="erp-register-heading">
+            <h2>
+              {modules.find(([id]) => id === view)?.[1] ?? 'School records'}
+            </h2>
+            <span>{mainRows.length} records</span>
+          </div>
           {canCreate && schoolId && (
             <details
               className="erp-operations-create"

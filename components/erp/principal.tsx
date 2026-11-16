@@ -1,5 +1,6 @@
 'use client';
 
+import { RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Report, SchoolPortal, Workspace } from '@/lib/erp/model';
 import { attendanceRate, roleLabels } from '@/lib/erp/model';
@@ -16,6 +17,7 @@ export function PrincipalPanel({
   onNavigate,
   onOpenRegister,
   onOpenReport,
+  onRefresh,
 }: {
   workspace: Workspace;
   date: string;
@@ -24,6 +26,7 @@ export function PrincipalPanel({
   onNavigate: (view: string) => void;
   onOpenRegister?: (id: string) => void;
   onOpenReport?: () => void;
+  onRefresh?: () => void;
 }) {
   const [maintenance, setMaintenance] = useState<MaintenanceView>();
   const [operations, setOperations] = useState<OperationsView>();
@@ -61,7 +64,7 @@ export function PrincipalPanel({
         if (!controller.signal.aborted) setError(errorMessage(failure));
       });
     return () => controller.abort();
-  }, [date]);
+  }, [date, portal]);
   if (error)
     return (
       <p role="alert" className="erp-error">
@@ -116,7 +119,7 @@ export function PrincipalPanel({
               ? 'Staff & responsibilities'
               : view === 'performance'
                 ? 'School academic performance'
-                : 'School dashboard'}
+                : 'Daily school summary'}
           </h3>
           <p>
             {date} ·{' '}
@@ -125,20 +128,28 @@ export function PrincipalPanel({
               : 'All assigned schools'}
           </p>
         </div>
-        <label>
-          Dashboard school
-          <select
-            value={school}
-            onChange={(event) => setSchool(event.target.value)}
-          >
-            <option value="">All assigned schools</option>
-            {workspace.schools.map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="erp-panel-header-actions">
+          <label>
+            Dashboard school
+            <select
+              value={school}
+              onChange={(event) => setSchool(event.target.value)}
+            >
+              <option value="">All assigned schools</option>
+              {workspace.schools.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          {onRefresh && (
+            <button type="button" onClick={onRefresh}>
+              <RefreshCw size={14} />
+              Refresh
+            </button>
+          )}
+        </div>
       </div>
       {view === 'overview' && (
         <>
@@ -147,7 +158,7 @@ export function PrincipalPanel({
             aria-label="Brief attendance summary"
           >
             <div>
-              <span className="erp-eyebrow">ATTENDANCE AT A GLANCE</span>
+              <span className="erp-eyebrow">Attendance</span>
               <h3>
                 {attendanceRate(attendance)}{' '}
                 <small>present among reported learners</small>

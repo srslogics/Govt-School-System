@@ -132,14 +132,10 @@ export function LearningPanel({
           <span className="erp-eyebrow">
             {parent ? 'FAMILY LEARNING CENTRE' : 'CLASSROOM LEARNING'}
           </span>
-          <h2>
-            {parent
-              ? 'A clear view of your child’s progress'
-              : 'Assessments & homework'}
-          </h2>
+          <h2>{parent ? 'Student progress' : 'Assessments and homework'}</h2>
           <p>
             {parent
-              ? 'Attendance, results and learning tasks—connected to your school.'
+              ? 'Attendance, published assessments and class assignments.'
               : 'Enter individual results, assign classwork and give families useful feedback.'}
           </p>
         </div>
@@ -538,6 +534,7 @@ export function LearningPanel({
                 key={`${view}:0`}
                 className="erp-portal-records"
                 label="Learning records"
+                presentation={parent && view === 'academics' ? 'grid' : 'list'}
               >
                 {parent
                   ? [
@@ -664,6 +661,7 @@ export function LearningPanel({
                 key={`${view}:1`}
                 className="erp-portal-records"
                 label="Learning records"
+                presentation="list"
               >
                 {homework.map((row) => {
                   const submission = submissions.find(

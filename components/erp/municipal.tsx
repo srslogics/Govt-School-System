@@ -16,6 +16,7 @@ export function MunicipalDashboard({
   data,
   schools,
   view,
+  embedded = false,
   today,
   onNavigate,
   onSchool,
@@ -24,6 +25,7 @@ export function MunicipalDashboard({
   data: OversightView;
   schools: SchoolSummary[];
   view: string;
+  embedded?: boolean;
   today: string;
   onNavigate: (view: string) => void;
   onSchool: (id: string) => void;
@@ -70,11 +72,7 @@ export function MunicipalDashboard({
     <div className="erp-municipal">
       {view === 'municipal' && (
         <>
-          <h3>Municipal education overview</h3>
-          <p>
-            Reporting date {data.date}. Priorities, escalations, inventory and
-            staff accounts show their current state.
-          </p>
+          {!embedded && <h3>Municipal education overview</h3>}
           <div className="erp-portal-metrics">
             <div>
               <strong>{schools.length}</strong>

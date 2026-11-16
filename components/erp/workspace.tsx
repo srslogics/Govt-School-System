@@ -444,16 +444,16 @@ function SignedWorkspace({
     tab === 'oversight'
       ? 'Monitor assigned schools, coordinate inspections and follow up decisions and compliance.'
       : tab === 'setup'
-        ? 'Manage your schools, people and access, one step at a time.'
+        ? 'School records, user accounts and access assignments.'
         : tab === 'portal'
           ? account.role === 'parent'
-            ? 'A closer connection to your child’s school.'
-            : 'One place for your school work, requests and announcements.'
+            ? 'Attendance, published results and school communications.'
+            : 'School records, assigned tasks and communications.'
           : tab === 'register'
             ? 'Mark the register, submit for review and keep every correction on record.'
-            : 'See attendance, spot missing submissions and follow up where it matters.';
+            : 'Attendance totals, register submissions and review status.';
   return (
-    <div className="erp-layout">
+    <div className="erp-layout erp-workbench">
       <a className="erp-skip-link" href="#erp-workspace-content">
         Skip to workspace
       </a>
@@ -501,7 +501,7 @@ function SignedWorkspace({
               </button>
             )}
           </label>
-          <div className="erp-workspace-label">{roleLabel[account.role]}</div>
+          <div className="erp-workspace-label">Workspace</div>
           <nav className="erp-nav" aria-label="School workspace">
             {educationLinks
               .filter(([, label]) => matches(label))
@@ -538,6 +538,16 @@ function SignedWorkspace({
                   <span>{label}</span>
                 </button>
               ))}
+            {!navigationSearch &&
+              (account.role === 'administrator' ||
+                canReport ||
+                canRegister) && (
+                <span className="erp-nav-section">
+                  {account.role === 'administrator'
+                    ? 'Administration'
+                    : 'Attendance'}
+                </span>
+              )}
             {account.role === 'administrator' &&
               matches('School administration') && (
                 <button
@@ -639,9 +649,7 @@ function SignedWorkspace({
             </span>
           </div>
           <span className="erp-topbar-identity">
-            <span className="erp-pilot-badge">
-              <span /> Meeting demo
-            </span>
+            <span className="erp-pilot-badge">Sample environment</span>
             <span className="erp-avatar" aria-hidden="true">
               {account.name
                 .split(' ')
@@ -667,7 +675,11 @@ function SignedWorkspace({
           )}
           <header className="erp-page-title">
             <div>
-              <p>{roleLabel[account.role]} workspace</p>
+              <p>
+                {schools.length === 1
+                  ? schools[0].code
+                  : `${schools.length} schools`}
+              </p>
               <h1>{title}</h1>
               <span>{description}</span>
             </div>
