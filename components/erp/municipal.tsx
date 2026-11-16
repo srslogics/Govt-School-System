@@ -1,4 +1,5 @@
 'use client';
+import { readActivityNote } from '@/lib/erp/activity-note';
 import { RecordPreview } from './record-preview';
 
 import { useState, type SubmitEvent } from 'react';
@@ -612,11 +613,7 @@ export function MunicipalPriorities({
               {local.history
                 .filter((item) => item.targetId === row.id)
                 .map((item) => {
-                  const detail = JSON.parse(item.note) as {
-                    note: string;
-                    before: { status: string } | null;
-                    after: { status: string };
-                  };
+                  const detail = readActivityNote(item.note);
                   return (
                     <p key={item.id}>
                       {item.actor} ·{' '}
@@ -624,8 +621,12 @@ export function MunicipalPriorities({
                         timeZone: 'Asia/Kolkata',
                       })}
                       <br />
-                      {detail.before?.status ?? 'new'} → {detail.after.status}
-                      <br />
+                      {detail.after && (
+                        <>
+                          {detail.before ?? 'new'} → {detail.after}
+                          <br />
+                        </>
+                      )}
                       {detail.note}
                     </p>
                   );
