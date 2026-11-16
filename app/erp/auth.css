@@ -277,6 +277,7 @@
   letter-spacing: 0.08em;
 }
 .erp-auth-publisher span {
+  color: #000;
   font-size: 9px;
   letter-spacing: 0.02em;
   font-weight: 500;
@@ -285,7 +286,7 @@
   color: var(--erp-primary);
 }
 .erp-auth-footer a {
-  color: inherit;
+  color: #000;
   text-decoration: none;
 }
 .erp-auth-footer a:hover {
