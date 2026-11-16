@@ -587,6 +587,31 @@ void test('sample retry API requires administrator and same-origin access, redac
     const parent = await login('parent.a');
     assert.equal((await call(parent, { action: 'expand' })).status, 403);
     const admin = await login('admin');
+    const statusBefore = await handler(
+      new Request(origin + '/api/erp/sample-data', {
+        headers: { cookie: admin },
+      }),
+    );
+    assert.equal(statusBefore.status, 200);
+    const before = (await statusBefore.json()) as {
+      schools: number;
+      learners: number;
+      expanded: number;
+    };
+    assert.equal(before.schools, 2);
+    assert.equal(before.learners, 10);
+    assert.equal(before.expanded, 0);
+    assert.equal(
+      (
+        await handler(
+          new Request(origin + '/api/erp/sample-data', {
+            headers: { cookie: parent },
+          }),
+        )
+      ).status,
+      403,
+    );
+
     assert.equal(
       (await call(admin, { action: 'expand' }, 'https://unrelated.example'))
         .status,
@@ -625,6 +650,85 @@ void test('sample retry API requires administrator and same-origin access, redac
     else process.env.ERP_EXPANDED_DEMO = oldEnabled;
     if (oldToken === undefined) delete process.env.TURSO_AUTH_TOKEN;
     else process.env.TURSO_AUTH_TOKEN = oldToken;
+    close();
+  }
+});
+
+void test('sample import retries safe dropped connections, tolerates lost upload acknowledgements and never repeats an ambiguous final commit', async () => {
+  const { db, close } = fixture();
+  try {
+    await initializeDatabase(db);
+    await seedFictionalSchools(db, () => password);
+    let readDrops = 2,
+      uploadAckLost = false,
+      commitAttempts = 0;
+    const disconnected = () =>
+      new TypeError('fetch failed', { cause: new Error('other side closed') });
+    const flaky = new Proxy(db, {
+      get(target, property, receiver) {
+        if (property === 'execute')
+          return async (
+            statement: Parameters<typeof db.execute>[0],
+            args?: Parameters<typeof db.execute>[1],
+          ) => {
+            if (readDrops-- > 0) throw disconnected();
+            return typeof statement === 'string'
+              ? target.execute(statement, args)
+              : target.execute(statement);
+          };
+        if (property === 'batch')
+          return async (
+            statements: Parameters<typeof db.batch>[0],
+            mode: Parameters<typeof db.batch>[1],
+          ) => {
+            const sql = statements.map((s) =>
+              typeof s === 'string' ? s : Array.isArray(s) ? s[0] : s.sql,
+            );
+            const committing = sql.some((s) =>
+              s.includes('sample fixture changed during preparation'),
+            );
+            if (committing) commitAttempts++;
+            const result = await target.batch(statements, mode);
+            if (
+              !uploadAckLost &&
+              sql.some((s) => s.startsWith('INSERT INTO erp_sample_import'))
+            ) {
+              uploadAckLost = true;
+              throw disconnected();
+            }
+            if (committing && commitAttempts === 1) throw disconnected();
+            return result;
+          };
+        return Reflect.get(target, property, receiver) as unknown;
+      },
+    });
+    await assert.rejects(
+      seedExpandedDemo(flaky, origin, enabled),
+      /Sample final commit: fetch failed/,
+    );
+    assert.ok(uploadAckLost);
+    assert.equal(commitAttempts, 1);
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM enrolment'))!.n,
+      522,
+    );
+    assert.equal(
+      (await one<{ n: number }>(db, 'SELECT COUNT(*) AS n FROM assessment'))!.n,
+      5220,
+    );
+    assert.equal(
+      (await one<{ n: number }>(
+        db,
+        'SELECT COUNT(*) AS n FROM erp_sample_import',
+      ))!.n,
+      0,
+    );
+    assert.equal(
+      await seedExpandedDemo(flaky, origin, enabled),
+      'already expanded',
+    );
+    assert.equal(commitAttempts, 1);
+  } finally {
     close();
   }
 });
