@@ -569,75 +569,85 @@ export function LibraryPanel({
                         </button>
                       </form>
                     </details>
-                    <div className="erp-scroll">
-                      <table className="erp-table">
-                        <thead>
-                          <tr>
-                            <th>Accession</th>
-                            <th>Copy status</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {copies
-                            .filter((copy) => copy.bookId === book.id)
-                            .map((copy) => (
-                              <tr key={`${copy.id}:${copy.version}`}>
-                                <td>{copy.accession}</td>
-                                <td>
-                                  {copy.loanId
-                                    ? 'On loan'
-                                    : copy.state === 'active'
-                                      ? 'Available'
-                                      : copy.state}
-                                </td>
-                                <td>
-                                  {!copy.loanId && (
-                                    <details>
-                                      <summary>Change copy state</summary>
-                                      <form
-                                        onSubmit={(event) =>
-                                          void save(event, 'copy-state', copy)
-                                        }
-                                      >
-                                        <label>
-                                          Copy state
-                                          <select
-                                            name="state"
-                                            defaultValue={copy.state}
-                                          >
-                                            <option value="active">
-                                              Available after check / repair
-                                            </option>
-                                            <option value="damaged">
-                                              Damaged
-                                            </option>
-                                            <option value="lost">Lost</option>
-                                            <option value="withdrawn">
-                                              Withdrawn
-                                            </option>
-                                          </select>
-                                        </label>
-                                        <label>
-                                          Copy state reason
-                                          <textarea
-                                            name="note"
-                                            required
-                                            maxLength={1000}
-                                          />
-                                        </label>
-                                        <button disabled={busy}>
-                                          Save copy state
-                                        </button>
-                                      </form>
-                                    </details>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <details className="erp-record-detail">
+                      <summary>
+                        Copies and availability (
+                        {
+                          copies.filter((copy) => copy.bookId === book.id)
+                            .length
+                        }
+                        )
+                      </summary>
+                      <div className="erp-scroll">
+                        <table className="erp-table">
+                          <thead>
+                            <tr>
+                              <th>Accession</th>
+                              <th>Copy status</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {copies
+                              .filter((copy) => copy.bookId === book.id)
+                              .map((copy) => (
+                                <tr key={`${copy.id}:${copy.version}`}>
+                                  <td>{copy.accession}</td>
+                                  <td>
+                                    {copy.loanId
+                                      ? 'On loan'
+                                      : copy.state === 'active'
+                                        ? 'Available'
+                                        : copy.state}
+                                  </td>
+                                  <td>
+                                    {!copy.loanId && (
+                                      <details>
+                                        <summary>Change copy state</summary>
+                                        <form
+                                          onSubmit={(event) =>
+                                            void save(event, 'copy-state', copy)
+                                          }
+                                        >
+                                          <label>
+                                            Copy state
+                                            <select
+                                              name="state"
+                                              defaultValue={copy.state}
+                                            >
+                                              <option value="active">
+                                                Available after check / repair
+                                              </option>
+                                              <option value="damaged">
+                                                Damaged
+                                              </option>
+                                              <option value="lost">Lost</option>
+                                              <option value="withdrawn">
+                                                Withdrawn
+                                              </option>
+                                            </select>
+                                          </label>
+                                          <label>
+                                            Copy state reason
+                                            <textarea
+                                              name="note"
+                                              required
+                                              maxLength={1000}
+                                            />
+                                          </label>
+                                          <button disabled={busy}>
+                                            Save copy state
+                                          </button>
+                                        </form>
+                                      </details>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </details>
                   </article>
                 ))}
               </RecordPreview>

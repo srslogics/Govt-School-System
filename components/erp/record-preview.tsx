@@ -47,17 +47,19 @@ function recordText(node: ReactNode): string {
   return recordText(node.props.children);
 }
 
-/** Preview-only paging. Keep record forms mounted so paging and search retain drafts. */
+/** Record paging. Keep record forms mounted so paging and search retain drafts. */
 export function RecordPreview({
   children,
   className,
   label = 'Records',
   searchable = true,
+  presentation = 'list',
 }: {
   children: ReactNode;
   className?: string;
   label?: string;
   searchable?: boolean;
+  presentation?: 'list' | 'grid';
 }) {
   const compact = useContext(CompactPreviewContext);
   const id = useId();
@@ -91,7 +93,7 @@ export function RecordPreview({
   return (
     <div
       ref={list}
-      className={`${className ?? ''}${compact ? ' erp-record-preview' : ''}`}
+      className={`${className ?? ''}${compact ? ` erp-record-preview erp-record-preview--${presentation}` : ''}`}
     >
       {compact && (items.length > 4 || query) && searchable && (
         <div className="erp-record-preview-tools">
