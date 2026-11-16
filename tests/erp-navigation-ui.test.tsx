@@ -72,7 +72,7 @@ void test('unified workspace navigation retains role scope, route selection, sea
           },
         ),
       );
-    async function mount(username: string) {
+    async function mount(username: string, compactPreview = false) {
       cleanup();
       const result = await handler(
         new Request(origin + '/api/erp/login', {
@@ -83,7 +83,7 @@ void test('unified workspace navigation retains role scope, route selection, sea
       );
       assert.equal(result.status, 200);
       cookie = result.headers.get('set-cookie')!.split(';')[0];
-      render(<ErpWorkspace initial={{}} />);
+      render(<ErpWorkspace initial={{ compactPreview }} />);
       await screen.findByRole('navigation', { name: 'School workspace' });
       return within(
         screen.getByRole('navigation', { name: 'School workspace' }),
@@ -166,6 +166,21 @@ void test('unified workspace navigation retains role scope, route selection, sea
       commissioner.queryByRole('button', { name: 'Attendance register' }),
       null,
     );
+
+    const compactTeacher = await mount('teacher.a', true);
+    await screen.findByRole('heading', { name: 'My Day', level: 1 });
+    fireEvent.click(compactTeacher.getByRole('button', { name: 'Timetable' }));
+    await screen.findByRole('heading', { name: 'Weekly timetable' });
+    assert.ok(document.querySelector('.erp-compact-preview'));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Compare current layout' }),
+    );
+    assert.equal(document.querySelector('.erp-compact-preview'), null);
+    assert.ok(screen.getByRole('heading', { name: 'Weekly timetable' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Back to compact preview' }),
+    );
+    assert.ok(document.querySelector('.erp-compact-preview'));
   } finally {
     cleanup();
     globalThis.fetch = originalFetch;

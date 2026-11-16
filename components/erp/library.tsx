@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { todayInNagpur, type Workspace } from '@/lib/erp/model';
@@ -433,7 +434,13 @@ export function LibraryPanel({
                     separate from this copy-by-copy library register.
                   </p>
                   <h3>Due today</h3>
-                  {active.filter((row) => row.dueOn === today).map(loanCard)}
+                  <RecordPreview
+                    key={`${view}:0`}
+                    className="erp-portal-records"
+                    label="Library loans"
+                  >
+                    {active.filter((row) => row.dueOn === today).map(loanCard)}
+                  </RecordPreview>
                   {!active.some((row) => row.dueOn === today) && (
                     <p>No books are due today.</p>
                   )}
@@ -442,12 +449,24 @@ export function LibraryPanel({
               {parent && (
                 <>
                   <h3>Current borrowing</h3>
-                  {active.map(loanCard)}
+                  <RecordPreview
+                    key={`${view}:1`}
+                    className="erp-portal-records"
+                    label="Library loans"
+                  >
+                    {active.map(loanCard)}
+                  </RecordPreview>
                   {!active.length && (
                     <p>No books are currently borrowed by your linked child.</p>
                   )}
                   <h3>Previous borrowing</h3>
-                  {loans.filter((row) => row.closedOn).map(loanCard)}
+                  <RecordPreview
+                    key={`${view}:2`}
+                    className="erp-portal-records"
+                    label="Library loans"
+                  >
+                    {loans.filter((row) => row.closedOn).map(loanCard)}
+                  </RecordPreview>
                   {!loans.some((row) => row.closedOn) && (
                     <p>No previous borrowing records yet.</p>
                   )}
@@ -481,7 +500,12 @@ export function LibraryPanel({
                   placeholder="Title, author, catalogue code or ISBN"
                 />
               </label>
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:3`}
+                className="erp-portal-records"
+                label="Library records"
+                searchable={false}
+              >
                 {filteredBooks.map((book) => (
                   <article
                     className="erp-portal-record"
@@ -615,7 +639,7 @@ export function LibraryPanel({
                     </div>
                   </article>
                 ))}
-              </div>
+              </RecordPreview>
               {!filteredBooks.length && (
                 <p>
                   No catalogue titles match. Add a title, then add its physical
@@ -725,7 +749,13 @@ export function LibraryPanel({
                 </form>
               </details>
               <h3>Books currently on loan</h3>
-              {active.map(loanCard)}
+              <RecordPreview
+                key={`${view}:4`}
+                className="erp-portal-records"
+                label="Library loans"
+              >
+                {active.map(loanCard)}
+              </RecordPreview>
               {!active.length && <p>No books are currently on loan.</p>}
             </>
           )}
@@ -735,7 +765,13 @@ export function LibraryPanel({
                 Open loans with a due date before {today}. Due-today books are
                 not overdue.
               </p>
-              {overdue.map(loanCard)}
+              <RecordPreview
+                key={`${view}:5`}
+                className="erp-portal-records"
+                label="Library loans"
+              >
+                {overdue.map(loanCard)}
+              </RecordPreview>
               {!overdue.length && <p>No overdue books in this school.</p>}
             </>
           )}
@@ -771,15 +807,21 @@ export function LibraryPanel({
                 All open loans and the most recent 200 closed loans are shown.
                 Summary counts include the complete school history.
               </p>
-              {loans
-                .filter(
-                  (row) =>
-                    (!student || row.studentId === student) &&
-                    `${row.studentName} ${row.classLabel} ${row.title} ${row.accession}`
-                      .toLowerCase()
-                      .includes(search),
-                )
-                .map(loanCard)}
+              <RecordPreview
+                key={`${view}:6`}
+                className="erp-portal-records"
+                label="Library loans"
+              >
+                {loans
+                  .filter(
+                    (row) =>
+                      (!student || row.studentId === student) &&
+                      `${row.studentName} ${row.classLabel} ${row.title} ${row.accession}`
+                        .toLowerCase()
+                        .includes(search),
+                  )
+                  .map(loanCard)}
+              </RecordPreview>
               {!loans.length && <p>No borrowing history yet.</p>}
             </>
           )}

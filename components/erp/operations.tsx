@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import {
@@ -457,7 +458,7 @@ export function OperationsPanel({
               </form>
             </details>
           )}
-          <div className="erp-portal-records">
+          <RecordPreview className="erp-portal-records" label="School records">
             {[...mainRows]
               .sort((a, b) =>
                 view === 'calendar'
@@ -864,7 +865,7 @@ export function OperationsPanel({
                   </article>
                 );
               })}
-          </div>
+          </RecordPreview>
           {!mainRows.length && (
             <div className="erp-empty-state">
               <h3>

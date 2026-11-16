@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import type { Workspace } from '@/lib/erp/model';
@@ -416,7 +417,11 @@ export function MaintenancePanel({
                   ))}
                 </select>
               </label>
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:0`}
+                className="erp-portal-records"
+                label="Repair cases"
+              >
                 {rows.map((row) => (
                   <article
                     className="erp-portal-record"
@@ -660,7 +665,7 @@ export function MaintenancePanel({
                     </details>
                   </article>
                 ))}
-              </div>
+              </RecordPreview>
               {!rows.length && (
                 <p>No maintenance tickets match this section and filter.</p>
               )}

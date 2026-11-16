@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { attendanceRate, type Workspace } from '@/lib/erp/model';
@@ -705,7 +706,11 @@ export function OversightPanel({
                   </select>
                 </label>
               )}
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:0`}
+                className="erp-portal-records"
+                label="Officer records"
+              >
                 {visible.map((row) => (
                   <article
                     className="erp-portal-record"
@@ -941,7 +946,7 @@ export function OversightPanel({
                     </details>
                   </article>
                 ))}
-              </div>
+              </RecordPreview>
               {!visible.length && (
                 <p>No {view} records match this school and filter.</p>
               )}

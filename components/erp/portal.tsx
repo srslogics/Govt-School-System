@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useEffect, useState, type SubmitEvent } from 'react';
 import {
@@ -404,7 +405,11 @@ export function PortalPanel({
                       </button>
                     </form>
                   )}
-                  <div className="erp-portal-records">
+                  <RecordPreview
+                    key={`${view}:0`}
+                    className="erp-portal-records"
+                    label="School community records"
+                  >
                     {data.tasks.map((task) => (
                       <article key={task.id} className="erp-portal-record">
                         <header>
@@ -470,7 +475,7 @@ export function PortalPanel({
                         text="Your principal can assign work here. Completed work keeps its completion note."
                       />
                     )}
-                  </div>
+                  </RecordPreview>
                 </>
               )}
               <div className="erp-portal-next">
@@ -554,7 +559,11 @@ export function PortalPanel({
                   </button>
                 </form>
               )}
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:1`}
+                className="erp-portal-records"
+                label="School community records"
+              >
                 {data.requests.map((row) => (
                   <article key={row.id} className="erp-portal-record">
                     <header>
@@ -638,7 +647,7 @@ export function PortalPanel({
                     text="Send an enquiry or request and follow the school's reply here."
                   />
                 )}
-              </div>
+              </RecordPreview>
             </>
           )}
           {view === 'notices' && (
@@ -675,7 +684,11 @@ export function PortalPanel({
                   </button>
                 </form>
               )}
-              <div className="erp-portal-records">
+              <RecordPreview
+                key={`${view}:2`}
+                className="erp-portal-records"
+                label="School community records"
+              >
                 {data.notices.map((notice) => (
                   <article className="erp-portal-record" key={notice.id}>
                     <span className="erp-eyebrow">
@@ -703,7 +716,7 @@ export function PortalPanel({
                     text="School leadership can publish announcements for parents, staff, or both."
                   />
                 )}
-              </div>
+              </RecordPreview>
             </>
           )}
           {view === 'directory' && directory && (

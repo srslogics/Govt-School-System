@@ -1,0 +1,511 @@
+/* Opt-in review at /erp?preview=compact. Current/live layout keeps its defaults. */
+.erp-compact-preview {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.erp-compact-preview [hidden] {
+  display: none !important;
+}
+.erp-compact-preview button,
+.erp-compact-preview .erp-button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+}
+.erp-compact-preview input,
+.erp-compact-preview select,
+.erp-compact-preview textarea {
+  min-height: 35px;
+  padding: 6px 9px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.erp-compact-preview textarea {
+  min-height: 64px;
+}
+.erp-compact-preview label {
+  gap: 4px;
+  font-size: 12px;
+}
+.erp-compact-preview .erp-topbar {
+  height: 52px;
+  padding: 0 22px;
+  position: sticky;
+  top: 0;
+  z-index: 25;
+}
+.erp-compact-preview .erp-main {
+  max-width: 1720px;
+  padding: 14px 22px 0;
+}
+.erp-compact-preview .erp-sidebar-brand {
+  padding: 16px;
+}
+.erp-compact-preview .erp-brand {
+  gap: 9px;
+}
+.erp-compact-preview .erp-brand strong {
+  font-size: 17px;
+}
+.erp-compact-preview .erp-brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+.erp-compact-preview .erp-brand small {
+  font-size: 10px;
+}
+.erp-compact-preview .erp-nav-search {
+  margin: 0 4px 12px;
+}
+.erp-compact-preview .erp-nav-search input {
+  min-height: 34px;
+  padding-left: 33px;
+  padding-right: 29px;
+}
+.erp-compact-preview .erp-sidebar-scroll {
+  padding: 0 10px 10px;
+}
+.erp-compact-preview .erp-workspace-label {
+  padding: 0 12px 7px;
+  font-size: 10px;
+}
+.erp-compact-preview .erp-nav {
+  gap: 2px;
+}
+.erp-compact-preview .erp-nav > button {
+  min-height: 34px;
+  padding: 7px 11px;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.erp-compact-preview .erp-nav > button > svg {
+  width: 16px;
+  height: 16px;
+}
+.erp-compact-preview .erp-sidebar-context {
+  display: none;
+}
+.erp-compact-preview .erp-sidebar-bottom {
+  padding: 0 15px;
+}
+.erp-compact-preview .erp-profile {
+  padding: 11px 0;
+}
+.erp-compact-preview .erp-preview-menu {
+  padding: 9px 0;
+}
+.erp-compact-preview-note {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: flex-end;
+  color: #647669;
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+.erp-compact-preview .erp-page-title {
+  margin-bottom: 13px;
+  gap: 12px;
+}
+.erp-compact-preview .erp-page-title p {
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+.erp-compact-preview .erp-page-title h1 {
+  font-size: 26px;
+  letter-spacing: -0.7px;
+  margin-bottom: 3px;
+}
+.erp-compact-preview .erp-page-title > div > span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+.erp-compact-preview .erp-date-stamp {
+  padding: 6px 9px;
+  font-size: 11px;
+}
+.erp-compact-preview .erp-filters {
+  padding: 9px 12px;
+  margin-bottom: 13px;
+  gap: 12px;
+  border-radius: 8px;
+}
+.erp-compact-preview .erp-filters label {
+  min-width: 140px;
+}
+.erp-compact-preview .erp-card {
+  padding: 16px;
+  border-radius: 10px;
+}
+.erp-compact-preview .erp-card-title,
+.erp-compact-preview .erp-portal > .erp-card-title {
+  gap: 12px;
+  margin-bottom: 13px;
+  padding-bottom: 10px;
+}
+.erp-compact-preview .erp-card h2 {
+  font-size: 17px;
+  line-height: 1.35;
+}
+.erp-compact-preview h3,
+.erp-compact-preview .erp-card h3 {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.erp-compact-preview .erp-card-title p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.erp-compact-preview .erp-kpis,
+.erp-compact-preview .erp-portal-metrics,
+.erp-compact-preview .erp-learning-kpis {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.erp-compact-preview .erp-kpis > div,
+.erp-compact-preview .erp-portal-metrics > div,
+.erp-compact-preview .erp-learning-kpis > button {
+  padding: 11px 13px;
+  border-radius: 8px;
+  gap: 5px;
+}
+.erp-compact-preview .erp-kpis dd,
+.erp-compact-preview .erp-portal-metrics strong,
+.erp-compact-preview .erp-learning-kpis strong {
+  font-size: 25px;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+.erp-compact-preview .erp-kpis dt,
+.erp-compact-preview .erp-portal-metrics span,
+.erp-compact-preview .erp-learning-kpis span {
+  font-size: 11px;
+}
+.erp-compact-preview .erp-principal-grid,
+.erp-compact-preview .erp-learning-columns {
+  gap: 12px;
+}
+.erp-compact-preview .erp-principal-box,
+.erp-compact-preview .erp-learning-box {
+  padding: 13px;
+  border-radius: 9px;
+}
+.erp-compact-preview .erp-principal-box h3,
+.erp-compact-preview .erp-learning-box h3 {
+  margin-bottom: 9px;
+}
+.erp-compact-preview .erp-principal-box button {
+  min-height: 34px;
+  padding: 7px 9px;
+  margin: 4px 0;
+  font-size: 12px;
+  gap: 10px;
+}
+.erp-compact-preview .erp-principal-attendance {
+  padding: 13px;
+  border-radius: 9px;
+  gap: 12px;
+}
+.erp-compact-preview .erp-principal-attendance h3 {
+  font-size: 23px;
+  margin: 4px 0;
+}
+.erp-compact-preview .erp-section-tabs {
+  gap: 17px;
+  margin-bottom: 13px;
+}
+.erp-compact-preview .erp-section-tabs button {
+  min-height: 35px;
+  padding: 7px 1px;
+  font-size: 12px;
+}
+.erp-compact-preview .erp-learning-child {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 13px;
+}
+.erp-compact-preview .erp-learning-child h3 {
+  font-size: 16px;
+}
+.erp-compact-preview .erp-learning-link {
+  padding: 9px 0 !important;
+}
+.erp-compact-preview .erp-child-card {
+  padding: 14px;
+  border-radius: 9px;
+}
+.erp-compact-preview .erp-portal-section-heading {
+  margin-bottom: 11px;
+  gap: 10px;
+}
+.erp-compact-preview .erp-directory-help {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.erp-compact-preview .erp-portal-form {
+  padding: 13px;
+  gap: 11px;
+  border-radius: 8px;
+}
+.erp-compact-preview .erp-operations-create,
+.erp-compact-preview .erp-learning-editor {
+  padding: 10px 13px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+.erp-compact-preview .erp-portal-record {
+  padding: 13px;
+  border-radius: 9px;
+}
+.erp-compact-preview .erp-portal-record h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.erp-compact-preview .erp-portal-record p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 7px 0;
+}
+.erp-compact-preview .erp-portal-record header {
+  gap: 10px;
+}
+.erp-compact-preview .erp-portal-record blockquote {
+  margin: 9px 0;
+  padding: 9px 11px;
+}
+.erp-compact-preview .erp-portal-record details {
+  margin-top: 9px;
+}
+.erp-compact-preview .erp-record-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+.erp-compact-preview .erp-preview-record-slot {
+  min-width: 0;
+  height: 100%;
+}
+.erp-compact-preview .erp-preview-record-slot > .erp-portal-record {
+  height: 100%;
+}
+.erp-compact-preview .erp-directory-list.erp-record-preview {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.erp-compact-preview .erp-directory-row {
+  padding: 11px 0;
+  font-size: 12px;
+}
+.erp-compact-preview .erp-record-preview-tools,
+.erp-compact-preview .erp-record-pager {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  font-size: 11px;
+}
+.erp-compact-preview .erp-record-preview-tools > span {
+  color: #61756a;
+  white-space: nowrap;
+}
+.erp-compact-preview .erp-record-search {
+  position: relative;
+  max-width: 350px;
+  width: 100%;
+}
+.erp-compact-preview .erp-record-search > svg {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  color: #657c6c;
+}
+.erp-compact-preview .erp-record-search input {
+  padding-left: 31px;
+  min-height: 34px;
+}
+.erp-compact-preview .erp-record-pager {
+  padding-top: 9px;
+  border-top: 1px solid var(--erp-line);
+  flex-wrap: wrap;
+}
+.erp-compact-preview .erp-record-pager > output:first-child {
+  margin-right: auto;
+  color: #5a7064;
+}
+.erp-compact-preview .erp-record-pager label {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  font-weight: 400;
+  font-size: 11px;
+}
+.erp-compact-preview .erp-record-pager select {
+  min-height: 30px;
+  width: 54px;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+.erp-compact-preview .erp-record-pager button {
+  min-height: 30px;
+  width: 32px;
+  padding: 4px;
+}
+.erp-compact-preview .erp-record-pager button:disabled {
+  cursor: default;
+}
+.erp-compact-preview .erp-preview-no-match {
+  grid-column: 1 / -1;
+  padding: 16px 0;
+  color: #607367;
+}
+.erp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.erp-compact-preview .erp-table th {
+  padding: 9px 11px;
+  font-size: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.erp-compact-preview .erp-table td {
+  padding: 9px 11px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.erp-compact-preview .erp-scroll,
+.erp-compact-preview .erp-table-wrap {
+  max-height: 360px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.erp-compact-preview .erp-calendar-day {
+  min-height: 56px;
+  padding: 5px;
+}
+.erp-compact-preview .erp-footer {
+  padding: 14px 0;
+  gap: 9px;
+  font-size: 10px;
+}
+.erp-compact-preview .erp-learning,
+.erp-compact-preview .erp-teacher {
+  padding: 0;
+}
+@media (min-width: 1025px) {
+  .erp-compact-preview .erp-layout {
+    grid-template-columns: 216px minmax(0, 1fr);
+  }
+  .erp-compact-preview .erp-principal-box:has(> button) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 9px;
+    align-content: start;
+  }
+  .erp-compact-preview .erp-principal-box:has(> button) > h3 {
+    grid-column: 1 / -1;
+  }
+  .erp-compact-preview .erp-login-story {
+    padding: 40px;
+  }
+  .erp-compact-preview .erp-login-story h1 {
+    font-size: 44px;
+  }
+  .erp-compact-preview .erp-login-form-panel {
+    padding: 34px;
+  }
+}
+@media (max-width: 1024px) {
+  .erp-compact-preview .erp-main {
+    padding: 13px 16px 0;
+  }
+  .erp-compact-preview .erp-sidebar {
+    width: 258px;
+  }
+  .erp-compact-preview .erp-nav > button {
+    min-height: 42px;
+  }
+}
+@media (max-width: 760px) {
+  .erp-compact-preview .erp-topbar {
+    padding: 0 12px;
+    height: 54px;
+  }
+  .erp-compact-preview .erp-main {
+    padding: 10px 12px 0;
+  }
+  .erp-compact-preview .erp-record-preview {
+    grid-template-columns: 1fr;
+  }
+  .erp-compact-preview .erp-principal-grid,
+  .erp-compact-preview .erp-learning-columns {
+    grid-template-columns: 1fr;
+  }
+  .erp-compact-preview .erp-page-title h1 {
+    font-size: 23px;
+  }
+  .erp-compact-preview .erp-card {
+    padding: 13px;
+  }
+  .erp-compact-preview .erp-learning,
+  .erp-compact-preview .erp-teacher {
+    padding: 0;
+  }
+  .erp-compact-preview button,
+  .erp-compact-preview .erp-button,
+  .erp-compact-preview input,
+  .erp-compact-preview select {
+    min-height: 42px;
+  }
+  .erp-compact-preview .erp-record-pager button,
+  .erp-compact-preview .erp-record-pager select {
+    min-height: 40px;
+  }
+  .erp-compact-preview .erp-record-pager button {
+    width: 40px;
+  }
+  .erp-compact-preview .erp-record-pager label {
+    margin-left: auto;
+  }
+  .erp-compact-preview .erp-record-search > svg {
+    top: 14px;
+  }
+  .erp-compact-preview .erp-kpis,
+  .erp-compact-preview .erp-portal-metrics,
+  .erp-compact-preview .erp-learning-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.erp-compact-preview .erp-record-preview {
+  scroll-margin-top: 68px;
+}
+/* Display-contents preserves the existing grid when comparing the regular layout. */
+.erp-shell .erp-preview-record-slot {
+  display: contents;
+}
+.erp-compact-preview .erp-preview-record-slot {
+  display: block;
+}
+.erp-compact-preview-note button {
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #16664f;
+  font-size: 11px;
+  text-decoration: underline;
+}

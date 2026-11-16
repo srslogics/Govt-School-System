@@ -1,4 +1,5 @@
 'use client';
+import { RecordPreview } from './record-preview';
 
 import { useState, type SubmitEvent } from 'react';
 import { attendanceRate, type Workspace } from '@/lib/erp/model';
@@ -510,7 +511,10 @@ export function MunicipalPriorities({
           <option value="closed">Closed priorities</option>
         </select>
       </label>
-      <div className="erp-portal-records">
+      <RecordPreview
+        className="erp-portal-records"
+        label="Municipal priorities"
+      >
         {priorities.map((row) => (
           <article
             className="erp-portal-record"
@@ -629,7 +633,7 @@ export function MunicipalPriorities({
             </details>
           </article>
         ))}
-      </div>
+      </RecordPreview>
       {!priorities.length && (
         <p>No municipal priorities match this school and filter.</p>
       )}
