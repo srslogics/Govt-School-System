@@ -8,6 +8,36 @@ const requestBudget = 192 * 1024;
 const rowBudget = 64 * 1024;
 const stagingTable = 'erp_sample_import';
 
+// Reads and run-scoped upserts can be retried after a dropped HTTP socket.
+// The final business-data commit is deliberately never blindly retried.
+export async function sampleStep<T>(
+  phase: string,
+  operation: () => Promise<T>,
+  retrySafe = false,
+): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (
+        retrySafe &&
+        attempt < 2 &&
+        error instanceof TypeError &&
+        error.message === 'fetch failed'
+      ) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 100 * (attempt + 1)),
+        );
+        continue;
+      }
+      throw new Error(
+        `Sample ${phase}: ${error instanceof Error ? error.message : 'operation failed'}`,
+        { cause: error },
+      );
+    }
+  }
+}
+
 /** Upload isolated, bounded chunks without holding an interactive transaction.
  * Business rows and the completion marker become visible in one guarded commit.
  * Failed imports discard only their own staging rows and never reset user data.
@@ -19,16 +49,21 @@ export async function commitSampleGroups(
 ) {
   const runId = randomUUID();
   const createdAt = Date.now();
-  await atomicBatch(db, [
-    {
-      sql: `CREATE TABLE IF NOT EXISTS ${stagingTable} (run_id TEXT NOT NULL, slot INTEGER NOT NULL, table_name TEXT NOT NULL, payload TEXT NOT NULL CHECK(json_valid(payload)), created_at INTEGER NOT NULL, PRIMARY KEY(run_id,slot))`,
-      args: [],
-    },
-    {
-      sql: `DELETE FROM ${stagingTable} WHERE created_at<?`,
-      args: [createdAt - 24 * 60 * 60 * 1000],
-    },
-  ]);
+  await sampleStep(
+    'staging setup',
+    () =>
+      atomicBatch(db, [
+        {
+          sql: `CREATE TABLE IF NOT EXISTS ${stagingTable} (run_id TEXT NOT NULL, slot INTEGER NOT NULL, table_name TEXT NOT NULL, payload TEXT NOT NULL CHECK(json_valid(payload)), created_at INTEGER NOT NULL, PRIMARY KEY(run_id,slot))`,
+          args: [],
+        },
+        {
+          sql: `DELETE FROM ${stagingTable} WHERE created_at<?`,
+          args: [createdAt - 24 * 60 * 60 * 1000],
+        },
+      ]),
+    true,
+  );
   let committed = false;
   try {
     const uploads: InStatement[] = [];
@@ -41,7 +76,7 @@ export async function commitSampleGroups(
       const stage = () => {
         if (!chunk.length) return;
         uploads.push({
-          sql: `INSERT INTO ${stagingTable} VALUES (?,?,?,?,?)`,
+          sql: `INSERT INTO ${stagingTable} VALUES (?,?,?,?,?) ON CONFLICT(run_id,slot) DO NOTHING`,
           args: [runId, slot++, group.table, `[${chunk.join(',')}]`, createdAt],
         });
         chunk = [];
@@ -65,14 +100,20 @@ export async function commitSampleGroups(
       if (bytes > requestBudget)
         throw new Error('Sample upload exceeds the request limit.');
       if (size + bytes > requestBudget) {
-        await atomicBatch(db, batch);
+        const uploading = batch;
+        await sampleStep(
+          'staging upload',
+          () => atomicBatch(db, uploading),
+          true,
+        );
         batch = [];
         size = 2;
       }
       batch.push(statement);
       size += bytes;
     }
-    if (batch.length) await atomicBatch(db, batch);
+    if (batch.length)
+      await sampleStep('staging upload', () => atomicBatch(db, batch), true);
     const inserts: InStatement[] = groups
       .filter((g) => g.rows.length)
       .map((group) => {
@@ -84,11 +125,13 @@ export async function commitSampleGroups(
           args: [runId, group.table],
         };
       });
-    await atomicBatch(db, [
-      ...guards,
-      ...inserts,
-      { sql: `DELETE FROM ${stagingTable} WHERE run_id=?`, args: [runId] },
-    ]);
+    await sampleStep('final commit', () =>
+      atomicBatch(db, [
+        ...guards,
+        ...inserts,
+        { sql: `DELETE FROM ${stagingTable} WHERE run_id=?`, args: [runId] },
+      ]),
+    );
     committed = true;
   } finally {
     if (!committed) {

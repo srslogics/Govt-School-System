@@ -1,5 +1,5 @@
 import { seedExpandedDemo } from './expanded-demo';
-import { write, type Database } from './database';
+import { one, write, type Database } from './database';
 import { authenticate, clearSession, login, sessionCookie } from './auth';
 import {
   getRegister,
@@ -108,12 +108,29 @@ export function createHandler(db: Database, publicOrigin?: string) {
           : {};
       const account = await authenticate(db, request);
       if (path.length === 1) {
-        if (endpoint === 'sample-data' && method === 'POST') {
+        if (endpoint === 'sample-data') {
           if (account.role !== 'administrator')
             throw new ErpError(
               403,
               'Only the setup administrator can load fictional sample content.',
             );
+          if (method === 'GET') {
+            const revision = process.env.RENDER_GIT_COMMIT;
+            return json({
+              release:
+                revision && /^[a-f0-9]{40}$/i.test(revision)
+                  ? revision.slice(0, 7)
+                  : null,
+              ...(await one<{
+                schools: number;
+                learners: number;
+                expanded: number;
+              }>(
+                db,
+                "SELECT (SELECT COUNT(*) FROM school) AS schools,(SELECT COUNT(*) FROM enrolment) AS learners,EXISTS(SELECT 1 FROM school_activity WHERE id='ss49-expanded-sample-v1') AS expanded",
+              )),
+            });
+          }
           if (body.action !== 'expand')
             throw new ErpError(400, 'Choose the sample expansion action.');
           try {
@@ -142,7 +159,16 @@ export function createHandler(db: Database, publicOrigin?: string) {
                         message: clean(error.message),
                         cause:
                           error.cause instanceof Error
-                            ? clean(error.cause.message)
+                            ? clean(
+                                [
+                                  error.cause.message,
+                                  error.cause.cause instanceof Error
+                                    ? error.cause.cause.message
+                                    : '',
+                                ]
+                                  .filter(Boolean)
+                                  .join(': '),
+                              )
                             : undefined,
                       }
                     : { name: 'Unknown error' },

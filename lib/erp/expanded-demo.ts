@@ -1,8 +1,11 @@
-import { commitSampleGroups, type SampleGroup } from './sample-batch';
-import type { InStatement } from '@libsql/client';
-import { randomBytes } from 'node:crypto';
-import { passwordHash } from './auth';
-import { many, one, type Database } from './database';
+import {
+  commitSampleGroups,
+  sampleStep,
+  type SampleGroup,
+} from './sample-batch';
+import type { InStatement, InArgs } from '@libsql/client';
+import { randomBytes, scrypt } from 'node:crypto';
+import { many, one, type Database, type Query } from './database';
 import { fictionalAccounts } from './seed';
 import { todayInNagpur } from './model';
 
@@ -125,7 +128,20 @@ export async function seedExpandedDemo(
   today = todayInNagpur(),
 ) {
   if (!enabled(origin, env)) return 'not enabled';
-  const tx = db;
+  const tx: Query = {
+    execute(statement: InStatement, args?: InArgs) {
+      const sql = typeof statement === 'string' ? statement : statement.sql;
+      const label = /\bFROM\s+([a-z_]+)/i.exec(sql)?.[1] ?? 'snapshot';
+      return sampleStep(
+        `read ${label}`,
+        () =>
+          typeof statement === 'string'
+            ? db.execute(statement, args)
+            : db.execute(statement),
+        true,
+      );
+    },
+  };
   {
     const done = await one(
       tx,
@@ -236,7 +252,7 @@ export async function seedExpandedDemo(
       });
     if (!done) {
       for (const school of expected.slice(2)) add('school', school);
-      const staff = (
+      const staff = async (
         id: string,
         name: string,
         role: string,
@@ -248,7 +264,12 @@ export async function seedExpandedDemo(
           username: id,
           name,
           role,
-          password_hash: passwordHash(randomBytes(32).toString('hex')),
+          password_hash: await new Promise<string>((resolve, reject) => {
+            const salt = randomBytes(16).toString('hex');
+            scrypt(randomBytes(32).toString('hex'), salt, 64, (error, key) =>
+              error ? reject(error) : resolve(salt + ':' + key.toString('hex')),
+            );
+          }),
         });
         add('school_assignment', { account_id: id, school_id: school });
         return id;
@@ -258,7 +279,7 @@ export async function seedExpandedDemo(
         const principal =
           si < 2
             ? `principal.${si === 0 ? 'a' : 'b'}`
-            : staff(
+            : await staff(
                 `${prefix}principal-${si}`,
                 `${['Sunita Deshpande', 'Rajesh Wankhede', 'Farida Sheikh', 'Madhuri Joshi', 'Vijay Meshram', 'Nisha Borkar'][si - 2]} (Sample)`,
                 'principal',
@@ -269,7 +290,7 @@ export async function seedExpandedDemo(
         if (si > 0 && si < 4)
           add('school_assignment', { account_id: officer, school_id: school });
         if (si >= 4)
-          staff(
+          await staff(
             officer,
             `${['Anil Patil', 'Shabana Khan', 'Pravin Tayade', 'Seema More'][si - 4]} (Sample)`,
             'officer',
@@ -278,7 +299,7 @@ export async function seedExpandedDemo(
         const librarian =
           si === 0
             ? 'library.a'
-            : staff(
+            : await staff(
                 `${prefix}librarian-${si}`,
                 `${['Rekha', 'Pooja', 'Sameer', 'Asha', 'Imran', 'Geeta', 'Leena'][si - 1]} (Sample)`,
                 'librarian',
@@ -287,7 +308,7 @@ export async function seedExpandedDemo(
         const support =
           si === 0
             ? 'support.a'
-            : staff(
+            : await staff(
                 `${prefix}support-${si}`,
                 `${['Mahesh', 'Ramesh', 'Suresh', 'Salim', 'Prakash', 'Sanjay', 'Deepak'][si - 1]} (Sample)`,
                 'support',
@@ -296,7 +317,7 @@ export async function seedExpandedDemo(
         const clerk =
           si === 0
             ? 'office.a'
-            : staff(
+            : await staff(
                 `${prefix}clerk-${si}`,
                 `School records coordinator ${si + 1} (Sample)`,
                 'clerk',
@@ -305,7 +326,7 @@ export async function seedExpandedDemo(
         const accountant =
           si === 0
             ? 'accounts.a'
-            : staff(
+            : await staff(
                 `${prefix}accounts-${si}`,
                 `Accounts coordinator ${si + 1} (Sample)`,
                 'accountant',
@@ -340,7 +361,7 @@ export async function seedExpandedDemo(
           const teacher =
             ci === 0 && si < 2
               ? `teacher.${si === 0 ? 'a' : 'b'}`
-              : staff(
+              : await staff(
                   `${prefix}teacher-${si}-${ci}`,
                   `${['Priya Kulkarni', 'Nilesh Meshram', 'Shweta Patil', 'Imran Sheikh', 'Pallavi Joshi', 'Sachin Borkar', 'Rashmi Verma', 'Anjali More'][si]} ${ci === 0 ? '' : 'B'} (Sample)`,
                   'teacher',
