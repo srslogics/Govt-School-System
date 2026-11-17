@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f5f7fa"/>
+  <rect width="1200" height="76" fill="#20242c"/>
+  <text x="64" y="47" fill="#fff" font-family="Arial, sans-serif" font-size="22" font-weight="700">SS49</text>
+  <text x="145" y="46" fill="#d1d7e0" font-family="Arial, sans-serif" font-size="15">D1T1TECH (OPC) PRIVATE LIMITED</text>
+  <rect x="64" y="137" width="48" height="5" rx="2" fill="#2563eb"/>
+  <text x="64" y="220" fill="#20242c" font-family="Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="-2">Shiksha-Setu</text>
+  <text x="67" y="272" fill="#2563eb" font-family="Arial, sans-serif" font-size="30" font-weight="700">School ERP</text>
+  <text x="67" y="328" fill="#556277" font-family="Arial, sans-serif" font-size="23">School operations. Connected.</text>
+  <g font-family="Arial, sans-serif" font-size="18" fill="#334155">
+    <rect x="64" y="377" width="510" height="63" rx="6" fill="#fff" stroke="#dce2ea"/>
+    <rect x="64" y="451" width="510" height="63" rx="6" fill="#fff" stroke="#dce2ea"/>
+    <circle cx="91" cy="409" r="5" fill="#2563eb"/>
+    <circle cx="91" cy="483" r="5" fill="#2563eb"/>
+    <text x="111" y="415">Attendance, academics and family updates</text>
+    <text x="111" y="489">School management and officer oversight</text>
+  </g>
+  <g transform="translate(665 151)">
+    <rect width="470" height="350" rx="10" fill="#fff" stroke="#dce2ea"/>
+    <path d="M10 0H460a10 10 0 0 1 10 10V43H0V10A10 10 0 0 1 10 0" fill="#20242c"/>
+    <circle cx="19" cy="21" r="4" fill="#64748b"/><circle cx="34" cy="21" r="4" fill="#64748b"/><circle cx="49" cy="21" r="4" fill="#64748b"/>
+    <rect x="0" y="43" width="89" height="297" fill="#f1f4f8"/>
+    <rect x="12" y="68" width="65" height="22" rx="3" fill="#dbeafe"/>
+    <path d="M18 79H69M18 110H63M18 142H62M18 174H55M18 206H64" stroke="#a3afbf" stroke-width="4"/>
+    <g font-family="Arial, sans-serif" fill="#334155">
+      <text x="108" y="79" font-size="17" font-weight="700">School overview</text>
+      <rect x="108" y="100" width="163" height="69" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+      <rect x="284" y="100" width="163" height="69" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="122" y="124" font-size="12">Attendance</text><text x="122" y="151" font-size="18" font-weight="700">Daily records</text>
+      <text x="298" y="124" font-size="12">Academics</text><text x="298" y="151" font-size="18" font-weight="700">Student progress</text>
+      <text x="108" y="202" font-size="14" font-weight="700">Follow-ups and school updates</text>
+      <path d="M108 225H447M108 264H447M108 303H447" stroke="#e2e8f0"/>
+      <text x="108" y="249" font-size="12">Class registers</text><text x="368" y="249" font-size="12" fill="#2563eb">Review</text>
+      <text x="108" y="288" font-size="12">School requests</text><text x="368" y="288" font-size="12" fill="#2563eb">Open</text>
+      <text x="108" y="327" font-size="12">Parent communication</text><text x="368" y="327" font-size="12" fill="#2563eb">View</text>
+    </g>
+  </g>
+  <path d="M64 550H1136" stroke="#dce2ea"/>
+  <text x="64" y="590" fill="#64748b" font-family="Arial, sans-serif" font-size="16">Interactive demonstration</text>
+  <text x="1136" y="590" text-anchor="end" fill="#20242c" font-family="Arial, sans-serif" font-size="17" font-weight="700">ss49d1t1tech.in</text>
+</svg>
