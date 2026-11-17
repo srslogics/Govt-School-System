@@ -8,7 +8,8 @@ const siteUrl =
       process.env.RENDER_EXTERNAL_URL ||
       'https://govt-school-system.onrender.com/',
   ).origin + '/';
-const previewImage = `${siteUrl}og.png?v=3`;
+const previewImage = `${siteUrl}ss49-school-erp-preview.jpg`;
+const erpUrl = `${siteUrl}erp`;
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -22,31 +23,31 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: 'Shikshan Setu | Nagpur School Command Centre',
+  title: 'Shiksha-Setu | School ERP by SS49',
   description:
     'Shiksha-Setu connects school operations, families, staff and education officers.',
-  alternates: { canonical: siteUrl },
+  alternates: { canonical: erpUrl },
   openGraph: {
-    title: 'Shikshan Setu | Nagpur School Command Centre',
+    title: 'Shiksha-Setu | School ERP by SS49',
     description:
       'Connected school operations for families, staff and education officers.',
-    url: siteUrl,
-    siteName: 'Shikshan Setu',
+    url: erpUrl,
+    siteName: 'Shiksha-Setu',
     type: 'website',
     images: [
       {
         url: previewImage,
         secureUrl: previewImage,
-        type: 'image/png',
-        width: 1731,
-        height: 909,
-        alt: 'Shikshan Setu — Nagpur School Command Centre',
+        type: 'image/jpeg',
+        width: 1200,
+        height: 630,
+        alt: 'Shiksha-Setu School ERP by SS49 D1T1TECH (OPC) PRIVATE LIMITED',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Shikshan Setu | Nagpur School Command Centre',
+    title: 'Shiksha-Setu | School ERP by SS49',
     description:
       'Connected school operations for families, staff and education officers.',
     images: [previewImage],
